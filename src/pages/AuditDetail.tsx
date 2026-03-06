@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ChevronRight, Download, ShieldCheck, CheckCircle2, AlertTriangle, XCircle, FileText, Paperclip } from "lucide-react";
+import { ChevronRight, Download, ShieldCheck, CheckCircle2, AlertTriangle, XCircle, FileText, Plus, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { audits, findings, auditDocuments, rfis, type FindingStatus } from "@/lib/mockData";
+import { Textarea } from "@/components/ui/textarea";
+import { audits, findings, auditDocuments, rfis, auditNotes, type FindingStatus } from "@/lib/mockData";
+import { RFISplitPanel } from "@/components/RFISplitPanel";
 
 const findingIcon = (s: FindingStatus) => {
   if (s === "Pass") return <CheckCircle2 className="h-4 w-4 text-status-pass" />;
@@ -22,23 +25,23 @@ export default function AuditDetail() {
   const { id } = useParams();
   const audit = audits.find(a => a.id === id) || audits[0];
   const auditRfis = rfis.filter(r => r.fundName === audit.fundName);
-  const openRfis = auditRfis.filter(r => r.status !== "Resolved");
-  const resolvedRfis = auditRfis.filter(r => r.status === "Resolved");
 
   const passCount = findings.filter(f => f.status === "Pass").length;
   const flagCount = findings.filter(f => f.status === "Flag").length;
 
+  const [noteText, setNoteText] = useState("");
+
   return (
-    <div className="container max-w-6xl py-6 space-y-6 animate-fade-in">
+    <div className="container max-w-6xl py-8 space-y-6 animate-fade-in">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link to="/" className="hover:text-foreground transition-colors">My Audits</Link>
+        <Link to="/audits" className="hover:text-foreground transition-colors">My Audits</Link>
         <ChevronRight className="h-3.5 w-3.5" />
         <span className="text-foreground font-medium">{audit.fundName}</span>
       </div>
 
       {/* Header Card */}
-      <div className="rounded-xl border bg-card p-6">
+      <div className="rounded-xl bg-card p-6" style={{ boxShadow: "var(--shadow-card)" }}>
         <div className="flex items-start justify-between">
           <div>
             <h1 className="font-serif-display text-2xl font-semibold">{audit.fundName}</h1>
@@ -46,7 +49,7 @@ export default function AuditDetail() {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
-            <Button variant="accent" size="sm"><ShieldCheck className="h-4 w-4 mr-1.5" />Approve & Sign</Button>
+            <Button variant="accent" size="sm" className="shadow-sm"><ShieldCheck className="h-4 w-4 mr-1.5" />Approve & Sign</Button>
           </div>
         </div>
         <div className="flex items-center gap-4 mt-4 text-sm">
@@ -63,11 +66,11 @@ export default function AuditDetail() {
           <TabsTrigger value="findings">AI Findings</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="rfis">RFIs</TabsTrigger>
+          <TabsTrigger value="notes">Audit Notes</TabsTrigger>
         </TabsList>
 
         {/* Findings Tab */}
         <TabsContent value="findings" className="space-y-4">
-          {/* Opinion Banner */}
           <div className="flex items-center gap-3 rounded-xl bg-status-pass/10 border border-status-pass/20 p-4">
             <CheckCircle2 className="h-5 w-5 text-status-pass shrink-0" />
             <div>
@@ -76,10 +79,9 @@ export default function AuditDetail() {
             </div>
           </div>
 
-          {/* Findings Grid */}
           <div className="grid gap-4 md:grid-cols-2">
             {findings.map(f => (
-              <div key={f.area} className="rounded-xl border bg-card p-4 space-y-2 transition-all hover:shadow-sm">
+              <div key={f.area} className="rounded-xl bg-card p-4 space-y-2 transition-all duration-200 hover:-translate-y-0.5" style={{ boxShadow: "var(--shadow-card)" }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {findingIcon(f.status)}
@@ -97,10 +99,10 @@ export default function AuditDetail() {
         {/* Documents Tab */}
         <TabsContent value="documents" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border bg-card p-5 space-y-3">
+            <div className="rounded-xl bg-card p-5 space-y-3" style={{ boxShadow: "var(--shadow-card)" }}>
               <h3 className="font-serif-display font-semibold">Pre-Audit Documents</h3>
               {["Engagement Letter.pdf", "Trustee Representation Letter.pdf"].map(doc => (
-                <div key={doc} className="flex items-center justify-between rounded-lg border p-3">
+                <div key={doc} className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{doc}</span>
@@ -109,10 +111,10 @@ export default function AuditDetail() {
                 </div>
               ))}
             </div>
-            <div className="rounded-xl border bg-card p-5 space-y-3">
+            <div className="rounded-xl bg-card p-5 space-y-3" style={{ boxShadow: "var(--shadow-card)" }}>
               <h3 className="font-serif-display font-semibold">Audit Documents</h3>
               {auditDocuments.map(doc => (
-                <div key={doc.name} className="flex items-center justify-between rounded-lg border p-3">
+                <div key={doc.name} className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     <div>
@@ -130,34 +132,48 @@ export default function AuditDetail() {
           </div>
         </TabsContent>
 
-        {/* RFIs Tab */}
-        <TabsContent value="rfis" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border bg-card p-5 space-y-3">
-              <h3 className="font-serif-display font-semibold">Open RFIs</h3>
-              {openRfis.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No open RFIs for this fund.</p>
-              ) : openRfis.map(rfi => (
-                <div key={rfi.id} className="rounded-lg border p-3 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{rfi.title}</span>
-                    <Badge variant={rfi.priority === "High" ? "high" : rfi.priority === "Med" ? "medium" : "low"}>{rfi.priority}</Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{rfi.category} · {rfi.timeAgo}</p>
-                </div>
-              ))}
+        {/* RFIs Tab — Zendesk split panel scoped to this fund */}
+        <TabsContent value="rfis">
+          <RFISplitPanel rfis={auditRfis} showRaiseButton className="h-[calc(100vh-22rem)]" />
+        </TabsContent>
+
+        {/* Audit Notes Tab */}
+        <TabsContent value="notes" className="space-y-4">
+          <div className="rounded-xl bg-card p-5 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif-display font-semibold flex items-center gap-2">
+                <StickyNote className="h-4 w-4 text-muted-foreground" />
+                Internal Notes
+              </h3>
+              <span className="text-xs text-muted-foreground">Not shared with accountant</span>
             </div>
-            <div className="rounded-xl border bg-card p-5 space-y-3">
-              <h3 className="font-serif-display font-semibold">Resolved RFIs</h3>
-              {resolvedRfis.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No resolved RFIs for this fund.</p>
-              ) : resolvedRfis.map(rfi => (
-                <div key={rfi.id} className="rounded-lg border p-3 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{rfi.title}</span>
-                    <Badge variant="pass">Resolved</Badge>
+
+            {/* Add note */}
+            <div className="space-y-2">
+              <Textarea
+                placeholder="Add an internal note…"
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                className="min-h-[80px] resize-none"
+              />
+              <div className="flex justify-end">
+                <Button variant="accent" size="sm" disabled={!noteText.trim()}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Note
+                </Button>
+              </div>
+            </div>
+
+            {/* Existing notes */}
+            <div className="space-y-3 pt-2 border-t">
+              {auditNotes.map(note => (
+                <div key={note.id} className="rounded-lg border p-3 space-y-1">
+                  <p className="text-sm leading-relaxed">{note.text}</p>
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <span className="font-medium">{note.author}</span>
+                    <span>·</span>
+                    <span>{note.timestamp}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{rfi.category} · {rfi.timeAgo}</p>
                 </div>
               ))}
             </div>
