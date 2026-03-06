@@ -3,8 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import { TopNav } from "@/components/TopNav";
+import MyAudits from "@/pages/MyAudits";
+import AuditDetail from "@/pages/AuditDetail";
+import MyRFIs from "@/pages/MyRFIs";
+import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -14,9 +17,11 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <TopNav />
         <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/" element={<MyAudits />} />
+          <Route path="/audit/:id" element={<AuditDetail />} />
+          <Route path="/rfis" element={<MyRFIs />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
