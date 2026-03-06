@@ -6,47 +6,58 @@
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
+    --background: 222 18% 96%;
     --foreground: 226 30% 14%;
 
-    --card: 0 0% 100%;
+    --card: 210 20% 99%;
     --card-foreground: 226 30% 14%;
 
-    --popover: 0 0% 100%;
+    --popover: 210 20% 99%;
     --popover-foreground: 226 30% 14%;
 
-    --primary: 220 30% 26%;
+    --primary: 222 38% 22%;
     --primary-foreground: 220 20% 97%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 30% 26%;
+    --secondary: 220 14% 95%;
+    --secondary-foreground: 222 38% 22%;
 
-    --muted: 220 14% 96%;
+    --muted: 220 14% 95%;
     --muted-foreground: 222 14% 45%;
 
-    --accent: 145 22% 45%;
+    --accent: 155 32% 48%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 90%;
-    --input: 220 13% 90%;
-    --ring: 145 22% 45%;
+    --border: 220 13% 89%;
+    --input: 220 13% 89%;
+    --ring: 155 32% 48%;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
     /* Status colors */
-    --status-pass: 145 50% 42%;
+    --status-pass: 150 45% 40%;
     --status-flag: 38 92% 50%;
-    --status-fail: 0 72% 51%;
+    --status-fail: 0 65% 52%;
     --status-new: 210 60% 55%;
-    --status-in-progress: 38 92% 50%;
+    --status-in-progress: 38 85% 48%;
 
     /* Extended palette */
-    --sage: 145 22% 45%;
-    --sage-light: 145 22% 95%;
-    --slate-deep: 220 30% 26%;
+    --sage: 155 32% 48%;
+    --sage-light: 155 28% 95%;
+    --slate-deep: 222 38% 22%;
+    --gold-warm: 40 60% 58%;
+
+    /* Nav */
+    --nav: 224 42% 18%;
+    --nav-foreground: 220 20% 90%;
+    --nav-accent: 155 40% 52%;
+
+    /* Premium shadows */
+    --shadow-card: 0 2px 8px rgba(27, 37, 65, 0.06), 0 1px 3px rgba(27, 37, 65, 0.04);
+    --shadow-card-hover: 0 8px 24px rgba(27, 37, 65, 0.1), 0 2px 6px rgba(27, 37, 65, 0.06);
+    --shadow-nav: 0 1px 3px rgba(27, 37, 65, 0.12), 0 1px 2px rgba(27, 37, 65, 0.06);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -77,5 +88,22 @@
 @layer utilities {
   .font-serif-display {
     font-family: 'Fraunces', serif;
+  }
+
+  .card-shadow {
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-shadow-hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .card-premium {
+    @apply rounded-xl bg-card card-shadow transition-all duration-200;
+  }
+
+  .card-premium:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
   }
 }

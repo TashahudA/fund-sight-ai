@@ -13,7 +13,7 @@ interface NewAuditModalProps {
 export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle className="font-serif-display text-xl">Start New SMSF Audit</DialogTitle>
           <DialogDescription>Upload the fund pack and we'll run AI-powered compliance analysis.</DialogDescription>
@@ -75,7 +75,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
           {/* Upload zone */}
           <div className="space-y-2">
             <Label>Upload Fund Pack</Label>
-            <div className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-input p-8 text-center transition-colors hover:border-accent hover:bg-accent/5 cursor-pointer">
+            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-input p-8 text-center transition-all duration-200 hover:border-accent hover:bg-accent/[0.03] cursor-pointer">
               <CloudUpload className="h-8 w-8 text-muted-foreground" />
               <p className="text-sm font-medium">Drop files here or click to browse</p>
               <p className="text-xs text-muted-foreground">PDF, XLSX, CSV, JPG, PNG accepted</p>
@@ -85,7 +85,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button variant="accent" className="gap-2">
+          <Button variant="accent" className="gap-2 shadow-md">
             <Zap className="h-4 w-4" />
             Run AI Audit — $20
           </Button>

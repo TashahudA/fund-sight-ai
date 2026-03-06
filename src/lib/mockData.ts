@@ -52,6 +52,13 @@ export interface AuditDocument {
   date: string;
 }
 
+export interface AuditNote {
+  id: string;
+  text: string;
+  timestamp: string;
+  author: string;
+}
+
 export const audits: Audit[] = [
   { id: "1", fundName: "Smith Family Super Fund", firmName: "BDO Australia", year: "2024-25", status: "In Progress", dateCreated: "2025-02-14", opinion: null, auditor: "James Mitchell", dateRequested: "2025-02-10", turnaround: "4.2 hrs" },
   { id: "2", fundName: "Johnson Retirement Fund", firmName: "PKF Melbourne", year: "2024-25", status: "Complete", dateCreated: "2025-01-28", opinion: "Unqualified", auditor: "James Mitchell", dateRequested: "2025-01-25", turnaround: "3.8 hrs" },
@@ -135,4 +142,10 @@ export const rfis: RFI[] = [
       { id: "m12", sender: "Maria Lopez", senderType: "accountant", text: "Apologies, attaching them now.", timestamp: "2025-01-21 08:45", attachments: ["Trustee_Declaration_Garcia_2025.pdf"] },
     ],
   },
+];
+
+export const auditNotes: AuditNote[] = [
+  { id: "n1", text: "Initial document review complete. All key documents received except March bank statement.", timestamp: "2025-02-15 10:30", author: "James Mitchell" },
+  { id: "n2", text: "Flagged pension minimum issue — awaiting confirmation from accountant on June payment.", timestamp: "2025-02-16 14:00", author: "James Mitchell" },
+  { id: "n3", text: "Meeting minutes gap identified for March investment decision. RFI may be needed if not resolved.", timestamp: "2025-02-17 09:15", author: "James Mitchell" },
 ];
