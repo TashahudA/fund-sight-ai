@@ -1,13 +1,23 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bell, Plus, User, ClipboardCheck } from "lucide-react";
+import { Bell, Plus, User, ClipboardCheck, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NewAuditModal } from "@/components/NewAuditModal";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function TopNav() {
   const location = useLocation();
   const [modalOpen, setModalOpen] = useState(false);
+  const { profile, signOut } = useAuth();
+
+  const displayName = profile?.full_name || "User";
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
@@ -63,12 +73,23 @@ export function TopNav() {
               <Bell className="h-4 w-4" />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
             </Button>
-            <div className="flex items-center gap-2 rounded-full bg-nav-foreground/10 px-2.5 py-1.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-nav-accent">
-                <User className="h-3.5 w-3.5 text-accent-foreground" />
-              </div>
-              <span className="text-sm font-medium text-nav-foreground">James M.</span>
-            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-full bg-nav-foreground/10 px-2.5 py-1.5 transition-colors hover:bg-nav-foreground/15">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-nav-accent">
+                    <User className="h-3.5 w-3.5 text-accent-foreground" />
+                  </div>
+                  <span className="text-sm font-medium text-nav-foreground">{displayName}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem onClick={signOut} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </nav>
