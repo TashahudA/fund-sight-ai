@@ -228,7 +228,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
         <DialogFooter className="shrink-0">
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
           <Button variant="accent" className="gap-2 shadow-md" onClick={handleSubmit} disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             {buttonText}
           </Button>
         </DialogFooter>
