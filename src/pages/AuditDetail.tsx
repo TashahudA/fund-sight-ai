@@ -21,6 +21,14 @@ interface AiFinding {
   reference: string;
 }
 
+interface AiFindingsEnvelope {
+  compliance_findings?: AiFinding[];
+  rfis?: any[];
+  opinion?: string;
+  opinion_reasoning?: string;
+  summary?: string;
+}
+
 const normalizeStatus = (s: string): "pass" | "fail" | "needs_info" => {
   const lower = s.toLowerCase();
   if (lower === "pass") return "pass";
