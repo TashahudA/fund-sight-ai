@@ -34,6 +34,7 @@ const priorityVariant = (p: string | null) => {
 interface RFITabProps {
   auditId: string;
   className?: string;
+  onCountChange?: () => void;
 }
 
 export function RFITab({ auditId, className }: RFITabProps) {
