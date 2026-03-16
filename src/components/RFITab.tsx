@@ -65,6 +65,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
       .order("created_at", { ascending: false });
     if (!error && data) setRfis(data);
     setLoading(false);
+    onCountChange?.();
   };
 
   useEffect(() => { fetchRfis(); }, [auditId]);
