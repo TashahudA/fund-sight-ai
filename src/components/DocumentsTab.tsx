@@ -1,10 +1,20 @@
 import { useState, useEffect, useRef } from "react";
-import { FileText, Download, Upload, Loader2, FileX } from "lucide-react";
+import { FileText, Download, Upload, Loader2, FileX, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Document = Tables<"documents">;
 
@@ -18,6 +28,8 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Document | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -82,6 +94,36 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const filePath = `${auditId}/${deleteTarget.file_name}`;
+      const { error: storageError } = await supabase.storage
+        .from("audit-documents")
+        .remove([filePath]);
+      if (storageError) throw storageError;
+
+      const { error: dbError } = await supabase
+        .from("documents")
+        .delete()
+        .eq("id", deleteTarget.id);
+      if (dbError) throw dbError;
+
+      setDocuments((prev) => prev.filter((d) => d.id !== deleteTarget.id));
+      toast({ title: "Document deleted", description: deleteTarget.file_name });
+    } catch (err: any) {
+      toast({
+        title: "Delete failed",
+        description: err.message || "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -92,7 +134,6 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
 
   return (
     <div className="space-y-4">
-      {/* Upload area */}
       <div className="rounded-xl bg-card p-5" style={{ boxShadow: "var(--shadow-card)" }}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-serif-display font-semibold">Audit Documents</h3>
@@ -151,18 +192,49 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
                     </div>
                   </div>
                 </div>
-                {doc.file_url && (
-                  <Button variant="ghost" size="sm" asChild>
-                    <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                      <Download className="h-3.5 w-3.5" />
-                    </a>
+                <div className="flex items-center gap-1 shrink-0">
+                  {doc.file_url && (
+                    <Button variant="ghost" size="sm" asChild>
+                      <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                        <Download className="h-3.5 w-3.5" />
+                      </a>
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setDeleteTarget(doc)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
-                )}
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete document?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{deleteTarget?.file_name}". This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
