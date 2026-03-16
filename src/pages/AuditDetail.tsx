@@ -124,6 +124,25 @@ export default function AuditDetail() {
 
   useEffect(() => { fetchAudit(); fetchCounts(); }, [fetchAudit, fetchCounts]);
 
+  // Auto-trigger AI audit on page load if documents exist but no findings yet
+  const [autoTriggered, setAutoTriggered] = useState(false);
+  useEffect(() => {
+    if (!audit || autoTriggered || runningAudit) return;
+    if (audit.ai_findings) return; // already has findings
+    // Check if documents exist
+    const checkAndRun = async () => {
+      const { count } = await supabase
+        .from("documents")
+        .select("id", { count: "exact", head: true })
+        .eq("audit_id", audit.id);
+      if (count && count > 0) {
+        setAutoTriggered(true);
+        handleRunAudit();
+      }
+    };
+    checkAndRun();
+  }, [audit, autoTriggered, runningAudit]);
+
   const parseFindings = (raw: any): { findings: AiFinding[]; envelope: AiFindingsEnvelope } => {
     if (!raw) return { findings: [], envelope: {} };
     try {
