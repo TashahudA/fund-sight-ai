@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { audit_id, mode, rfi_id, new_document_name } = await req.json();
+    const { audit_id, mode, rfi_id, new_document_name, message } = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -22,6 +22,10 @@ Deno.serve(async (req) => {
 
     if (mode === "rfi_review") {
       return await handleRfiReview(supabase, anthropicKey, audit_id, rfi_id, new_document_name);
+    }
+
+    if (mode === "rfi_chat") {
+      return await handleRfiChat(supabase, anthropicKey, audit_id, rfi_id, message);
     }
 
     // Default mode: full audit

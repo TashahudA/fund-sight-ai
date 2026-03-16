@@ -89,19 +89,41 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
 
   const handleSendMessage = async () => {
     if (!replyText.trim() || !selectedId) return;
+    const messageText = replyText.trim();
     setSending(true);
     const { error } = await supabase.from("rfi_messages").insert({
       rfi_id: selectedId,
-      message: replyText.trim(),
+      message: messageText,
       sender: "auditor",
     });
     if (error) {
       toast({ title: "Error sending message", description: error.message, variant: "destructive" });
-    } else {
-      setReplyText("");
-      await fetchMessages(selectedId);
+      setSending(false);
+      return;
     }
+    setReplyText("");
+    await fetchMessages(selectedId);
     setSending(false);
+
+    // Trigger AI response
+    setAiReviewing(true);
+    try {
+      const { error: fnError } = await supabase.functions.invoke("dynamic-processor", {
+        body: {
+          audit_id: auditId,
+          mode: "rfi_chat",
+          rfi_id: selectedId,
+          message: messageText,
+        },
+      });
+      if (fnError) throw fnError;
+      await Promise.all([fetchMessages(selectedId), fetchRfis()]);
+    } catch (err: any) {
+      console.error("AI chat error:", err);
+      toast({ title: "AI response failed", description: err.message, variant: "destructive" });
+    } finally {
+      setAiReviewing(false);
+    }
   };
 
   const handleResolve = async () => {
