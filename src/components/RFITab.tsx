@@ -327,11 +327,11 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                   <p className="text-sm text-muted-foreground text-center py-8">No messages yet.</p>
                 ) : (
                   messages.map(msg => {
-                    const isClaude = msg.sender === "claude";
+                    const isAI = msg.sender === "claude" || msg.sender === "ai";
                     return (
                       <div key={msg.id} className="flex justify-start">
-                        <div className={`max-w-[75%] rounded-xl px-4 py-3 ${isClaude ? "bg-accent/10 border border-accent/20" : "bg-muted"}`}>
-                          {isClaude && (
+                        <div className={`max-w-[75%] rounded-xl px-4 py-3 ${isAI ? "bg-accent/10 border border-accent/20" : "bg-muted"}`}>
+                          {isAI && (
                             <div className="flex items-center gap-1.5 mb-1.5">
                               <Bot className="h-3.5 w-3.5 text-accent" />
                               <Badge variant="default" className="text-[10px] px-1.5 py-0 bg-accent text-accent-foreground">AI</Badge>
@@ -339,7 +339,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                           )}
                           <p className="text-sm leading-relaxed">{msg.message}</p>
                           <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
-                            <span className="font-medium">{isClaude ? "Auditron" : msg.sender}</span>
+                            <span className="font-medium">{isAI ? "Auditron" : msg.sender}</span>
                             <span>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
                           </div>
                         </div>
