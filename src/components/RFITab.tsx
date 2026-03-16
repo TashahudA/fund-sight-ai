@@ -167,7 +167,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
             audit_id: auditId,
             mode: "rfi_review",
             rfi_id: selectedId,
-            new_document_name: fileNames.join(", "),
+            new_document_name: safeNames.join(", "),
           },
         });
         if (fnError) throw fnError;
