@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Search, Plus, Paperclip, Send, CheckCircle2, Loader2, MessageSquare, ChevronLeft } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, Plus, Paperclip, Send, CheckCircle2, Loader2, MessageSquare, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +44,11 @@ export function RFITab({ auditId, className }: RFITabProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<RFIMessage[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [resolving, setResolving] = useState(false);
+  const [attachUploading, setAttachUploading] = useState(false);
+  const attachInputRef = useRef<HTMLInputElement>(null);
 
   // New RFI form
   const [showForm, setShowForm] = useState(false);
@@ -77,6 +82,79 @@ export function RFITab({ auditId, className }: RFITabProps) {
     if (selectedId) fetchMessages(selectedId);
     else setMessages([]);
   }, [selectedId]);
+
+  const handleSendMessage = async () => {
+    if (!replyText.trim() || !selectedId) return;
+    setSending(true);
+    const { error } = await supabase.from("rfi_messages").insert({
+      rfi_id: selectedId,
+      message: replyText.trim(),
+      sender: "auditor",
+    });
+    if (error) {
+      toast({ title: "Error sending message", description: error.message, variant: "destructive" });
+    } else {
+      setReplyText("");
+      await fetchMessages(selectedId);
+    }
+    setSending(false);
+  };
+
+  const handleResolve = async () => {
+    if (!selectedId) return;
+    setResolving(true);
+    const { error } = await supabase
+      .from("rfis")
+      .update({ status: "resolved" })
+      .eq("id", selectedId);
+    if (error) {
+      toast({ title: "Error resolving RFI", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "RFI resolved" });
+      await fetchRfis();
+    }
+    setResolving(false);
+  };
+
+  const handleAttachFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedId) return;
+    setAttachUploading(true);
+    try {
+      const filePath = `${auditId}/rfi-responses/${file.name}`;
+      const { error: storageError } = await supabase.storage
+        .from("audit-documents")
+        .upload(filePath, file, { upsert: true });
+      if (storageError) throw storageError;
+
+      const { data: urlData } = supabase.storage
+        .from("audit-documents")
+        .getPublicUrl(filePath);
+
+      const { error: dbError } = await supabase.from("documents").insert({
+        audit_id: auditId,
+        file_name: file.name,
+        file_type: file.type || file.name.split(".").pop() || "unknown",
+        file_url: urlData.publicUrl,
+      });
+      if (dbError) throw dbError;
+
+      // Also post a message about the attachment
+      await supabase.from("rfi_messages").insert({
+        rfi_id: selectedId,
+        message: `📎 Attached file: ${file.name}`,
+        sender: "auditor",
+      });
+
+      toast({ title: "File attached", description: file.name });
+      await fetchMessages(selectedId);
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setAttachUploading(false);
+      if (attachInputRef.current) attachInputRef.current.value = "";
+    }
+  };
 
   const handleCreate = async () => {
     if (!formData.title.trim()) return;
@@ -233,9 +311,41 @@ export function RFITab({ auditId, className }: RFITabProps) {
               </div>
 
               <div className="border-t p-4 flex items-center gap-2">
-                <Input placeholder="Type your reply…" className="flex-1" />
-                <Button variant="accent" size="sm"><Send className="h-4 w-4 mr-1.5" />Send</Button>
-                <Button variant="accent-outline" size="sm"><CheckCircle2 className="h-4 w-4 mr-1.5" />Resolve</Button>
+                <input
+                  ref={attachInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={handleAttachFile}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => attachInputRef.current?.click()}
+                  disabled={attachUploading}
+                >
+                  {attachUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Paperclip className="h-4 w-4" />
+                  )}
+                </Button>
+                <Input
+                  placeholder="Type your reply…"
+                  className="flex-1"
+                  value={replyText}
+                  onChange={e => setReplyText(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+                />
+                <Button variant="accent" size="sm" onClick={handleSendMessage} disabled={sending || !replyText.trim()}>
+                  {sending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Send className="h-4 w-4 mr-1.5" />}
+                  Send
+                </Button>
+                {selected.status !== "resolved" && (
+                  <Button variant="accent-outline" size="sm" onClick={handleResolve} disabled={resolving}>
+                    {resolving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle2 className="h-4 w-4 mr-1.5" />}
+                    Resolve
+                  </Button>
+                )}
               </div>
             </>
           ) : (
