@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      audits: {
+        Row: {
+          ai_findings: Json | null
+          created_at: string | null
+          financial_year: string | null
+          fund_abn: string | null
+          fund_name: string
+          fund_type: string | null
+          id: string
+          opinion: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_findings?: Json | null
+          created_at?: string | null
+          financial_year?: string | null
+          fund_abn?: string | null
+          fund_name: string
+          fund_type?: string | null
+          id?: string
+          opinion?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_findings?: Json | null
+          created_at?: string | null
+          financial_year?: string | null
+          fund_abn?: string | null
+          fund_name?: string
+          fund_type?: string | null
+          id?: string
+          opinion?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          audit_id: string
+          created_at: string | null
+          file_name: string
+          file_type: string | null
+          file_url: string | null
+          id: string
+        }
+        Insert: {
+          audit_id: string
+          created_at?: string | null
+          file_name: string
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+        }
+        Update: {
+          audit_id?: string
+          created_at?: string | null
+          file_name?: string
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_audit_id_fkey"
+            columns: ["audit_id"]
+            isOneToOne: false
+            referencedRelation: "audits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -34,6 +111,82 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      rfi_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          rfi_id: string
+          sender: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          rfi_id: string
+          sender: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          rfi_id?: string
+          sender?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rfi_messages_rfi_id_fkey"
+            columns: ["rfi_id"]
+            isOneToOne: false
+            referencedRelation: "rfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rfis: {
+        Row: {
+          audit_id: string
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          audit_id: string
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          audit_id?: string
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rfis_audit_id_fkey"
+            columns: ["audit_id"]
+            isOneToOne: false
+            referencedRelation: "audits"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
