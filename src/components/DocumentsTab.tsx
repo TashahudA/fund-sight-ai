@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import { sanitizeFileName } from "@/lib/sanitizeFileName";
 import {
   AlertDialog,
   AlertDialogAction,
