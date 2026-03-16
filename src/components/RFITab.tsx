@@ -1,0 +1,308 @@
+import { useState, useEffect } from "react";
+import { Search, Plus, Paperclip, Send, CheckCircle2, Loader2, MessageSquare, ChevronLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import type { Tables } from "@/integrations/supabase/types";
+
+type RFI = Tables<"rfis">;
+type RFIMessage = Tables<"rfi_messages">;
+
+type TabFilter = "open" | "resolved" | "all";
+
+const CATEGORIES = ["Contributions", "Pension", "Investments", "Trust Deed", "Members", "Expenses", "Other"];
+const PRIORITIES = ["Low", "Medium", "High"];
+
+const statusBadgeVariant = (s: string | null) => {
+  if (s === "open") return "new" as const;
+  if (s === "resolved") return "pass" as const;
+  return "secondary" as const;
+};
+
+const priorityVariant = (p: string | null) => {
+  if (p?.toLowerCase() === "high") return "high" as const;
+  if (p?.toLowerCase() === "medium") return "medium" as const;
+  return "low" as const;
+};
+
+interface RFITabProps {
+  auditId: string;
+  className?: string;
+}
+
+export function RFITab({ auditId, className }: RFITabProps) {
+  const [rfis, setRfis] = useState<RFI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<TabFilter>("all");
+  const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<RFIMessage[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+
+  // New RFI form
+  const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ title: "", category: "", priority: "Medium", description: "" });
+
+  const fetchRfis = async () => {
+    const { data, error } = await supabase
+      .from("rfis")
+      .select("*")
+      .eq("audit_id", auditId)
+      .order("created_at", { ascending: false });
+    if (!error && data) setRfis(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchRfis(); }, [auditId]);
+
+  const fetchMessages = async (rfiId: string) => {
+    setLoadingMessages(true);
+    const { data } = await supabase
+      .from("rfi_messages")
+      .select("*")
+      .eq("rfi_id", rfiId)
+      .order("created_at", { ascending: true });
+    if (data) setMessages(data);
+    setLoadingMessages(false);
+  };
+
+  useEffect(() => {
+    if (selectedId) fetchMessages(selectedId);
+    else setMessages([]);
+  }, [selectedId]);
+
+  const handleCreate = async () => {
+    if (!formData.title.trim()) return;
+    setSubmitting(true);
+    const { error } = await supabase.from("rfis").insert({
+      audit_id: auditId,
+      title: formData.title.trim(),
+      category: formData.category || null,
+      priority: formData.priority.toLowerCase(),
+      description: formData.description.trim() || null,
+      status: "open",
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "RFI created" });
+      setShowForm(false);
+      setFormData({ title: "", category: "", priority: "Medium", description: "" });
+      fetchRfis();
+    }
+  };
+
+  const counts = {
+    open: rfis.filter(r => r.status === "open").length,
+    resolved: rfis.filter(r => r.status === "resolved").length,
+    all: rfis.length,
+  };
+
+  const filtered = (() => {
+    let list = rfis;
+    if (tab !== "all") list = list.filter(r => r.status === tab);
+    if (search) list = list.filter(r => r.title.toLowerCase().includes(search.toLowerCase()));
+    return list;
+  })();
+
+  const selected = rfis.find(r => r.id === selectedId);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (rfis.length === 0 && !showForm) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center">
+        <MessageSquare className="h-10 w-10 text-muted-foreground/40 mb-3" />
+        <p className="text-sm text-muted-foreground mb-4">No RFIs raised yet.</p>
+        <Button variant="accent" size="sm" onClick={() => setShowForm(true)}>
+          <Plus className="h-4 w-4" /> Raise RFI
+        </Button>
+        <NewRFIDialog open={showForm} onClose={() => setShowForm(false)} formData={formData} setFormData={setFormData} onSubmit={handleCreate} submitting={submitting} />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className={`flex rounded-xl bg-card overflow-hidden ${className || ""}`} style={{ boxShadow: "var(--shadow-card)" }}>
+        {/* Left Panel */}
+        <div className="flex w-80 shrink-0 flex-col border-r lg:w-96">
+          <div className="p-3 border-b flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="Search RFIs…" className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+            <Button variant="accent" size="sm" className="shrink-0" onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4" /> Raise RFI
+            </Button>
+          </div>
+
+          <div className="flex border-b">
+            {(["open", "resolved", "all"] as TabFilter[]).map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`flex-1 px-2 py-2.5 text-xs font-medium transition-colors border-b-2 capitalize ${
+                  tab === t ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t} <span className="text-muted-foreground">({counts[t]})</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {filtered.map(rfi => (
+              <button
+                key={rfi.id}
+                onClick={() => setSelectedId(rfi.id)}
+                className={`w-full text-left px-4 py-3.5 border-b transition-all duration-150 ${
+                  selectedId === rfi.id
+                    ? "bg-accent/[0.06] border-l-2 border-l-accent"
+                    : "hover:bg-muted/30 border-l-2 border-l-transparent"
+                }`}
+              >
+                <div className="text-sm font-medium leading-snug line-clamp-1">{rfi.title}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{rfi.category || "Uncategorized"}</div>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <Badge variant={priorityVariant(rfi.priority)} className="text-[10px] px-1.5 py-0 capitalize">{rfi.priority || "medium"}</Badge>
+                  <Badge variant={statusBadgeVariant(rfi.status)} className="text-[10px] px-1.5 py-0 capitalize">{rfi.status || "open"}</Badge>
+                  <span className="text-[10px] text-muted-foreground ml-auto">
+                    {rfi.created_at ? new Date(rfi.created_at).toLocaleDateString() : ""}
+                  </span>
+                </div>
+              </button>
+            ))}
+            {filtered.length === 0 && (
+              <div className="p-6 text-center text-sm text-muted-foreground">No RFIs match your filter.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Panel */}
+        <div className="flex flex-1 flex-col">
+          {selected ? (
+            <>
+              <div className="border-b p-5">
+                <h2 className="font-serif-display text-lg font-semibold">{selected.title}</h2>
+                <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground flex-wrap">
+                  <Badge variant={priorityVariant(selected.priority)} className="capitalize">{selected.priority || "medium"}</Badge>
+                  <Badge variant="secondary" className="capitalize">{selected.category || "Uncategorized"}</Badge>
+                  <Badge variant={statusBadgeVariant(selected.status)} className="capitalize">{selected.status || "open"}</Badge>
+                  <span>Raised: {selected.created_at ? new Date(selected.created_at).toLocaleDateString() : "N/A"}</span>
+                </div>
+                {selected.description && (
+                  <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{selected.description}</p>
+                )}
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                {loadingMessages ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                ) : messages.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No messages yet.</p>
+                ) : (
+                  messages.map(msg => (
+                    <div key={msg.id} className="flex justify-start">
+                      <div className="max-w-[75%] rounded-xl px-4 py-3 bg-muted">
+                        <p className="text-sm leading-relaxed">{msg.message}</p>
+                        <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
+                          <span className="font-medium">{msg.sender}</span>
+                          <span>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="border-t p-4 flex items-center gap-2">
+                <Input placeholder="Type your reply…" className="flex-1" />
+                <Button variant="accent" size="sm"><Send className="h-4 w-4 mr-1.5" />Send</Button>
+                <Button variant="accent-outline" size="sm"><CheckCircle2 className="h-4 w-4 mr-1.5" />Resolve</Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+              Select an RFI to view details
+            </div>
+          )}
+        </div>
+      </div>
+
+      <NewRFIDialog open={showForm} onClose={() => setShowForm(false)} formData={formData} setFormData={setFormData} onSubmit={handleCreate} submitting={submitting} />
+    </>
+  );
+}
+
+function NewRFIDialog({ open, onClose, formData, setFormData, onSubmit, submitting }: {
+  open: boolean;
+  onClose: () => void;
+  formData: { title: string; category: string; priority: string; description: string };
+  setFormData: (d: typeof formData) => void;
+  onSubmit: () => void;
+  submitting: boolean;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={v => { if (!v) onClose(); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Raise New RFI</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label>Title</Label>
+            <Input value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} placeholder="e.g. Missing contribution statement" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Category</Label>
+              <Select value={formData.category} onValueChange={v => setFormData({ ...formData, category: v })}>
+                <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Priority</Label>
+              <Select value={formData.priority} onValueChange={v => setFormData({ ...formData, priority: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PRIORITIES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Description</Label>
+            <Textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Describe what's needed…" className="min-h-[100px]" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
+          <Button variant="accent" size="sm" onClick={onSubmit} disabled={!formData.title.trim() || submitting}>
+            {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            Create RFI
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

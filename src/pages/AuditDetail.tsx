@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { findings, rfis, auditNotes, type FindingStatus } from "@/lib/mockData";
-import { RFISplitPanel } from "@/components/RFISplitPanel";
+import { findings, auditNotes, type FindingStatus } from "@/lib/mockData";
+import { RFITab } from "@/components/RFITab";
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -161,7 +161,7 @@ export default function AuditDetail() {
 
         {/* RFIs Tab */}
         <TabsContent value="rfis">
-          <RFISplitPanel rfis={rfis} showRaiseButton className="h-[calc(100vh-22rem)]" />
+          <RFITab auditId={audit.id} className="h-[calc(100vh-22rem)]" />
         </TabsContent>
 
         {/* Audit Notes Tab */}
