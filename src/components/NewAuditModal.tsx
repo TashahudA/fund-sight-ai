@@ -1,17 +1,23 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CloudUpload, Zap, Loader2 } from "lucide-react";
+import { CloudUpload, Zap, Loader2, X, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface NewAuditModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
@@ -22,8 +28,12 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
   const [financialYear, setFinancialYear] = useState("");
   const [fundType, setFundType] = useState("");
   const [firm, setFirm] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
     setFundName("");
@@ -31,18 +41,27 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
     setFinancialYear("");
     setFundType("");
     setFirm("");
+    setFiles([]);
     setError(null);
   };
 
+  const addFiles = useCallback((newFiles: FileList | File[]) => {
+    setFiles((prev) => [...prev, ...Array.from(newFiles)]);
+  }, []);
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+  }, [addFiles]);
+
   const handleSubmit = async () => {
-    if (!user) {
-      setError("You must be logged in to create an audit.");
-      return;
-    }
-    if (!fundName.trim()) {
-      setError("Fund name is required.");
-      return;
-    }
+    if (!user) { setError("You must be logged in to create an audit."); return; }
+    if (!fundName.trim()) { setError("Fund name is required."); return; }
 
     setLoading(true);
     setError(null);
@@ -60,17 +79,52 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
       .select("id")
       .single();
 
-    setLoading(false);
+    if (insertError) { setLoading(false); setError(insertError.message); return; }
 
-    if (insertError) {
-      setError(insertError.message);
-      return;
+    const auditId = data.id;
+
+    if (files.length > 0) {
+      setUploadingFiles(true);
+      try {
+        for (const file of files) {
+          const filePath = `${auditId}/${file.name}`;
+          const { error: storageError } = await supabase.storage
+            .from("audit-documents")
+            .upload(filePath, file, { upsert: true });
+          if (storageError) throw storageError;
+
+          const { data: urlData } = supabase.storage
+            .from("audit-documents")
+            .getPublicUrl(filePath);
+
+          const { error: dbError } = await supabase.from("documents").insert({
+            audit_id: auditId,
+            file_name: file.name,
+            file_type: file.type || file.name.split(".").pop() || "unknown",
+            file_url: urlData.publicUrl,
+          });
+          if (dbError) throw dbError;
+        }
+      } catch (err: any) {
+        setLoading(false);
+        setUploadingFiles(false);
+        setError(`File upload failed: ${err.message}`);
+        return;
+      }
+      setUploadingFiles(false);
     }
 
+    setLoading(false);
     resetForm();
     onOpenChange(false);
-    navigate(`/audits/${data.id}`);
+    navigate(`/audits/${auditId}`);
   };
+
+  const buttonText = uploadingFiles
+    ? "Uploading Files…"
+    : loading
+      ? "Creating…"
+      : "Run AI Audit — $20";
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!loading) { onOpenChange(v); if (!v) resetForm(); } }}>
@@ -98,7 +152,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Financial Year</Label>
               <Select value={financialYear} onValueChange={setFinancialYear}>
@@ -121,17 +175,6 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Members</Label>
-              <Select>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6].map(n => (
-                    <SelectItem key={n} value={String(n)}>{n}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <div className="space-y-2">
@@ -141,11 +184,44 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
 
           <div className="space-y-2">
             <Label>Upload Fund Pack</Label>
-            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-input p-8 text-center transition-all duration-200 hover:border-accent hover:bg-accent/[0.03] cursor-pointer">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.xlsx,.csv,.jpg,.jpeg,.png,.docx"
+              className="hidden"
+              onChange={(e) => { if (e.target.files?.length) { addFiles(e.target.files); e.target.value = ""; } }}
+            />
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-all duration-200 cursor-pointer ${
+                dragOver ? "border-accent bg-accent/10" : "border-input hover:border-accent hover:bg-accent/[0.03]"
+              }`}
+            >
               <CloudUpload className="h-8 w-8 text-muted-foreground" />
               <p className="text-sm font-medium">Drop files here or click to browse</p>
-              <p className="text-xs text-muted-foreground">PDF, XLSX, CSV, JPG, PNG accepted</p>
+              <p className="text-xs text-muted-foreground">PDF, XLSX, CSV, JPG, PNG, DOCX accepted</p>
             </div>
+
+            {files.length > 0 && (
+              <div className="space-y-1.5 mt-2 max-h-32 overflow-y-auto">
+                {files.map((file, i) => (
+                  <div key={`${file.name}-${i}`} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="truncate">{file.name}</span>
+                      <span className="text-muted-foreground text-xs shrink-0">{formatFileSize(file.size)}</span>
+                    </div>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); removeFile(i); }} className="text-muted-foreground hover:text-destructive ml-2 shrink-0">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -153,7 +229,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
           <Button variant="accent" className="gap-2 shadow-md" onClick={handleSubmit} disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-            {loading ? "Creating…" : "Run AI Audit — $20"}
+            {buttonText}
           </Button>
         </DialogFooter>
       </DialogContent>
