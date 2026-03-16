@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { audit_id, mode, rfi_id, new_document_name } = await req.json();
+    const { audit_id, mode, rfi_id, new_document_name, message } = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -22,6 +22,10 @@ Deno.serve(async (req) => {
 
     if (mode === "rfi_review") {
       return await handleRfiReview(supabase, anthropicKey, audit_id, rfi_id, new_document_name);
+    }
+
+    if (mode === "rfi_chat") {
+      return await handleRfiChat(supabase, anthropicKey, audit_id, rfi_id, message);
     }
 
     // Default mode: full audit
@@ -218,6 +222,113 @@ Return JSON:
   });
 
   // Update audit opinion if needed
+  if (parsed.audit_opinion_update && parsed.audit_opinion_update !== "no_change") {
+    const opinionMap: Record<string, string> = {
+      unqualified: "Unqualified",
+      qualified: "Qualified",
+      adverse: "Adverse",
+    };
+    const newOpinion = opinionMap[parsed.audit_opinion_update] || null;
+    if (newOpinion) {
+      await supabase
+        .from("audits")
+        .update({ opinion: newOpinion, updated_at: new Date().toISOString() })
+        .eq("id", auditId);
+    }
+  }
+
+  return new Response(JSON.stringify({ success: true, result: parsed }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+async function handleRfiChat(
+  supabase: any,
+  anthropicKey: string,
+  auditId: string,
+  rfiId: string,
+  userMessage: string
+) {
+  // Fetch audit
+  const { data: audit } = await supabase
+    .from("audits")
+    .select("*")
+    .eq("id", auditId)
+    .single();
+
+  // Fetch the RFI
+  const { data: rfi } = await supabase
+    .from("rfis")
+    .select("*")
+    .eq("id", rfiId)
+    .single();
+
+  // Fetch message history
+  const { data: messages } = await supabase
+    .from("rfi_messages")
+    .select("*")
+    .eq("rfi_id", rfiId)
+    .order("created_at", { ascending: true })
+    .limit(20);
+
+  const history = (messages || [])
+    .map((m: any) => `[${m.sender}]: ${m.message}`)
+    .join("\n");
+
+  const systemPrompt = `You are an SMSF audit compliance AI assistant. You are responding to auditor questions about a specific RFI (Request for Information). Be helpful, concise, and reference relevant compliance standards. Return valid JSON only (no markdown fences).`;
+
+  const userPrompt = `Fund: ${audit?.fund_name || "Unknown"}
+Financial Year: ${audit?.financial_year || "Unknown"}
+
+RFI: ${rfi?.title || "Unknown"}
+Category: ${rfi?.category || "N/A"}
+Description: ${rfi?.description || "N/A"}
+Status: ${rfi?.status || "open"}
+
+Conversation history:
+${history}
+
+The auditor's latest message: "${userMessage}"
+
+Respond as the AI auditor. Return JSON:
+{
+  "response_message": "your helpful response to the auditor",
+  "should_resolve": false,
+  "audit_opinion_update": "no_change"
+}
+
+Set should_resolve to true only if the auditor explicitly confirms the RFI is resolved.`;
+
+  const responseText = await callClaude(anthropicKey, systemPrompt, userPrompt);
+
+  let parsed;
+  try {
+    const match = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    parsed = JSON.parse(match ? match[1] : responseText);
+  } catch {
+    parsed = {
+      response_message: "I was unable to process that. Please try again.",
+      should_resolve: false,
+      audit_opinion_update: "no_change",
+    };
+  }
+
+  // Post AI response
+  await supabase.from("rfi_messages").insert({
+    rfi_id: rfiId,
+    message: parsed.response_message,
+    sender: "ai",
+  });
+
+  // Resolve if indicated
+  if (parsed.should_resolve && rfi?.status === "open") {
+    await supabase
+      .from("rfis")
+      .update({ status: "resolved", updated_at: new Date().toISOString() })
+      .eq("id", rfiId);
+  }
+
+  // Update opinion if needed
   if (parsed.audit_opinion_update && parsed.audit_opinion_update !== "no_change") {
     const opinionMap: Record<string, string> = {
       unqualified: "Unqualified",
