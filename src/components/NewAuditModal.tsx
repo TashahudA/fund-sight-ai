@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CloudUpload, Zap, Loader2, X, FileText } from "lucide-react";
+import { CloudUpload, Plus, Loader2, X, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -124,17 +124,17 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
     ? "Uploading Files…"
     : loading
       ? "Creating…"
-      : "Run AI Audit — $20";
+      : "Create Audit";
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!loading) { onOpenChange(v); if (!v) resetForm(); } }}>
-      <DialogContent className="sm:max-w-lg backdrop-blur-sm">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-lg backdrop-blur-sm max-h-[90vh] flex flex-col">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="font-serif-display text-xl">Start New SMSF Audit</DialogTitle>
           <DialogDescription>Enter fund details to begin AI-powered compliance analysis.</DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-2">
+        <div className="grid gap-4 py-2 overflow-y-auto flex-1 min-h-0">
           {error && (
             <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {error}
@@ -225,10 +225,10 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0">
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
           <Button variant="accent" className="gap-2 shadow-md" onClick={handleSubmit} disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             {buttonText}
           </Button>
         </DialogFooter>
