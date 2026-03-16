@@ -159,8 +159,8 @@ export default function AuditDetail() {
         body: { audit_id: audit.id },
       });
       if (error) throw error;
-      // Refresh audit data to get updated ai_findings, opinion, status
       await fetchAudit();
+      await fetchCounts();
       setActiveTab("findings");
       toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
     } catch (err: any) {
