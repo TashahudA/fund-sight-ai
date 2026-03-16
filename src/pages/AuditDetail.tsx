@@ -94,6 +94,8 @@ export default function AuditDetail() {
   const [noteText, setNoteText] = useState("");
   const [runningAudit, setRunningAudit] = useState(false);
   const [activeTab, setActiveTab] = useState("findings");
+  const [rfiCount, setRfiCount] = useState(0);
+  const [docCount, setDocCount] = useState(0);
 
   const fetchAudit = useCallback(async () => {
     if (!id) { setNotFound(true); setLoading(false); return; }
@@ -110,16 +112,41 @@ export default function AuditDetail() {
     setLoading(false);
   }, [id]);
 
-  useEffect(() => { fetchAudit(); }, [fetchAudit]);
+  const fetchCounts = useCallback(async () => {
+    if (!id) return;
+    const [rfiRes, docRes] = await Promise.all([
+      supabase.from("rfis").select("id", { count: "exact", head: true }).eq("audit_id", id).eq("status", "open"),
+      supabase.from("documents").select("id", { count: "exact", head: true }).eq("audit_id", id),
+    ]);
+    setRfiCount(rfiRes.count ?? 0);
+    setDocCount(docRes.count ?? 0);
+  }, [id]);
 
-  const aiFindings: AiFinding[] = (() => {
-    if (!audit?.ai_findings) return [];
+  useEffect(() => { fetchAudit(); fetchCounts(); }, [fetchAudit, fetchCounts]);
+
+  const parseFindings = (raw: any): { findings: AiFinding[]; envelope: AiFindingsEnvelope } => {
+    if (!raw) return { findings: [], envelope: {} };
     try {
-      const raw = audit.ai_findings;
-      if (Array.isArray(raw)) return raw as unknown as AiFinding[];
-      return [];
-    } catch { return []; }
-  })();
+      let obj = raw;
+      // If it's a string (possibly with markdown fences), extract JSON
+      if (typeof obj === "string") {
+        const match = obj.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (match) obj = JSON.parse(match[1]);
+        else obj = JSON.parse(obj);
+      }
+      // Envelope format: { compliance_findings: [...], opinion, summary, ... }
+      if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+        const envelope = obj as AiFindingsEnvelope;
+        const findings = Array.isArray(envelope.compliance_findings) ? envelope.compliance_findings : [];
+        return { findings: findings as AiFinding[], envelope };
+      }
+      // Direct array format (legacy)
+      if (Array.isArray(obj)) return { findings: obj as AiFinding[], envelope: {} };
+      return { findings: [], envelope: {} };
+    } catch { return { findings: [], envelope: {} }; }
+  };
+
+  const { findings: aiFindings, envelope } = parseFindings(audit?.ai_findings);
 
   const passCount = aiFindings.filter(f => normalizeStatus(f.status) === "pass").length;
   const flagCount = aiFindings.filter(f => normalizeStatus(f.status) !== "pass").length;
