@@ -394,3 +394,57 @@ export default function AuditDetail() {
     </div>
   );
 }
+
+function UploadMoreDocuments({ auditId, onUploaded }: { auditId: string; onUploaded: () => void }) {
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const filePath = `${auditId}/${file.name}`;
+      const { error: storageError } = await supabase.storage
+        .from("audit-documents")
+        .upload(filePath, file, { upsert: true });
+      if (storageError) throw storageError;
+
+      const { data: urlData } = supabase.storage
+        .from("audit-documents")
+        .getPublicUrl(filePath);
+
+      const { error: dbError } = await supabase.from("documents").insert({
+        audit_id: auditId,
+        file_name: file.name,
+        file_type: file.type || file.name.split(".").pop() || "unknown",
+        file_url: urlData.publicUrl,
+      });
+      if (dbError) throw dbError;
+
+      toast({ title: "File uploaded", description: file.name });
+      onUploaded();
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="rounded-xl bg-card p-5 flex items-center justify-between" style={{ boxShadow: "var(--shadow-card)" }}>
+      <div>
+        <p className="text-sm font-medium">Upload additional documents</p>
+        <p className="text-xs text-muted-foreground">Add more files and re-run the audit to update findings.</p>
+      </div>
+      <div>
+        <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.docx" onChange={handleUpload} className="hidden" />
+        <Button variant="accent" size="sm" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+          {uploading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
+          {uploading ? "Uploading…" : "Upload More Documents"}
+        </Button>
+      </div>
+    </div>
+  );
+}
