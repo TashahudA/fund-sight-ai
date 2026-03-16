@@ -124,7 +124,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
     ? "Uploading Files…"
     : loading
       ? "Creating…"
-      : "Create Audit";
+      : "Run AI Audit — $20";
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!loading) { onOpenChange(v); if (!v) resetForm(); } }}>
