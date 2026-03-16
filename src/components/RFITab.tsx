@@ -121,37 +121,41 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
   };
 
   const handleAttachFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedId) return;
+    const selectedFiles = e.target.files;
+    if (!selectedFiles?.length || !selectedId) return;
     setAttachUploading(true);
     try {
-      const safeName = sanitizeFileName(file.name);
-      const filePath = `${auditId}/rfi-responses/${safeName}`;
-      const { error: storageError } = await supabase.storage
-        .from("audit-documents")
-        .upload(filePath, file, { upsert: true });
-      if (storageError) throw storageError;
+      const fileNames: string[] = [];
+      for (const file of Array.from(selectedFiles)) {
+        const safeName = sanitizeFileName(file.name);
+        const filePath = `${auditId}/rfi-responses/${safeName}`;
+        const { error: storageError } = await supabase.storage
+          .from("audit-documents")
+          .upload(filePath, file, { upsert: true });
+        if (storageError) throw storageError;
 
-      const { data: urlData } = supabase.storage
-        .from("audit-documents")
-        .getPublicUrl(filePath);
+        const { data: urlData } = supabase.storage
+          .from("audit-documents")
+          .getPublicUrl(filePath);
 
-      const { error: dbError } = await supabase.from("documents").insert({
-        audit_id: auditId,
-        file_name: safeName,
-        file_type: file.type || file.name.split(".").pop() || "unknown",
-        file_url: urlData.publicUrl,
-      });
-      if (dbError) throw dbError;
+        const { error: dbError } = await supabase.from("documents").insert({
+          audit_id: auditId,
+          file_name: safeName,
+          file_type: file.type || file.name.split(".").pop() || "unknown",
+          file_url: urlData.publicUrl,
+        });
+        if (dbError) throw dbError;
+        fileNames.push(file.name);
+      }
 
       // Post attachment message
       await supabase.from("rfi_messages").insert({
         rfi_id: selectedId,
-        message: `📎 Attached file: ${file.name}`,
+        message: `📎 Attached ${fileNames.length} file(s): ${fileNames.join(", ")}`,
         sender: "auditor",
       });
 
-      toast({ title: "File attached", description: file.name });
+      toast({ title: "Files attached", description: `${fileNames.length} file(s)` });
       await fetchMessages(selectedId);
 
       // Trigger AI review
@@ -162,11 +166,10 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
             audit_id: auditId,
             mode: "rfi_review",
             rfi_id: selectedId,
-            new_document_name: file.name,
+            new_document_name: fileNames.join(", "),
           },
         });
         if (fnError) throw fnError;
-        // Refresh messages to show Claude's response and refresh RFI list for status changes
         await Promise.all([fetchMessages(selectedId), fetchRfis()]);
       } catch (err: any) {
         console.error("AI review error:", err);
@@ -359,6 +362,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                 <input
                   ref={attachInputRef}
                   type="file"
+                  multiple
                   className="hidden"
                   onChange={handleAttachFile}
                 />
