@@ -246,8 +246,14 @@ export default function AuditDetail() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="findings">AI Findings</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="rfis">RFIs</TabsTrigger>
+          <TabsTrigger value="documents" className="gap-1.5">
+            Documents
+            {docCount > 0 && <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5 text-[10px]">{docCount}</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="rfis" className="gap-1.5">
+            RFIs
+            {rfiCount > 0 && <Badge variant="new" className="ml-1 h-5 min-w-5 px-1.5 text-[10px]">{rfiCount}</Badge>}
+          </TabsTrigger>
           <TabsTrigger value="notes">Audit Notes</TabsTrigger>
         </TabsList>
 
