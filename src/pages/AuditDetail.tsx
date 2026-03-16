@@ -108,7 +108,7 @@ export default function AuditDetail() {
     if (!audit?.ai_findings) return [];
     try {
       const raw = audit.ai_findings;
-      if (Array.isArray(raw)) return raw as AiFinding[];
+      if (Array.isArray(raw)) return raw as unknown as AiFinding[];
       return [];
     } catch { return []; }
   })();
