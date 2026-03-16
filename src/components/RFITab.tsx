@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeFileName } from "@/lib/sanitizeFileName";
 import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -124,7 +125,8 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
     if (!file || !selectedId) return;
     setAttachUploading(true);
     try {
-      const filePath = `${auditId}/rfi-responses/${file.name}`;
+      const safeName = sanitizeFileName(file.name);
+      const filePath = `${auditId}/rfi-responses/${safeName}`;
       const { error: storageError } = await supabase.storage
         .from("audit-documents")
         .upload(filePath, file, { upsert: true });
@@ -136,7 +138,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
 
       const { error: dbError } = await supabase.from("documents").insert({
         audit_id: auditId,
-        file_name: file.name,
+        file_name: safeName,
         file_type: file.type || file.name.split(".").pop() || "unknown",
         file_url: urlData.publicUrl,
       });

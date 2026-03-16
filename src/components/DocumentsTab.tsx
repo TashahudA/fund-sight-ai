@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import { sanitizeFileName } from "@/lib/sanitizeFileName";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,7 +60,8 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
     setUploading(true);
 
     try {
-      const filePath = `${auditId}/${file.name}`;
+      const safeName = sanitizeFileName(file.name);
+      const filePath = `${auditId}/${safeName}`;
 
       const { error: storageError } = await supabase.storage
         .from("audit-documents")
@@ -73,7 +75,7 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
 
       const { error: dbError } = await supabase.from("documents").insert({
         audit_id: auditId,
-        file_name: file.name,
+        file_name: safeName,
         file_type: file.type || file.name.split(".").pop() || "unknown",
         file_url: urlData.publicUrl,
       });

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CloudUpload, Plus, Loader2, X, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { sanitizeFileName } from "@/lib/sanitizeFileName";
 
 interface NewAuditModalProps {
   open: boolean;
@@ -87,7 +88,8 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
       setUploadingFiles(true);
       try {
         for (const file of files) {
-          const filePath = `${auditId}/${file.name}`;
+          const safeName = sanitizeFileName(file.name);
+          const filePath = `${auditId}/${safeName}`;
           const { error: storageError } = await supabase.storage
             .from("audit-documents")
             .upload(filePath, file, { upsert: true });
@@ -99,7 +101,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
 
           const { error: dbError } = await supabase.from("documents").insert({
             audit_id: auditId,
-            file_name: file.name,
+            file_name: safeName,
             file_type: file.type || file.name.split(".").pop() || "unknown",
             file_url: urlData.publicUrl,
           });
