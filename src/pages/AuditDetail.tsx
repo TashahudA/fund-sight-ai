@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { findings, auditDocuments, rfis, auditNotes, type FindingStatus } from "@/lib/mockData";
+import { findings, rfis, auditNotes, type FindingStatus } from "@/lib/mockData";
 import { RFISplitPanel } from "@/components/RFISplitPanel";
+import { DocumentsTab } from "@/components/DocumentsTab";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -154,39 +155,8 @@ export default function AuditDetail() {
         </TabsContent>
 
         {/* Documents Tab */}
-        <TabsContent value="documents" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl bg-card p-5 space-y-3" style={{ boxShadow: "var(--shadow-card)" }}>
-              <h3 className="font-serif-display font-semibold">Pre-Audit Documents</h3>
-              {["Engagement Letter.pdf", "Trustee Representation Letter.pdf"].map(doc => (
-                <div key={doc} className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{doc}</span>
-                  </div>
-                  <Button variant="ghost" size="sm"><Download className="h-3.5 w-3.5" /></Button>
-                </div>
-              ))}
-            </div>
-            <div className="rounded-xl bg-card p-5 space-y-3" style={{ boxShadow: "var(--shadow-card)" }}>
-              <h3 className="font-serif-display font-semibold">Audit Documents</h3>
-              {auditDocuments.map(doc => (
-                <div key={doc.name} className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <span className="text-sm">{doc.name}</span>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{doc.type}</Badge>
-                        <span className="text-[10px] text-muted-foreground">{doc.date}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm"><Download className="h-3.5 w-3.5" /></Button>
-                </div>
-              ))}
-            </div>
-          </div>
+        <TabsContent value="documents">
+          <DocumentsTab auditId={audit.id} />
         </TabsContent>
 
         {/* RFIs Tab */}
