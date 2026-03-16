@@ -161,7 +161,7 @@ export default function AuditDetail() {
 
         {/* RFIs Tab */}
         <TabsContent value="rfis">
-          <RFISplitPanel rfis={rfis} showRaiseButton className="h-[calc(100vh-22rem)]" />
+          <RFITab auditId={audit.id} className="h-[calc(100vh-22rem)]" />
         </TabsContent>
 
         {/* Audit Notes Tab */}
