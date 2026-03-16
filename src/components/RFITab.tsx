@@ -124,7 +124,8 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
     if (!file || !selectedId) return;
     setAttachUploading(true);
     try {
-      const filePath = `${auditId}/rfi-responses/${file.name}`;
+      const safeName = sanitizeFileName(file.name);
+      const filePath = `${auditId}/rfi-responses/${safeName}`;
       const { error: storageError } = await supabase.storage
         .from("audit-documents")
         .upload(filePath, file, { upsert: true });
@@ -136,7 +137,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
 
       const { error: dbError } = await supabase.from("documents").insert({
         audit_id: auditId,
-        file_name: file.name,
+        file_name: safeName,
         file_type: file.type || file.name.split(".").pop() || "unknown",
         file_url: urlData.publicUrl,
       });
