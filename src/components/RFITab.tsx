@@ -338,7 +338,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                           )}
                           <p className="text-sm leading-relaxed">{msg.message}</p>
                           <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
-                            <span className="font-medium">{isClaude ? "AI Auditor" : msg.sender}</span>
+                            <span className="font-medium">{isClaude ? "Auditron" : msg.sender}</span>
                             <span>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
                           </div>
                         </div>
@@ -351,7 +351,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                     <div className="max-w-[75%] rounded-xl px-4 py-3 bg-accent/10 border border-accent/20">
                       <div className="flex items-center gap-2">
                         <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
-                        <span className="text-sm text-muted-foreground">AI Auditor is reviewing...</span>
+                        <span className="text-sm text-muted-foreground">Auditron is reviewing...</span>
                       </div>
                     </div>
                   </div>
