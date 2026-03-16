@@ -210,11 +210,11 @@ Return JSON:
       .eq("id", id);
   }
 
-  // Post Claude's message into the RFI thread
+  // Post AI's message into the RFI thread
   await supabase.from("rfi_messages").insert({
     rfi_id: rfiId,
     message: parsed.rfi_review_message,
-    sender: "claude",
+    sender: "ai",
   });
 
   // Update audit opinion if needed
