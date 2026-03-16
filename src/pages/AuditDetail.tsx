@@ -462,7 +462,7 @@ export default function AuditDetail() {
 
         {/* RFIs Tab */}
         <TabsContent value="rfis">
-          <RFITab auditId={audit.id} className="h-[calc(100vh-22rem)]" />
+          <RFITab auditId={audit.id} className="h-[calc(100vh-22rem)]" onCountChange={fetchCounts} />
         </TabsContent>
 
         {/* Audit Notes Tab */}

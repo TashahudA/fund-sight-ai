@@ -34,9 +34,10 @@ const priorityVariant = (p: string | null) => {
 interface RFITabProps {
   auditId: string;
   className?: string;
+  onCountChange?: () => void;
 }
 
-export function RFITab({ auditId, className }: RFITabProps) {
+export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
   const [rfis, setRfis] = useState<RFI[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabFilter>("all");
@@ -64,6 +65,7 @@ export function RFITab({ auditId, className }: RFITabProps) {
       .order("created_at", { ascending: false });
     if (!error && data) setRfis(data);
     setLoading(false);
+    onCountChange?.();
   };
 
   useEffect(() => { fetchRfis(); }, [auditId]);

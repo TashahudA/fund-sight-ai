@@ -101,15 +101,38 @@ Produce a JSON object with this structure:
     parsed = { compliance_findings: [], opinion: "Qualified", summary: responseText };
   }
 
+  // Delete all existing open RFIs for this audit before creating new ones
+  await supabase
+    .from("rfis")
+    .delete()
+    .eq("audit_id", auditId)
+    .eq("status", "open");
+
   await supabase
     .from("audits")
     .update({
       ai_findings: parsed,
       opinion: parsed.opinion || "Qualified",
-      status: "complete",
+      status: "in progress",
       updated_at: new Date().toISOString(),
     })
     .eq("id", auditId);
+
+  // Create new RFIs for flagged/failed findings
+  const findings = parsed.compliance_findings || [];
+  for (const f of findings) {
+    const status = (f.status || "").toLowerCase();
+    if (status === "flag" || status === "fail" || status === "needs_info") {
+      await supabase.from("rfis").insert({
+        audit_id: auditId,
+        title: `${f.area}: ${f.detail?.substring(0, 100) || "Needs attention"}`,
+        category: f.area || "Other",
+        priority: status === "fail" ? "high" : "medium",
+        status: "open",
+        description: `${f.detail || ""}\n\nReference: ${f.reference || "N/A"}`,
+      });
+    }
+  }
 
   return new Response(JSON.stringify({ success: true, findings: parsed }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
