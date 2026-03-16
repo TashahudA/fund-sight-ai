@@ -54,35 +54,37 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
   }, [auditId]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const selectedFiles = e.target.files;
+    if (!selectedFiles?.length) return;
 
     setUploading(true);
 
     try {
-      const safeName = sanitizeFileName(file.name);
-      const filePath = `${auditId}/${safeName}`;
+      for (const file of Array.from(selectedFiles)) {
+        const safeName = sanitizeFileName(file.name);
+        const filePath = `${auditId}/${safeName}`;
 
-      const { error: storageError } = await supabase.storage
-        .from("audit-documents")
-        .upload(filePath, file, { upsert: true });
+        const { error: storageError } = await supabase.storage
+          .from("audit-documents")
+          .upload(filePath, file, { upsert: true });
 
-      if (storageError) throw storageError;
+        if (storageError) throw storageError;
 
-      const { data: urlData } = supabase.storage
-        .from("audit-documents")
-        .getPublicUrl(filePath);
+        const { data: urlData } = supabase.storage
+          .from("audit-documents")
+          .getPublicUrl(filePath);
 
-      const { error: dbError } = await supabase.from("documents").insert({
-        audit_id: auditId,
-        file_name: safeName,
-        file_type: file.type || file.name.split(".").pop() || "unknown",
-        file_url: urlData.publicUrl,
-      });
+        const { error: dbError } = await supabase.from("documents").insert({
+          audit_id: auditId,
+          file_name: safeName,
+          file_type: file.type || file.name.split(".").pop() || "unknown",
+          file_url: urlData.publicUrl,
+        });
 
-      if (dbError) throw dbError;
+        if (dbError) throw dbError;
+      }
 
-      toast({ title: "File uploaded", description: file.name });
+      toast({ title: "Files uploaded", description: `${selectedFiles.length} file(s) uploaded` });
       await fetchDocuments();
     } catch (err: any) {
       toast({
