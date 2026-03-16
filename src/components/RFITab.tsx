@@ -149,9 +149,10 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
       }
 
       // Post attachment message
+      const safeNames = fileNames.map(f => sanitizeFileName(f));
       await supabase.from("rfi_messages").insert({
         rfi_id: selectedId,
-        message: `📎 Attached ${fileNames.length} file(s): ${fileNames.join(", ")}`,
+        message: `📎 Document uploaded: ${fileNames.join(", ")} — AI is reviewing...`,
         sender: "auditor",
       });
 
