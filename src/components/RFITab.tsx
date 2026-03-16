@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Plus, Paperclip, Send, CheckCircle2, Loader2, MessageSquare, FileText } from "lucide-react";
+import { Search, Plus, Paperclip, Send, CheckCircle2, Loader2, MessageSquare, FileText, Bot } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +48,7 @@ export function RFITab({ auditId, className }: RFITabProps) {
   const [sending, setSending] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [attachUploading, setAttachUploading] = useState(false);
+  const [aiReviewing, setAiReviewing] = useState(false);
   const attachInputRef = useRef<HTMLInputElement>(null);
 
   // New RFI form
@@ -139,7 +140,7 @@ export function RFITab({ auditId, className }: RFITabProps) {
       });
       if (dbError) throw dbError;
 
-      // Also post a message about the attachment
+      // Post attachment message
       await supabase.from("rfi_messages").insert({
         rfi_id: selectedId,
         message: `📎 Attached file: ${file.name}`,
@@ -148,6 +149,27 @@ export function RFITab({ auditId, className }: RFITabProps) {
 
       toast({ title: "File attached", description: file.name });
       await fetchMessages(selectedId);
+
+      // Trigger AI review
+      setAiReviewing(true);
+      try {
+        const { data, error: fnError } = await supabase.functions.invoke("dynamic-processor", {
+          body: {
+            audit_id: auditId,
+            mode: "rfi_review",
+            rfi_id: selectedId,
+            new_document_name: file.name,
+          },
+        });
+        if (fnError) throw fnError;
+        // Refresh messages to show Claude's response and refresh RFI list for status changes
+        await Promise.all([fetchMessages(selectedId), fetchRfis()]);
+      } catch (err: any) {
+        console.error("AI review error:", err);
+        toast({ title: "AI review failed", description: err.message, variant: "destructive" });
+      } finally {
+        setAiReviewing(false);
+      }
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {
@@ -296,17 +318,36 @@ export function RFITab({ auditId, className }: RFITabProps) {
                 ) : messages.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">No messages yet.</p>
                 ) : (
-                  messages.map(msg => (
-                    <div key={msg.id} className="flex justify-start">
-                      <div className="max-w-[75%] rounded-xl px-4 py-3 bg-muted">
-                        <p className="text-sm leading-relaxed">{msg.message}</p>
-                        <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
-                          <span className="font-medium">{msg.sender}</span>
-                          <span>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
+                  messages.map(msg => {
+                    const isClaude = msg.sender === "claude";
+                    return (
+                      <div key={msg.id} className="flex justify-start">
+                        <div className={`max-w-[75%] rounded-xl px-4 py-3 ${isClaude ? "bg-accent/10 border border-accent/20" : "bg-muted"}`}>
+                          {isClaude && (
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <Bot className="h-3.5 w-3.5 text-accent" />
+                              <Badge variant="default" className="text-[10px] px-1.5 py-0 bg-accent text-accent-foreground">AI</Badge>
+                            </div>
+                          )}
+                          <p className="text-sm leading-relaxed">{msg.message}</p>
+                          <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
+                            <span className="font-medium">{isClaude ? "Claude AI" : msg.sender}</span>
+                            <span>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
+                          </div>
                         </div>
                       </div>
+                    );
+                  })
+                )}
+                {aiReviewing && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[75%] rounded-xl px-4 py-3 bg-accent/10 border border-accent/20">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
+                        <span className="text-sm text-muted-foreground">Claude is reviewing...</span>
+                      </div>
                     </div>
-                  ))
+                  </div>
                 )}
               </div>
 
@@ -321,7 +362,7 @@ export function RFITab({ auditId, className }: RFITabProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => attachInputRef.current?.click()}
-                  disabled={attachUploading}
+                  disabled={attachUploading || aiReviewing}
                 >
                   {attachUploading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

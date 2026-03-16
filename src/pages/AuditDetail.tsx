@@ -333,6 +333,9 @@ export default function AuditDetail() {
                   </div>
                 ))}
               </div>
+
+              {/* Upload More Documents */}
+              <UploadMoreDocuments auditId={audit.id} onUploaded={fetchCounts} />
             </>
           )}
         </TabsContent>
