@@ -1,22 +1,52 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ChevronRight, Download, ShieldCheck, CheckCircle2, AlertTriangle, XCircle, FileText, Plus, StickyNote, Loader2, ArrowLeft } from "lucide-react";
+import { ChevronRight, Download, ShieldCheck, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { findings, auditNotes, type FindingStatus } from "@/lib/mockData";
+import { auditNotes } from "@/lib/mockData";
 import { RFITab } from "@/components/RFITab";
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Audit = Tables<"audits">;
 
-const findingIcon = (s: FindingStatus) => {
-  if (s === "Pass") return <CheckCircle2 className="h-4 w-4 text-status-pass" />;
-  if (s === "Flag") return <AlertTriangle className="h-4 w-4 text-status-flag" />;
-  return <XCircle className="h-4 w-4 text-status-fail" />;
+interface AiFinding {
+  area: string;
+  status: "pass" | "fail" | "needs_info" | "Pass" | "Fail" | "Flag";
+  detail: string;
+  reference: string;
+}
+
+const normalizeStatus = (s: string): "pass" | "fail" | "needs_info" => {
+  const lower = s.toLowerCase();
+  if (lower === "pass") return "pass";
+  if (lower === "fail") return "fail";
+  return "needs_info";
+};
+
+const findingIcon = (s: string) => {
+  const n = normalizeStatus(s);
+  if (n === "pass") return <CheckCircle2 className="h-4 w-4 text-status-pass" />;
+  if (n === "fail") return <XCircle className="h-4 w-4 text-status-fail" />;
+  return <AlertTriangle className="h-4 w-4 text-status-flag" />;
+};
+
+const findingBadgeVariant = (s: string): "pass" | "fail" | "flag" => {
+  const n = normalizeStatus(s);
+  if (n === "pass") return "pass";
+  if (n === "fail") return "fail";
+  return "flag";
+};
+
+const findingLabel = (s: string) => {
+  const n = normalizeStatus(s);
+  if (n === "pass") return "Pass";
+  if (n === "fail") return "Fail";
+  return "Needs Info";
 };
 
 const statusVariant = (s: string | null) => {
@@ -31,6 +61,22 @@ const statusLabel = (s: string | null) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
+const opinionBannerClass = (opinion: string | null) => {
+  const o = (opinion || "").toLowerCase();
+  if (o === "unqualified") return "bg-status-pass/10 border-status-pass/20";
+  if (o === "qualified") return "bg-status-flag/10 border-status-flag/20";
+  if (o === "adverse") return "bg-status-fail/10 border-status-fail/20";
+  return "bg-muted/50 border-border";
+};
+
+const opinionIcon = (opinion: string | null) => {
+  const o = (opinion || "").toLowerCase();
+  if (o === "unqualified") return <CheckCircle2 className="h-5 w-5 text-status-pass shrink-0" />;
+  if (o === "qualified") return <AlertTriangle className="h-5 w-5 text-status-flag shrink-0" />;
+  if (o === "adverse") return <XCircle className="h-5 w-5 text-status-fail shrink-0" />;
+  return <Info className="h-5 w-5 text-muted-foreground shrink-0" />;
+};
+
 export default function AuditDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -38,24 +84,57 @@ export default function AuditDetail() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [noteText, setNoteText] = useState("");
+  const [runningAudit, setRunningAudit] = useState(false);
+  const [activeTab, setActiveTab] = useState("findings");
 
-  useEffect(() => {
-    const fetchAudit = async () => {
-      if (!id) { setNotFound(true); setLoading(false); return; }
-      const { data, error } = await supabase
-        .from("audits")
-        .select("*")
-        .eq("id", id)
-        .single();
-      if (error || !data) {
-        setNotFound(true);
-      } else {
-        setAudit(data);
-      }
-      setLoading(false);
-    };
-    fetchAudit();
+  const fetchAudit = useCallback(async () => {
+    if (!id) { setNotFound(true); setLoading(false); return; }
+    const { data, error } = await supabase
+      .from("audits")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error || !data) {
+      setNotFound(true);
+    } else {
+      setAudit(data);
+    }
+    setLoading(false);
   }, [id]);
+
+  useEffect(() => { fetchAudit(); }, [fetchAudit]);
+
+  const aiFindings: AiFinding[] = (() => {
+    if (!audit?.ai_findings) return [];
+    try {
+      const raw = audit.ai_findings;
+      if (Array.isArray(raw)) return raw as unknown as AiFinding[];
+      return [];
+    } catch { return []; }
+  })();
+
+  const passCount = aiFindings.filter(f => normalizeStatus(f.status) === "pass").length;
+  const flagCount = aiFindings.filter(f => normalizeStatus(f.status) !== "pass").length;
+
+  const handleRunAudit = async () => {
+    if (!audit) return;
+    setRunningAudit(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("dynamic-processor", {
+        body: { audit_id: audit.id },
+      });
+      if (error) throw error;
+      // Refresh audit data to get updated ai_findings, opinion, status
+      await fetchAudit();
+      setActiveTab("findings");
+      toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
+    } catch (err: any) {
+      console.error("AI Audit error:", err);
+      toast({ title: "Error running audit", description: err.message || "Something went wrong. Please try again.", variant: "destructive" });
+    } finally {
+      setRunningAudit(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -77,9 +156,6 @@ export default function AuditDetail() {
     );
   }
 
-  const passCount = findings.filter(f => f.status === "Pass").length;
-  const flagCount = findings.filter(f => f.status === "Flag").length;
-
   return (
     <div className="container max-w-6xl py-8 space-y-6 animate-fade-in">
       {/* Breadcrumb */}
@@ -100,6 +176,19 @@ export default function AuditDetail() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="accent"
+              size="sm"
+              className="shadow-sm"
+              onClick={handleRunAudit}
+              disabled={runningAudit}
+            >
+              {runningAudit ? (
+                <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Running Audit...</>
+              ) : (
+                <><Play className="h-4 w-4 mr-1.5" />Run AI Audit</>
+              )}
+            </Button>
             <Button variant="ghost" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
             <Button variant="accent" size="sm" className="shadow-sm"><ShieldCheck className="h-4 w-4 mr-1.5" />Approve & Sign</Button>
           </div>
@@ -119,7 +208,7 @@ export default function AuditDetail() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="findings" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="findings">AI Findings</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
@@ -129,29 +218,57 @@ export default function AuditDetail() {
 
         {/* Findings Tab */}
         <TabsContent value="findings" className="space-y-4">
-          <div className="flex items-center gap-3 rounded-xl bg-status-pass/10 border border-status-pass/20 p-4">
-            <CheckCircle2 className="h-5 w-5 text-status-pass shrink-0" />
-            <div>
-              <p className="font-medium text-sm">Draft Opinion: {audit.opinion || "Pending"}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{passCount} areas passed, {flagCount} flagged for review.</p>
+          {aiFindings.length === 0 ? (
+            <div className="rounded-xl bg-card p-8 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
+              <Info className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+              <h3 className="font-serif-display font-semibold text-lg">No AI Findings Yet</h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+                Click "Run AI Audit" to analyse the uploaded documents and generate compliance findings.
+              </p>
+              <Button
+                variant="accent"
+                size="sm"
+                className="mt-4"
+                onClick={handleRunAudit}
+                disabled={runningAudit}
+              >
+                {runningAudit ? (
+                  <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Running Audit...</>
+                ) : (
+                  <><Play className="h-4 w-4 mr-1.5" />Run AI Audit</>
+                )}
+              </Button>
             </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {findings.map(f => (
-              <div key={f.area} className="rounded-xl bg-card p-4 space-y-2 transition-all duration-200 hover:-translate-y-0.5" style={{ boxShadow: "var(--shadow-card)" }}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {findingIcon(f.status)}
-                    <span className="font-medium text-sm">{f.area}</span>
-                  </div>
-                  <Badge variant={f.status === "Pass" ? "pass" : f.status === "Flag" ? "flag" : "fail"}>{f.status}</Badge>
+          ) : (
+            <>
+              {/* Opinion Banner */}
+              <div className={`flex items-center gap-3 rounded-xl border p-4 ${opinionBannerClass(audit.opinion)}`}>
+                {opinionIcon(audit.opinion)}
+                <div>
+                  <p className="font-medium text-sm">Draft Opinion: {audit.opinion || "Pending"}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {passCount} areas passed, {flagCount} flagged for review.
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">{f.detail}</p>
-                <p className="text-xs text-muted-foreground italic">{f.reference}</p>
               </div>
-            ))}
-          </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {aiFindings.map((f, i) => (
+                  <div key={`${f.area}-${i}`} className="rounded-xl bg-card p-4 space-y-2 transition-all duration-200 hover:-translate-y-0.5" style={{ boxShadow: "var(--shadow-card)" }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {findingIcon(f.status)}
+                        <span className="font-medium text-sm">{f.area}</span>
+                      </div>
+                      <Badge variant={findingBadgeVariant(f.status)}>{findingLabel(f.status)}</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{f.detail}</p>
+                    <p className="text-xs text-muted-foreground italic">{f.reference}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </TabsContent>
 
         {/* Documents Tab */}
