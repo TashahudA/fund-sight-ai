@@ -145,6 +145,7 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
             <input
               ref={fileInputRef}
               type="file"
+              multiple
               accept={ACCEPTED_TYPES}
               onChange={handleUpload}
               className="hidden"

@@ -359,6 +359,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                 <input
                   ref={attachInputRef}
                   type="file"
+                  multiple
                   className="hidden"
                   onChange={handleAttachFile}
                 />
