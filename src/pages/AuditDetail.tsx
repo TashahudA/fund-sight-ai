@@ -318,6 +318,9 @@ export default function AuditDetail() {
                 </div>
               </div>
 
+              {/* Upload More Documents — above findings */}
+              <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
+
               <div className="grid gap-4 md:grid-cols-2">
                 {aiFindings.map((f, i) => (
                   <div key={`${f.area}-${i}`} className="rounded-xl bg-card p-4 space-y-2 transition-all duration-200 hover:-translate-y-0.5" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -333,9 +336,6 @@ export default function AuditDetail() {
                   </div>
                 ))}
               </div>
-
-              {/* Upload More Documents */}
-              <UploadMoreDocuments auditId={audit.id} onUploaded={fetchCounts} />
             </>
           )}
         </TabsContent>
