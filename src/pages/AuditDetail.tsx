@@ -21,6 +21,14 @@ interface AiFinding {
   reference: string;
 }
 
+interface AiFindingsEnvelope {
+  compliance_findings?: AiFinding[];
+  rfis?: any[];
+  opinion?: string;
+  opinion_reasoning?: string;
+  summary?: string;
+}
+
 const normalizeStatus = (s: string): "pass" | "fail" | "needs_info" => {
   const lower = s.toLowerCase();
   if (lower === "pass") return "pass";
@@ -86,6 +94,8 @@ export default function AuditDetail() {
   const [noteText, setNoteText] = useState("");
   const [runningAudit, setRunningAudit] = useState(false);
   const [activeTab, setActiveTab] = useState("findings");
+  const [rfiCount, setRfiCount] = useState(0);
+  const [docCount, setDocCount] = useState(0);
 
   const fetchAudit = useCallback(async () => {
     if (!id) { setNotFound(true); setLoading(false); return; }
@@ -102,16 +112,41 @@ export default function AuditDetail() {
     setLoading(false);
   }, [id]);
 
-  useEffect(() => { fetchAudit(); }, [fetchAudit]);
+  const fetchCounts = useCallback(async () => {
+    if (!id) return;
+    const [rfiRes, docRes] = await Promise.all([
+      supabase.from("rfis").select("id", { count: "exact", head: true }).eq("audit_id", id).eq("status", "open"),
+      supabase.from("documents").select("id", { count: "exact", head: true }).eq("audit_id", id),
+    ]);
+    setRfiCount(rfiRes.count ?? 0);
+    setDocCount(docRes.count ?? 0);
+  }, [id]);
 
-  const aiFindings: AiFinding[] = (() => {
-    if (!audit?.ai_findings) return [];
+  useEffect(() => { fetchAudit(); fetchCounts(); }, [fetchAudit, fetchCounts]);
+
+  const parseFindings = (raw: any): { findings: AiFinding[]; envelope: AiFindingsEnvelope } => {
+    if (!raw) return { findings: [], envelope: {} };
     try {
-      const raw = audit.ai_findings;
-      if (Array.isArray(raw)) return raw as unknown as AiFinding[];
-      return [];
-    } catch { return []; }
-  })();
+      let obj = raw;
+      // If it's a string (possibly with markdown fences), extract JSON
+      if (typeof obj === "string") {
+        const match = obj.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (match) obj = JSON.parse(match[1]);
+        else obj = JSON.parse(obj);
+      }
+      // Envelope format: { compliance_findings: [...], opinion, summary, ... }
+      if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+        const envelope = obj as AiFindingsEnvelope;
+        const findings = Array.isArray(envelope.compliance_findings) ? envelope.compliance_findings : [];
+        return { findings: findings as AiFinding[], envelope };
+      }
+      // Direct array format (legacy)
+      if (Array.isArray(obj)) return { findings: obj as AiFinding[], envelope: {} };
+      return { findings: [], envelope: {} };
+    } catch { return { findings: [], envelope: {} }; }
+  };
+
+  const { findings: aiFindings, envelope } = parseFindings(audit?.ai_findings);
 
   const passCount = aiFindings.filter(f => normalizeStatus(f.status) === "pass").length;
   const flagCount = aiFindings.filter(f => normalizeStatus(f.status) !== "pass").length;
@@ -124,8 +159,8 @@ export default function AuditDetail() {
         body: { audit_id: audit.id },
       });
       if (error) throw error;
-      // Refresh audit data to get updated ai_findings, opinion, status
       await fetchAudit();
+      await fetchCounts();
       setActiveTab("findings");
       toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
     } catch (err: any) {
@@ -211,8 +246,14 @@ export default function AuditDetail() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="findings">AI Findings</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="rfis">RFIs</TabsTrigger>
+          <TabsTrigger value="documents" className="gap-1.5">
+            Documents
+            {docCount > 0 && <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5 text-[10px]">{docCount}</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="rfis" className="gap-1.5">
+            RFIs
+            {rfiCount > 0 && <Badge variant="new" className="ml-1 h-5 min-w-5 px-1.5 text-[10px]">{rfiCount}</Badge>}
+          </TabsTrigger>
           <TabsTrigger value="notes">Audit Notes</TabsTrigger>
         </TabsList>
 
@@ -242,10 +283,16 @@ export default function AuditDetail() {
           ) : (
             <>
               {/* Opinion Banner */}
-              <div className={`flex items-center gap-3 rounded-xl border p-4 ${opinionBannerClass(audit.opinion)}`}>
-                {opinionIcon(audit.opinion)}
+              <div className={`flex items-center gap-3 rounded-xl border p-4 ${opinionBannerClass(envelope.opinion || audit.opinion)}`}>
+                {opinionIcon(envelope.opinion || audit.opinion)}
                 <div>
-                  <p className="font-medium text-sm">Draft Opinion: {audit.opinion || "Pending"}</p>
+                  <p className="font-medium text-sm">Draft Opinion: {envelope.opinion || audit.opinion || "Pending"}</p>
+                  {envelope.opinion_reasoning && (
+                    <p className="text-sm text-muted-foreground mt-1">{envelope.opinion_reasoning}</p>
+                  )}
+                  {envelope.summary && (
+                    <p className="text-xs text-muted-foreground mt-1 italic">{envelope.summary}</p>
+                  )}
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {passCount} areas passed, {flagCount} flagged for review.
                   </p>
