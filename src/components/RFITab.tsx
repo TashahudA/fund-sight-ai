@@ -351,7 +351,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                     <div className="max-w-[75%] rounded-xl px-4 py-3 bg-accent/10 border border-accent/20">
                       <div className="flex items-center gap-2">
                         <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
-                        <span className="text-sm text-muted-foreground">Claude is reviewing...</span>
+                        <span className="text-sm text-muted-foreground">AI Auditor is reviewing...</span>
                       </div>
                     </div>
                   </div>
