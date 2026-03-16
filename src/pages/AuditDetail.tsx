@@ -283,10 +283,16 @@ export default function AuditDetail() {
           ) : (
             <>
               {/* Opinion Banner */}
-              <div className={`flex items-center gap-3 rounded-xl border p-4 ${opinionBannerClass(audit.opinion)}`}>
-                {opinionIcon(audit.opinion)}
+              <div className={`flex items-center gap-3 rounded-xl border p-4 ${opinionBannerClass(envelope.opinion || audit.opinion)}`}>
+                {opinionIcon(envelope.opinion || audit.opinion)}
                 <div>
-                  <p className="font-medium text-sm">Draft Opinion: {audit.opinion || "Pending"}</p>
+                  <p className="font-medium text-sm">Draft Opinion: {envelope.opinion || audit.opinion || "Pending"}</p>
+                  {envelope.opinion_reasoning && (
+                    <p className="text-sm text-muted-foreground mt-1">{envelope.opinion_reasoning}</p>
+                  )}
+                  {envelope.summary && (
+                    <p className="text-xs text-muted-foreground mt-1 italic">{envelope.summary}</p>
+                  )}
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {passCount} areas passed, {flagCount} flagged for review.
                   </p>
