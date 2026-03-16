@@ -395,7 +395,7 @@ export default function AuditDetail() {
   );
 }
 
-function UploadMoreDocuments({ auditId, onUploaded }: { auditId: string; onUploaded: () => void }) {
+function UploadMoreDocuments({ auditId, onUploaded, runningAudit }: { auditId: string; onUploaded: () => Promise<void>; runningAudit: boolean }) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -422,27 +422,32 @@ function UploadMoreDocuments({ auditId, onUploaded }: { auditId: string; onUploa
       });
       if (dbError) throw dbError;
 
-      toast({ title: "File uploaded", description: file.name });
-      onUploaded();
+      toast({ title: "File uploaded", description: `${file.name} — re-running audit…` });
+      setUploading(false);
+      await onUploaded();
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
-    } finally {
       setUploading(false);
+    } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
+
+  const busy = uploading || runningAudit;
 
   return (
     <div className="rounded-xl bg-card p-5 flex items-center justify-between" style={{ boxShadow: "var(--shadow-card)" }}>
       <div>
         <p className="text-sm font-medium">Upload additional documents</p>
-        <p className="text-xs text-muted-foreground">Add more files and re-run the audit to update findings.</p>
+        <p className="text-xs text-muted-foreground">
+          {runningAudit ? "Re-running audit with new documents…" : "New files will automatically re-run the audit."}
+        </p>
       </div>
       <div>
         <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.docx" onChange={handleUpload} className="hidden" />
-        <Button variant="accent" size="sm" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
-          {uploading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
-          {uploading ? "Uploading…" : "Upload More Documents"}
+        <Button variant="accent" size="sm" disabled={busy} onClick={() => fileInputRef.current?.click()}>
+          {busy ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
+          {uploading ? "Uploading…" : runningAudit ? "Re-running Audit…" : "Upload More Documents"}
         </Button>
       </div>
     </div>
