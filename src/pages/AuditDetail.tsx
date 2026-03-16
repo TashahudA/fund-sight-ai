@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { auditNotes } from "@/lib/mockData";
 import { RFITab } from "@/components/RFITab";
 import { DocumentsTab } from "@/components/DocumentsTab";
@@ -170,6 +171,41 @@ export default function AuditDetail() {
   const passCount = aiFindings.filter(f => normalizeStatus(f.status) === "pass").length;
   const flagCount = aiFindings.filter(f => normalizeStatus(f.status) !== "pass").length;
 
+  const autoResolveRfis = async (newFindings: AiFinding[]) => {
+    if (!id || newFindings.length === 0) return;
+    const { data: openRfis } = await supabase
+      .from("rfis")
+      .select("id, category, title")
+      .eq("audit_id", id)
+      .eq("status", "open");
+    if (!openRfis || openRfis.length === 0) return;
+
+    const passAreas = new Set(
+      newFindings
+        .filter(f => normalizeStatus(f.status) === "pass")
+        .map(f => f.area.toLowerCase())
+    );
+
+    const toResolve = openRfis.filter(rfi => {
+      const cat = (rfi.category || "").toLowerCase();
+      const title = (rfi.title || "").toLowerCase();
+      return [...passAreas].some(area => cat.includes(area) || title.includes(area) || area.includes(cat) || area.includes(title));
+    });
+
+    for (const rfi of toResolve) {
+      await supabase.from("rfis").update({ status: "resolved" }).eq("id", rfi.id);
+      await supabase.from("rfi_messages").insert({
+        rfi_id: rfi.id,
+        message: "This RFI has been automatically resolved — the re-audit found the related compliance area now passes.",
+        sender: "claude",
+      });
+    }
+
+    if (toResolve.length > 0) {
+      toast({ title: `${toResolve.length} RFI(s) auto-resolved`, description: "New findings show these areas now pass." });
+    }
+  };
+
   const handleRunAudit = async () => {
     if (!audit) return;
     setRunningAudit(true);
@@ -179,6 +215,12 @@ export default function AuditDetail() {
       });
       if (error) throw error;
       await fetchAudit();
+      // Auto-resolve RFIs based on new findings
+      const { data: freshAudit } = await supabase.from("audits").select("ai_findings").eq("id", audit.id).single();
+      if (freshAudit) {
+        const { findings } = parseFindings(freshAudit.ai_findings);
+        await autoResolveRfis(findings);
+      }
       await fetchCounts();
       setActiveTab("findings");
       toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
@@ -189,6 +231,19 @@ export default function AuditDetail() {
       setRunningAudit(false);
     }
   };
+
+  const handleMarkComplete = async () => {
+    if (!audit) return;
+    await supabase.from("audits").update({ status: "complete" }).eq("id", audit.id);
+    await fetchAudit();
+    toast({ title: "Audit marked complete" });
+  };
+
+  const isComplete = (audit?.status || "").toLowerCase() === "complete";
+  const opinion = (audit?.opinion || envelope.opinion || "").toLowerCase();
+  const allResolved = rfiCount === 0;
+  const canAutoComplete = allResolved && opinion === "unqualified";
+  const needsWarning = allResolved && opinion && opinion !== "unqualified";
 
   if (loading) {
     return (
@@ -244,7 +299,67 @@ export default function AuditDetail() {
               )}
             </Button>
             <Button variant="ghost" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
-            <Button variant="accent" size="sm" className="shadow-sm"><ShieldCheck className="h-4 w-4 mr-1.5" />Approve & Sign</Button>
+
+            {/* Smart status / completion */}
+            {isComplete ? (
+              <Badge variant="pass" className="px-3 py-1.5 text-xs">
+                <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Complete
+              </Badge>
+            ) : !allResolved ? (
+              <Badge variant="flag" className="px-3 py-1.5 text-xs">
+                <AlertTriangle className="h-3.5 w-3.5 mr-1" /> In Progress · {rfiCount} open RFI{rfiCount !== 1 ? "s" : ""}
+              </Badge>
+            ) : canAutoComplete ? (
+              <Button variant="accent" size="sm" className="shadow-sm" onClick={handleMarkComplete}>
+                <CheckCircle2 className="h-4 w-4 mr-1.5" />Mark Complete
+              </Button>
+            ) : needsWarning ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="accent" size="sm" className="shadow-sm">
+                    <AlertTriangle className="h-4 w-4 mr-1.5" />Mark Complete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Complete with {audit?.opinion || "non-unqualified"} opinion?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      The current audit opinion is "{audit?.opinion || "unknown"}". Are you sure you want to mark this audit as complete?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleMarkComplete}>Complete Anyway</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : null}
+
+            {/* Force-complete button */}
+            {!isComplete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <ShieldCheck className="h-4 w-4 mr-1.5" />Force Complete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Force complete this audit?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {rfiCount > 0
+                        ? `There are still ${rfiCount} open RFI${rfiCount !== 1 ? "s" : ""}. `
+                        : ""}
+                      This will mark the audit as complete regardless of outstanding items.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleMarkComplete}>Force Complete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-4 mt-4 text-sm">
