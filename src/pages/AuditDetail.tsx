@@ -445,9 +445,6 @@ export default function AuditDetail() {
                 </div>
               </div>
 
-
-
-
               <div className="grid gap-4 md:grid-cols-2">
                 {aiFindings.map((f, i) => (
                   <div key={`${f.area}-${i}`} className={`rounded-lg border border-border bg-background p-4 space-y-2 ${findingLeftBorder(f.status)}`}>
