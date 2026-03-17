@@ -57,8 +57,8 @@ export default function MyAudits() {
   return (
     <div className="container max-w-6xl py-8 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif-display text-2xl font-semibold">My Audits</h1>
-        <Button variant="accent" size="sm" onClick={() => setModalOpen(true)}>
+        <h1 className="text-xl font-bold">My Audits</h1>
+        <Button size="sm" onClick={() => setModalOpen(true)}>
           <Plus className="h-4 w-4" />
           Create new
         </Button>
@@ -83,28 +83,28 @@ export default function MyAudits() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <FileX className="h-12 w-12 text-muted-foreground/50 mb-4" />
-          <h3 className="font-serif-display text-lg font-semibold">No audits yet</h3>
+          <FileX className="h-12 w-12 text-border mb-4" />
+          <h3 className="text-base font-semibold">No audits yet</h3>
           <p className="text-sm text-muted-foreground mt-1">Create your first SMSF audit to get started.</p>
-          <Button variant="accent" size="sm" className="mt-4" onClick={() => setModalOpen(true)}>
+          <Button size="sm" className="mt-4" onClick={() => setModalOpen(true)}>
             <Plus className="h-4 w-4" /> Create new
           </Button>
         </div>
       ) : (
-        <div className="rounded-xl bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="rounded-lg border border-border bg-background overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/40">
-                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Fund</th>
-                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Year</th>
-                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Type</th>
-                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Status</th>
-                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Date Created</th>
-                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Opinion</th>
+              <tr className="border-b border-border">
+                <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Fund</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Year</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Type</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Date Created</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Opinion</th>
               </tr>
             </thead>
             <tbody>
@@ -112,10 +112,10 @@ export default function MyAudits() {
                 <tr
                   key={audit.id}
                   onClick={() => navigate(`/audits/${audit.id}`)}
-                  className="border-b last:border-0 cursor-pointer transition-all duration-150 hover:bg-accent/[0.03] group"
+                  className="border-b border-[hsl(var(--border-light))] last:border-0 cursor-pointer transition-colors duration-100 hover:bg-hover group"
                 >
                   <td className="px-5 py-3.5">
-                    <div className="font-medium group-hover:text-accent transition-colors">{audit.fund_name}</div>
+                    <div className="font-semibold text-sm">{audit.fund_name}</div>
                     {audit.fund_abn && <div className="text-xs text-muted-foreground">ABN: {audit.fund_abn}</div>}
                   </td>
                   <td className="px-5 py-3.5 text-muted-foreground">{audit.financial_year || "—"}</td>

@@ -139,9 +139,9 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl bg-card p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+      <div className="rounded-lg border border-border bg-background p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-serif-display font-semibold">Audit Documents</h3>
+          <h3 className="font-semibold text-base">Audit Documents</h3>
           <div>
             <input
               ref={fileInputRef}
@@ -152,7 +152,6 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
               className="hidden"
             />
             <Button
-              variant="accent"
               size="sm"
               disabled={uploading}
               onClick={() => fileInputRef.current?.click()}
@@ -169,18 +168,18 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
 
         {documents.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <FileX className="h-8 w-8 text-muted-foreground/50 mb-2" />
+            <FileX className="h-8 w-8 text-border mb-2" />
             <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
             <p className="text-xs text-muted-foreground mt-1">
               Upload PDF, JPG, PNG, XLSX, or DOCX files
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1">
             {documents.map((doc) => (
               <div
                 key={doc.id}
-                className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30"
+                className="flex items-center justify-between rounded-md border border-border p-3 transition-colors duration-100 hover:bg-hover"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -191,7 +190,7 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
                         {doc.file_type}
                       </Badge>
                       {doc.created_at && (
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground">
                           {new Date(doc.created_at).toLocaleDateString()}
                         </span>
                       )}
@@ -210,7 +209,7 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => setDeleteTarget(doc)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="text-status-fail hover:text-status-fail hover:bg-status-fail-bg"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
@@ -234,7 +233,7 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-status-fail text-white hover:bg-status-fail/90"
             >
               {deleting ? "Deleting…" : "Delete"}
             </AlertDialogAction>

@@ -257,9 +257,9 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
   if (rfis.length === 0 && !showForm) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center">
-        <MessageSquare className="h-10 w-10 text-muted-foreground/40 mb-3" />
+        <MessageSquare className="h-10 w-10 text-border mb-3" />
         <p className="text-sm text-muted-foreground mb-4">No RFIs raised yet.</p>
-        <Button variant="accent" size="sm" onClick={() => setShowForm(true)}>
+        <Button size="sm" onClick={() => setShowForm(true)}>
           <Plus className="h-4 w-4" /> Raise RFI
         </Button>
         <NewRFIDialog open={showForm} onClose={() => setShowForm(false)} formData={formData} setFormData={setFormData} onSubmit={handleCreate} submitting={submitting} />
@@ -269,26 +269,26 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
 
   return (
     <>
-      <div className={`flex rounded-xl bg-card overflow-hidden ${className || ""}`} style={{ boxShadow: "var(--shadow-card)" }}>
+      <div className={`flex rounded-lg border border-border bg-background overflow-hidden ${className || ""}`}>
         {/* Left Panel */}
-        <div className="flex w-80 shrink-0 flex-col border-r lg:w-96">
-          <div className="p-3 border-b flex gap-2">
+        <div className="flex w-80 shrink-0 flex-col border-r border-border lg:w-96">
+          <div className="p-3 border-b border-border flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder="Search RFIs…" className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
             </div>
-            <Button variant="accent" size="sm" className="shrink-0" onClick={() => setShowForm(true)}>
+            <Button size="sm" className="shrink-0" onClick={() => setShowForm(true)}>
               <Plus className="h-4 w-4" /> Raise RFI
             </Button>
           </div>
 
-          <div className="flex border-b">
+          <div className="flex border-b border-border">
             {(["open", "resolved", "all"] as TabFilter[]).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`flex-1 px-2 py-2.5 text-xs font-medium transition-colors border-b-2 capitalize ${
-                  tab === t ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+                className={`flex-1 px-2 py-2.5 text-xs font-medium transition-colors duration-100 border-b-2 capitalize ${
+                  tab === t ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {t} <span className="text-muted-foreground">({counts[t]})</span>
@@ -301,10 +301,10 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
               <button
                 key={rfi.id}
                 onClick={() => setSelectedId(rfi.id)}
-                className={`w-full text-left px-4 py-3.5 border-b transition-all duration-150 ${
+                className={`w-full text-left px-4 py-3.5 border-b border-[hsl(var(--border-light))] transition-colors duration-100 ${
                   selectedId === rfi.id
-                    ? "bg-accent/[0.06] border-l-2 border-l-accent"
-                    : "hover:bg-muted/30 border-l-2 border-l-transparent"
+                    ? "bg-active border-l-2 border-l-foreground"
+                    : "hover:bg-hover border-l-2 border-l-transparent"
                 }`}
               >
                 <div className="text-sm font-medium leading-snug line-clamp-1">{rfi.title}</div>
@@ -328,13 +328,13 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
         <div className="flex flex-1 flex-col">
           {selected ? (
             <>
-              <div className="border-b p-5">
-                <h2 className="font-serif-display text-lg font-semibold">{selected.title}</h2>
+              <div className="border-b border-border p-5">
+                <h2 className="text-base font-semibold">{selected.title}</h2>
                 <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground flex-wrap">
                   <Badge variant={priorityVariant(selected.priority)} className="capitalize">{selected.priority || "medium"}</Badge>
                   <Badge variant="secondary" className="capitalize">{selected.category || "Uncategorized"}</Badge>
                   <Badge variant={statusBadgeVariant(selected.status)} className="capitalize">{selected.status || "open"}</Badge>
-                  <span>Raised: {selected.created_at ? new Date(selected.created_at).toLocaleDateString() : "N/A"}</span>
+                  <span className="text-xs">Raised: {selected.created_at ? new Date(selected.created_at).toLocaleDateString() : "N/A"}</span>
                 </div>
                 {selected.description && (
                   <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{selected.description}</p>
@@ -353,15 +353,15 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                     const isAI = msg.sender === "claude" || msg.sender === "ai";
                     return (
                       <div key={msg.id} className="flex justify-start">
-                        <div className={`max-w-[75%] rounded-xl px-4 py-3 ${isAI ? "bg-accent/10 border border-accent/20" : "bg-muted"}`}>
+                        <div className={`max-w-[75%] rounded-lg px-4 py-3 ${isAI ? "bg-status-new-bg" : "bg-active"}`}>
                           {isAI && (
                             <div className="flex items-center gap-1.5 mb-1.5">
-                              <Bot className="h-3.5 w-3.5 text-accent" />
-                              <Badge variant="default" className="text-[10px] px-1.5 py-0 bg-accent text-accent-foreground">AI</Badge>
+                              <Bot className="h-3.5 w-3.5 text-status-new" />
+                              <Badge variant="new" className="text-[10px] px-1.5 py-0">AI</Badge>
                             </div>
                           )}
                           <p className="text-sm leading-relaxed">{msg.message}</p>
-                          <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
+                          <div className="flex items-center gap-2 mt-2 text-[11px] text-muted-foreground">
                             <span className="font-medium">{isAI ? "Auditron" : msg.sender}</span>
                             <span>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
                           </div>
@@ -372,9 +372,9 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                 )}
                 {aiReviewing && (
                   <div className="flex justify-start">
-                    <div className="max-w-[75%] rounded-xl px-4 py-3 bg-accent/10 border border-accent/20">
+                    <div className="max-w-[75%] rounded-lg px-4 py-3 bg-status-new-bg">
                       <div className="flex items-center gap-2">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-status-new" />
                         <span className="text-sm text-muted-foreground">Auditron is reviewing...</span>
                       </div>
                     </div>
@@ -382,7 +382,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                 )}
               </div>
 
-              <div className="border-t p-4 flex items-center gap-2">
+              <div className="border-t border-border p-4 flex items-center gap-2">
                 <input
                   ref={attachInputRef}
                   type="file"
@@ -409,12 +409,12 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                   onChange={e => setReplyText(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                 />
-                <Button variant="accent" size="sm" onClick={handleSendMessage} disabled={sending || !replyText.trim()}>
+                <Button size="sm" onClick={handleSendMessage} disabled={sending || !replyText.trim()}>
                   {sending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Send className="h-4 w-4 mr-1.5" />}
                   Send
                 </Button>
                 {selected.status !== "resolved" && (
-                  <Button variant="accent-outline" size="sm" onClick={handleResolve} disabled={resolving}>
+                  <Button variant="outline" size="sm" onClick={handleResolve} disabled={resolving}>
                     {resolving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle2 className="h-4 w-4 mr-1.5" />}
                     Resolve
                   </Button>
@@ -480,7 +480,7 @@ function NewRFIDialog({ open, onClose, formData, setFormData, onSubmit, submitti
         </div>
         <DialogFooter>
           <Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
-          <Button variant="accent" size="sm" onClick={onSubmit} disabled={!formData.title.trim() || submitting}>
+          <Button size="sm" onClick={onSubmit} disabled={!formData.title.trim() || submitting}>
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
             Create RFI
           </Button>

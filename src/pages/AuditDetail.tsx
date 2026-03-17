@@ -71,12 +71,27 @@ const statusLabel = (s: string | null) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
-const opinionBannerClass = (opinion: string | null) => {
+const findingLeftBorder = (s: string) => {
+  const n = normalizeStatus(s);
+  if (n === "pass") return "border-l-[3px] border-l-status-pass";
+  if (n === "fail") return "border-l-[3px] border-l-status-fail";
+  return "border-l-[3px] border-l-status-flag";
+};
+
+const opinionLeftBorder = (opinion: string | null) => {
   const o = (opinion || "").toLowerCase();
-  if (o === "unqualified") return "bg-status-pass/10 border-status-pass/20";
-  if (o === "qualified") return "bg-status-flag/10 border-status-flag/20";
-  if (o === "adverse") return "bg-status-fail/10 border-status-fail/20";
-  return "bg-muted/50 border-border";
+  if (o === "unqualified") return "border-l-[3px] border-l-status-pass";
+  if (o === "qualified") return "border-l-[3px] border-l-status-flag";
+  if (o === "adverse") return "border-l-[3px] border-l-status-fail";
+  return "";
+};
+
+const opinionTextColor = (opinion: string | null) => {
+  const o = (opinion || "").toLowerCase();
+  if (o === "unqualified") return "text-status-pass";
+  if (o === "qualified") return "text-status-flag";
+  if (o === "adverse") return "text-status-fail";
+  return "text-foreground";
 };
 
 const opinionIcon = (opinion: string | null) => {
@@ -130,8 +145,7 @@ export default function AuditDetail() {
   const [autoTriggered, setAutoTriggered] = useState(false);
   useEffect(() => {
     if (!audit || autoTriggered || runningAudit) return;
-    if (audit.ai_findings) return; // already has findings
-    // Check if documents exist
+    if (audit.ai_findings) return;
     const checkAndRun = async () => {
       const { count } = await supabase
         .from("documents")
@@ -149,19 +163,16 @@ export default function AuditDetail() {
     if (!raw) return { findings: [], envelope: {} };
     try {
       let obj = raw;
-      // If it's a string (possibly with markdown fences), extract JSON
       if (typeof obj === "string") {
         const match = obj.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (match) obj = JSON.parse(match[1]);
         else obj = JSON.parse(obj);
       }
-      // Envelope format: { compliance_findings: [...], opinion, summary, ... }
       if (obj && typeof obj === "object" && !Array.isArray(obj)) {
         const envelope = obj as AiFindingsEnvelope;
         const findings = Array.isArray(envelope.compliance_findings) ? envelope.compliance_findings : [];
         return { findings: findings as AiFinding[], envelope };
       }
-      // Direct array format (legacy)
       if (Array.isArray(obj)) return { findings: obj as AiFinding[], envelope: {} };
       return { findings: [], envelope: {} };
     } catch { return { findings: [], envelope: {} }; }
@@ -216,7 +227,6 @@ export default function AuditDetail() {
       });
       if (error) throw error;
       await fetchAudit();
-      // Auto-resolve RFIs based on new findings
       const { data: freshAudit } = await supabase.from("audits").select("ai_findings").eq("id", audit.id).single();
       if (freshAudit) {
         const { findings } = parseFindings(freshAudit.ai_findings);
@@ -249,7 +259,7 @@ export default function AuditDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -257,9 +267,9 @@ export default function AuditDetail() {
   if (notFound || !audit) {
     return (
       <div className="container max-w-6xl py-16 text-center animate-fade-in">
-        <h2 className="font-serif-display text-xl font-semibold">Audit not found</h2>
+        <h2 className="text-base font-semibold">Audit not found</h2>
         <p className="text-sm text-muted-foreground mt-2">This audit doesn't exist or you don't have access.</p>
-        <Button variant="accent" size="sm" className="mt-6" onClick={() => navigate("/audits")}>
+        <Button size="sm" className="mt-6" onClick={() => navigate("/audits")}>
           <ArrowLeft className="h-4 w-4 mr-1.5" /> Back to My Audits
         </Button>
       </div>
@@ -270,16 +280,16 @@ export default function AuditDetail() {
     <div className="container max-w-6xl py-8 space-y-6 animate-fade-in">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link to="/audits" className="hover:text-foreground transition-colors">My Audits</Link>
+        <Link to="/audits" className="hover:text-foreground transition-colors duration-100">My Audits</Link>
         <ChevronRight className="h-3.5 w-3.5" />
         <span className="text-foreground font-medium">{audit.fund_name}</span>
       </div>
 
       {/* Header Card */}
-      <div className="rounded-xl bg-card p-6" style={{ boxShadow: "var(--shadow-card)" }}>
+      <div className="rounded-lg border border-border bg-background p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="font-serif-display text-2xl font-semibold">{audit.fund_name}</h1>
+            <h1 className="text-xl font-bold">{audit.fund_name}</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {audit.financial_year ? `Financial Year ${audit.financial_year}` : "No financial year set"}
               {audit.fund_type && <span className="ml-3 capitalize">· {audit.fund_type}</span>}
@@ -287,9 +297,7 @@ export default function AuditDetail() {
           </div>
           <div className="flex items-center gap-2">
             <Button
-              variant="accent"
               size="sm"
-              className="shadow-sm"
               onClick={handleRunAudit}
               disabled={runningAudit}
             >
@@ -299,7 +307,7 @@ export default function AuditDetail() {
                 <><Play className="h-4 w-4 mr-1.5" />Run AI Audit</>
               )}
             </Button>
-            <Button variant="ghost" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
+            <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
 
             {/* Smart status / completion */}
             {isComplete ? (
@@ -311,13 +319,13 @@ export default function AuditDetail() {
                 <AlertTriangle className="h-3.5 w-3.5 mr-1" /> In Progress · {rfiCount} open RFI{rfiCount !== 1 ? "s" : ""}
               </Badge>
             ) : canAutoComplete ? (
-              <Button variant="accent" size="sm" className="shadow-sm" onClick={handleMarkComplete}>
+              <Button size="sm" onClick={handleMarkComplete}>
                 <CheckCircle2 className="h-4 w-4 mr-1.5" />Mark Complete
               </Button>
             ) : needsWarning ? (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="accent" size="sm" className="shadow-sm">
+                  <Button size="sm">
                     <AlertTriangle className="h-4 w-4 mr-1.5" />Mark Complete
                   </Button>
                 </AlertDialogTrigger>
@@ -379,15 +387,15 @@ export default function AuditDetail() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-muted/50">
+        <TabsList>
           <TabsTrigger value="findings">AI Findings</TabsTrigger>
           <TabsTrigger value="documents" className="gap-1.5">
             Documents
-            {docCount > 0 && <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5 text-[10px]">{docCount}</Badge>}
+            {docCount > 0 && <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">{docCount}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="rfis" className="gap-1.5">
             RFIs
-            {rfiCount > 0 && <Badge variant="new" className="ml-1 h-5 min-w-5 px-1.5 text-[10px]">{rfiCount}</Badge>}
+            {rfiCount > 0 && <Badge variant="new" className="ml-1 text-[10px] px-1.5 py-0">{rfiCount}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="notes">Audit Notes</TabsTrigger>
         </TabsList>
@@ -395,14 +403,13 @@ export default function AuditDetail() {
         {/* Findings Tab */}
         <TabsContent value="findings" className="space-y-4">
           {aiFindings.length === 0 ? (
-            <div className="rounded-xl bg-card p-8 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
-              <Info className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-              <h3 className="font-serif-display font-semibold text-lg">No AI Findings Yet</h3>
+            <div className="rounded-lg border border-border bg-background p-8 text-center">
+              <Info className="h-8 w-8 text-border mx-auto mb-3" />
+              <h3 className="text-base font-semibold">No AI Findings Yet</h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
                 Click "Run AI Audit" to analyse the uploaded documents and generate compliance findings.
               </p>
               <Button
-                variant="accent"
                 size="sm"
                 className="mt-4"
                 onClick={handleRunAudit}
@@ -418,15 +425,18 @@ export default function AuditDetail() {
           ) : (
             <>
               {/* Opinion Banner */}
-              <div className={`flex items-center gap-3 rounded-xl border p-4 ${opinionBannerClass(envelope.opinion || audit.opinion)}`}>
+              <div className={`flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>
                 {opinionIcon(envelope.opinion || audit.opinion)}
                 <div>
-                  <p className="font-medium text-sm">Draft Opinion: {envelope.opinion || audit.opinion || "Pending"}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">DRAFT OPINION</p>
+                  <p className={`font-semibold text-base mt-0.5 ${opinionTextColor(envelope.opinion || audit.opinion)}`}>
+                    {envelope.opinion || audit.opinion || "Pending"}
+                  </p>
                   {envelope.opinion_reasoning && (
                     <p className="text-sm text-muted-foreground mt-1">{envelope.opinion_reasoning}</p>
                   )}
                   {envelope.summary && (
-                    <p className="text-xs text-muted-foreground mt-1 italic">{envelope.summary}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{envelope.summary}</p>
                   )}
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {passCount} areas passed, {flagCount} flagged for review.
@@ -439,16 +449,16 @@ export default function AuditDetail() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 {aiFindings.map((f, i) => (
-                  <div key={`${f.area}-${i}`} className="rounded-xl bg-card p-4 space-y-2 transition-all duration-200 hover:-translate-y-0.5" style={{ boxShadow: "var(--shadow-card)" }}>
+                  <div key={`${f.area}-${i}`} className={`rounded-lg border border-border bg-background p-4 space-y-2 ${findingLeftBorder(f.status)}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {findingIcon(f.status)}
-                        <span className="font-medium text-sm">{f.area}</span>
+                        <span className="font-semibold text-sm">{f.area}</span>
                       </div>
                       <Badge variant={findingBadgeVariant(f.status)}>{findingLabel(f.status)}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed">{f.detail}</p>
-                    <p className="text-xs text-muted-foreground italic">{f.reference}</p>
+                    <p className="text-xs text-[#aaaaaa]">{f.reference}</p>
                   </div>
                 ))}
               </div>
@@ -468,9 +478,9 @@ export default function AuditDetail() {
 
         {/* Audit Notes Tab */}
         <TabsContent value="notes" className="space-y-4">
-          <div className="rounded-xl bg-card p-5 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
+          <div className="rounded-lg border border-border bg-background p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-serif-display font-semibold flex items-center gap-2">
+              <h3 className="font-semibold text-base flex items-center gap-2">
                 <StickyNote className="h-4 w-4 text-muted-foreground" />
                 Internal Notes
               </h3>
@@ -485,16 +495,16 @@ export default function AuditDetail() {
                 className="min-h-[80px] resize-none"
               />
               <div className="flex justify-end">
-                <Button variant="accent" size="sm" disabled={!noteText.trim()}>
+                <Button size="sm" disabled={!noteText.trim()}>
                   <Plus className="h-4 w-4 mr-1" />
                   Add Note
                 </Button>
               </div>
             </div>
 
-            <div className="space-y-3 pt-2 border-t">
+            <div className="space-y-3 pt-2 border-t border-border">
               {auditNotes.map(note => (
-                <div key={note.id} className="rounded-lg border p-3 space-y-1">
+                <div key={note.id} className="rounded-lg border border-border p-3 space-y-1">
                   <p className="text-sm leading-relaxed">{note.text}</p>
                   <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                     <span className="font-medium">{note.author}</span>
@@ -556,7 +566,7 @@ function UploadMoreDocuments({ auditId, onUploaded, runningAudit }: { auditId: s
   const busy = uploading || runningAudit;
 
   return (
-    <div className="rounded-xl bg-card p-5 flex items-center justify-between" style={{ boxShadow: "var(--shadow-card)" }}>
+    <div className="rounded-lg border border-border bg-background p-5 flex items-center justify-between">
       <div>
         <p className="text-sm font-medium">Upload additional documents</p>
         <p className="text-xs text-muted-foreground">
@@ -565,7 +575,7 @@ function UploadMoreDocuments({ auditId, onUploaded, runningAudit }: { auditId: s
       </div>
       <div>
         <input ref={fileInputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.docx" onChange={handleUpload} className="hidden" />
-        <Button variant="accent" size="sm" disabled={busy} onClick={() => fileInputRef.current?.click()}>
+        <Button variant="outline" size="sm" disabled={busy} onClick={() => fileInputRef.current?.click()}>
           {busy ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
           {uploading ? "Uploading…" : runningAudit ? "Re-running Audit…" : "Upload More Documents"}
         </Button>

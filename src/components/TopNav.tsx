@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bell, Plus, User, ClipboardCheck, LogOut } from "lucide-react";
+import { Bell, Plus, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NewAuditModal } from "@/components/NewAuditModal";
@@ -25,23 +25,20 @@ export function TopNav() {
   };
 
   const navLinkClass = (path: string) =>
-    `relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+    `relative px-3 py-1.5 text-sm font-medium transition-colors duration-100 ${
       isActive(path)
-        ? "text-nav-foreground"
-        : "text-nav-foreground/60 hover:text-nav-foreground"
+        ? "text-foreground"
+        : "text-muted-foreground hover:text-foreground"
     }`;
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-nav" style={{ boxShadow: "var(--shadow-nav)" }}>
+      <nav className="sticky top-0 z-50 bg-background border-b border-border">
         <div className="container flex h-14 items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-nav-accent">
-              <ClipboardCheck className="h-4 w-4 text-accent-foreground" />
-            </div>
-            <span className="font-serif-display text-lg font-semibold tracking-tight text-nav-foreground">
-              AI <span className="text-nav-accent">Audits</span>
+          {/* Logo — text only */}
+          <Link to="/" className="flex items-center">
+            <span className="text-base font-bold tracking-tight text-foreground">
+              Auditron
             </span>
           </Link>
 
@@ -49,38 +46,38 @@ export function TopNav() {
           <div className="flex items-center gap-1">
             <Link to="/" className={navLinkClass("/")}>
               Dashboard
-              {isActive("/") && <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-nav-accent" />}
+              {isActive("/") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
             </Link>
             <Link to="/audits" className={navLinkClass("/audits")}>
               My Audits
-              <Badge variant="secondary" className="ml-1.5 h-5 min-w-[20px] px-1.5 text-[10px] bg-nav-foreground/15 text-nav-foreground border-0">8</Badge>
-              {isActive("/audits") && <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-nav-accent" />}
+              <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0">8</Badge>
+              {isActive("/audits") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
             </Link>
             <Link to="/rfis" className={navLinkClass("/rfis")}>
               My RFIs
-              <Badge variant="flag" className="ml-1.5 h-5 min-w-[20px] px-1.5 text-[10px]">4</Badge>
-              {isActive("/rfis") && <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-nav-accent" />}
+              <Badge variant="flag" className="ml-1.5 text-[10px] px-1.5 py-0">4</Badge>
+              {isActive("/rfis") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
             </Link>
           </div>
 
           {/* Right Side */}
           <div className="flex items-center gap-2">
-            <Button variant="accent" size="sm" onClick={() => setModalOpen(true)} className="shadow-md">
+            <Button size="sm" onClick={() => setModalOpen(true)}>
               <Plus className="h-4 w-4" />
               New Audit
             </Button>
-            <Button variant="ghost" size="icon" className="relative text-nav-foreground/70 hover:text-nav-foreground hover:bg-nav-foreground/10">
+            <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
               <Bell className="h-4 w-4" />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
+              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-status-fail" />
             </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 rounded-full bg-nav-foreground/10 px-2.5 py-1.5 transition-colors hover:bg-nav-foreground/15">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-nav-accent">
-                    <User className="h-3.5 w-3.5 text-accent-foreground" />
+                <button className="flex items-center gap-2 rounded-md border border-border px-2.5 py-1.5 transition-colors hover:bg-hover">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground">
+                    <User className="h-3 w-3 text-background" />
                   </div>
-                  <span className="text-sm font-medium text-nav-foreground">{displayName}</span>
+                  <span className="text-sm font-medium text-foreground">{displayName}</span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">

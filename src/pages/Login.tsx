@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ClipboardCheck, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 
 export default function Login() {
@@ -33,12 +33,7 @@ export default function Login() {
       <div className="w-full max-w-sm space-y-8">
         {/* Logo */}
         <div className="flex flex-col items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
-            <ClipboardCheck className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            AI <span className="text-accent">Audits</span>
-          </h1>
+          <span className="text-xl font-bold tracking-tight text-foreground">Auditron</span>
           <p className="text-sm text-muted-foreground">Sign in to your account</p>
         </div>
 
@@ -74,7 +69,7 @@ export default function Login() {
 
         <p className="text-center text-sm text-muted-foreground">
           Don't have an account?{" "}
-          <Link to="/signup" className="font-medium text-accent hover:underline">
+          <Link to="/signup" className="font-medium text-foreground hover:underline">
             Sign up
           </Link>
         </p>
