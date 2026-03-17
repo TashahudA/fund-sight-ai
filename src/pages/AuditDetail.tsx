@@ -308,6 +308,7 @@ export default function AuditDetail() {
               )}
             </Button>
             <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
+            <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
 
             {/* Smart status / completion */}
             {isComplete ? (
