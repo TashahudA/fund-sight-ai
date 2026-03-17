@@ -131,13 +131,13 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!loading) { onOpenChange(v); if (!v) resetForm(); } }}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
+      <DialogContent className="w-[600px] max-w-[95vw] max-h-[90vh] flex flex-col overflow-x-hidden">
         <DialogHeader className="shrink-0">
           <DialogTitle>Start New SMSF Audit</DialogTitle>
           <DialogDescription>Enter fund details to begin AI-powered compliance analysis.</DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-2 overflow-y-auto flex-1 min-h-0">
+        <div className="grid gap-4 py-2 overflow-y-auto overflow-x-hidden flex-1 min-h-0">
           {error && (
             <div className="rounded-md border border-status-fail-border bg-status-fail-bg px-4 py-3 text-sm text-status-fail">
               {error}
@@ -216,10 +216,10 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
             {files.length > 0 && (
               <div className="space-y-0 mt-1.5">
                 {files.map((file, i) => (
-                  <div key={`${file.name}-${i}`} className="flex items-center justify-between py-1.5 px-1 text-sm border-b border-border last:border-b-0">
-                    <div className="flex items-center gap-2 min-w-0">
+                  <div key={`${file.name}-${i}`} className="flex items-center justify-between py-1.5 px-1 text-sm border-b border-border last:border-b-0 overflow-hidden">
+                    <div className="flex items-center gap-2 min-w-0 overflow-hidden">
                       <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <span className="truncate text-[13px]">{file.name}</span>
+                      <span className="truncate text-[13px] max-w-[360px]">{file.name}</span>
                       <span className="text-muted-foreground text-xs shrink-0">{formatFileSize(file.size)}</span>
                     </div>
                     <button type="button" onClick={(e) => { e.stopPropagation(); removeFile(i); }} className="text-muted-foreground hover:text-status-fail ml-2 shrink-0">
