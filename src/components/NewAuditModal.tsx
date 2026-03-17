@@ -137,7 +137,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
           <DialogDescription>Enter fund details to begin AI-powered compliance analysis.</DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-2 overflow-y-auto flex-1 min-h-0">
+        <div className="grid gap-4 py-2 overflow-y-auto overflow-x-hidden flex-1 min-h-0">
           {error && (
             <div className="rounded-md border border-status-fail-border bg-status-fail-bg px-4 py-3 text-sm text-status-fail">
               {error}
