@@ -386,8 +386,7 @@ export default function AuditDetail() {
         </div>
       </div>
 
-      {/* Upload More Documents */}
-      <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
+
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
