@@ -287,15 +287,30 @@ export default function AuditDetail() {
 
       {/* Header Card */}
       <div className="rounded-lg border border-border bg-background p-6">
-        <div className="flex items-start justify-between">
-          <div>
+        <div className="flex items-center justify-between gap-6">
+          {/* Left: fund info + metadata */}
+          <div className="min-w-0">
             <h1 className="text-xl font-bold">{audit.fund_name}</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {audit.financial_year ? `Financial Year ${audit.financial_year}` : "No financial year set"}
               {audit.fund_type && <span className="ml-3 capitalize">· {audit.fund_type}</span>}
             </p>
+            <div className="flex items-center gap-4 mt-3 text-sm">
+              <Badge variant={statusVariant(audit.status)}>{statusLabel(audit.status)}</Badge>
+              <span className="text-muted-foreground">
+                Opinion: {audit.opinion || "Pending"}
+              </span>
+              {audit.fund_abn && <span className="text-muted-foreground">ABN: {audit.fund_abn}</span>}
+              {audit.created_at && (
+                <span className="text-muted-foreground">
+                  Created: {new Date(audit.created_at).toLocaleDateString()}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
+
+          {/* Right: buttons stacked */}
+          <div className="flex flex-col items-stretch gap-2 shrink-0">
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
@@ -373,18 +388,6 @@ export default function AuditDetail() {
             </div>
             <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
           </div>
-        </div>
-        <div className="flex items-center gap-4 mt-4 text-sm">
-          <Badge variant={statusVariant(audit.status)}>{statusLabel(audit.status)}</Badge>
-          <span className="text-muted-foreground">
-            Opinion: {audit.opinion || "Pending"}
-          </span>
-          {audit.fund_abn && <span className="text-muted-foreground">ABN: {audit.fund_abn}</span>}
-          {audit.created_at && (
-            <span className="text-muted-foreground">
-              Created: {new Date(audit.created_at).toLocaleDateString()}
-            </span>
-          )}
         </div>
       </div>
 
