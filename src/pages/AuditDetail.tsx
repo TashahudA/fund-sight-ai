@@ -386,8 +386,6 @@ export default function AuditDetail() {
         </div>
       </div>
 
-
-
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
@@ -446,9 +444,6 @@ export default function AuditDetail() {
                   </p>
                 </div>
               </div>
-
-
-
 
               <div className="grid gap-4 md:grid-cols-2">
                 {aiFindings.map((f, i) => (
