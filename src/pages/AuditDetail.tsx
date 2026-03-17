@@ -571,7 +571,7 @@ function UploadMoreDocuments({ auditId, onUploaded, runningAudit }: { auditId: s
   return (
     <>
       <input ref={fileInputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.docx" onChange={handleUpload} className="hidden" />
-      <Button variant="outline" className="w-full justify-center" disabled={busy} onClick={() => fileInputRef.current?.click()}>
+      <Button variant="outline" size="sm" disabled={busy} onClick={() => fileInputRef.current?.click()}>
         {busy ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
         {uploading ? "Uploading…" : runningAudit ? "Re-running Audit…" : "Upload More Documents"}
       </Button>
