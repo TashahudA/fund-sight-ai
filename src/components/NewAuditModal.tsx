@@ -200,22 +200,26 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
-              className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors duration-100 cursor-pointer ${
+              className={`flex items-center justify-center gap-2 rounded-lg border-2 border-dashed text-center transition-colors duration-100 cursor-pointer ${
+                files.length > 0 ? "p-3" : "p-6"
+              } ${
                 dragOver ? "border-foreground bg-active" : "border-border bg-hover hover:border-foreground"
               }`}
             >
-              <CloudUpload className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm font-medium">Drop files here or click to browse</p>
-              <p className="text-xs text-muted-foreground">PDF, XLSX, CSV, JPG, PNG, DOCX accepted</p>
+              <CloudUpload className={`${files.length > 0 ? "h-5 w-5" : "h-8 w-8"} text-muted-foreground shrink-0`} />
+              <div>
+                <p className="text-sm font-medium">{files.length > 0 ? "Add more files" : "Drop files here or click to browse"}</p>
+                {files.length === 0 && <p className="text-xs text-muted-foreground">PDF, XLSX, CSV, JPG, PNG, DOCX accepted</p>}
+              </div>
             </div>
 
             {files.length > 0 && (
-              <div className="space-y-1.5 mt-2 max-h-32 overflow-y-auto">
+              <div className="space-y-0 mt-1.5">
                 {files.map((file, i) => (
-                  <div key={`${file.name}-${i}`} className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm">
+                  <div key={`${file.name}-${i}`} className="flex items-center justify-between py-1.5 px-1 text-sm border-b border-border last:border-b-0">
                     <div className="flex items-center gap-2 min-w-0">
                       <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <span className="truncate">{file.name}</span>
+                      <span className="truncate text-[13px]">{file.name}</span>
                       <span className="text-muted-foreground text-xs shrink-0">{formatFileSize(file.size)}</span>
                     </div>
                     <button type="button" onClick={(e) => { e.stopPropagation(); removeFile(i); }} className="text-muted-foreground hover:text-status-fail ml-2 shrink-0">
