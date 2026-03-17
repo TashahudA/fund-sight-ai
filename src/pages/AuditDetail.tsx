@@ -444,8 +444,8 @@ export default function AuditDetail() {
                 </div>
               </div>
 
-              {/* Upload More Documents — above findings */}
-              <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
+
+
 
               <div className="grid gap-4 md:grid-cols-2">
                 {aiFindings.map((f, i) => (
