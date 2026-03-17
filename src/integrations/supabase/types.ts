@@ -61,6 +61,7 @@ export type Database = {
           audit_id: string
           created_at: string | null
           file_name: string
+          file_size: number | null
           file_type: string | null
           file_url: string | null
           id: string
@@ -69,6 +70,7 @@ export type Database = {
           audit_id: string
           created_at?: string | null
           file_name: string
+          file_size?: number | null
           file_type?: string | null
           file_url?: string | null
           id?: string
@@ -77,6 +79,7 @@ export type Database = {
           audit_id?: string
           created_at?: string | null
           file_name?: string
+          file_size?: number | null
           file_type?: string | null
           file_url?: string | null
           id?: string
