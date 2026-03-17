@@ -104,6 +104,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
             file_name: safeName,
             file_type: file.type || file.name.split(".").pop() || "unknown",
             file_url: urlData.publicUrl,
+            file_size: file.size,
           });
           if (dbError) throw dbError;
         }
