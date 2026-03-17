@@ -295,81 +295,83 @@ export default function AuditDetail() {
               {audit.fund_type && <span className="ml-3 capitalize">· {audit.fund_type}</span>}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              onClick={handleRunAudit}
-              disabled={runningAudit}
-            >
-              {runningAudit ? (
-                <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Running Audit...</>
-              ) : (
-                <><Play className="h-4 w-4 mr-1.5" />Run AI Audit</>
-              )}
-            </Button>
-            <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
-            <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
-
-            {/* Smart status / completion */}
-            {isComplete ? (
-              <Badge variant="pass" className="px-3 py-1.5 text-xs">
-                <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Complete
-              </Badge>
-            ) : !allResolved ? (
-              <Badge variant="flag" className="px-3 py-1.5 text-xs">
-                <AlertTriangle className="h-3.5 w-3.5 mr-1" /> In Progress · {rfiCount} open RFI{rfiCount !== 1 ? "s" : ""}
-              </Badge>
-            ) : canAutoComplete ? (
-              <Button size="sm" onClick={handleMarkComplete}>
-                <CheckCircle2 className="h-4 w-4 mr-1.5" />Mark Complete
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={handleRunAudit}
+                disabled={runningAudit}
+              >
+                {runningAudit ? (
+                  <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Running Audit...</>
+                ) : (
+                  <><Play className="h-4 w-4 mr-1.5" />Run AI Audit</>
+                )}
               </Button>
-            ) : needsWarning ? (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button size="sm">
-                    <AlertTriangle className="h-4 w-4 mr-1.5" />Mark Complete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Complete with {audit?.opinion || "non-unqualified"} opinion?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      The current audit opinion is "{audit?.opinion || "unknown"}". Are you sure you want to mark this audit as complete?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleMarkComplete}>Complete Anyway</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            ) : null}
+              <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
 
-            {/* Force-complete button */}
-            {!isComplete && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <ShieldCheck className="h-4 w-4 mr-1.5" />Force Complete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Force complete this audit?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {rfiCount > 0
-                        ? `There are still ${rfiCount} open RFI${rfiCount !== 1 ? "s" : ""}. `
-                        : ""}
-                      This will mark the audit as complete regardless of outstanding items.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleMarkComplete}>Force Complete</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
+              {/* Smart status / completion */}
+              {isComplete ? (
+                <Badge variant="pass" className="px-3 py-1.5 text-xs">
+                  <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Complete
+                </Badge>
+              ) : !allResolved ? (
+                <Badge variant="flag" className="px-3 py-1.5 text-xs">
+                  <AlertTriangle className="h-3.5 w-3.5 mr-1" /> In Progress · {rfiCount} open RFI{rfiCount !== 1 ? "s" : ""}
+                </Badge>
+              ) : canAutoComplete ? (
+                <Button size="sm" onClick={handleMarkComplete}>
+                  <CheckCircle2 className="h-4 w-4 mr-1.5" />Mark Complete
+                </Button>
+              ) : needsWarning ? (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm">
+                      <AlertTriangle className="h-4 w-4 mr-1.5" />Mark Complete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Complete with {audit?.opinion || "non-unqualified"} opinion?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        The current audit opinion is "{audit?.opinion || "unknown"}". Are you sure you want to mark this audit as complete?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleMarkComplete}>Complete Anyway</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : null}
+
+              {/* Force-complete button */}
+              {!isComplete && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <ShieldCheck className="h-4 w-4 mr-1.5" />Force Complete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Force complete this audit?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {rfiCount > 0
+                          ? `There are still ${rfiCount} open RFI${rfiCount !== 1 ? "s" : ""}. `
+                          : ""}
+                        This will mark the audit as complete regardless of outstanding items.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleMarkComplete}>Force Complete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
+            <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
           </div>
         </div>
         <div className="flex items-center gap-4 mt-4 text-sm">
@@ -566,7 +568,7 @@ function UploadMoreDocuments({ auditId, onUploaded, runningAudit }: { auditId: s
   return (
     <>
       <input ref={fileInputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.docx" onChange={handleUpload} className="hidden" />
-      <Button variant="outline" size="sm" disabled={busy} onClick={() => fileInputRef.current?.click()}>
+      <Button variant="outline" size="sm" className="w-full justify-center" disabled={busy} onClick={() => fileInputRef.current?.click()}>
         {busy ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
         {uploading ? "Uploading…" : "Upload"}
       </Button>
