@@ -131,7 +131,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!loading) { onOpenChange(v); if (!v) resetForm(); } }}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
+      <DialogContent className="w-[600px] max-w-[95vw] max-h-[90vh] flex flex-col overflow-x-hidden">
         <DialogHeader className="shrink-0">
           <DialogTitle>Start New SMSF Audit</DialogTitle>
           <DialogDescription>Enter fund details to begin AI-powered compliance analysis.</DialogDescription>
