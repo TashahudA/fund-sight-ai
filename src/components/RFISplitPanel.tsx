@@ -55,17 +55,17 @@ export function RFISplitPanel({ rfis: allRfis, showRaiseButton, className }: RFI
   }
 
   return (
-    <div className={`flex rounded-xl bg-card overflow-hidden ${className || ""}`} style={{ boxShadow: "var(--shadow-card)" }}>
+    <div className={`flex rounded-lg border border-border bg-background overflow-hidden ${className || ""}`}>
       {/* Left Panel */}
-      <div className="flex w-80 shrink-0 flex-col border-r lg:w-96">
+      <div className="flex w-80 shrink-0 flex-col border-r border-border lg:w-96">
         {/* Search + Raise Button */}
-        <div className="p-3 border-b flex gap-2">
+        <div className="p-3 border-b border-border flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Search RFIs…" className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           {showRaiseButton && (
-            <Button variant="accent" size="sm" className="shrink-0">
+            <Button size="sm" className="shrink-0">
               <Plus className="h-4 w-4" />
               Raise RFI
             </Button>
@@ -73,13 +73,13 @@ export function RFISplitPanel({ rfis: allRfis, showRaiseButton, className }: RFI
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b">
+        <div className="flex border-b border-border">
           {(["Open", "Overdue", "Resolved", "All"] as TabFilter[]).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 px-2 py-2.5 text-xs font-medium transition-colors border-b-2 ${
-                tab === t ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+              className={`flex-1 px-2 py-2.5 text-xs font-medium transition-colors duration-100 border-b-2 ${
+                tab === t ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               {t} <span className="text-muted-foreground">({counts[t]})</span>
@@ -93,10 +93,10 @@ export function RFISplitPanel({ rfis: allRfis, showRaiseButton, className }: RFI
             <button
               key={rfi.id}
               onClick={() => setSelectedId(rfi.id)}
-              className={`w-full text-left px-4 py-3.5 border-b transition-all duration-150 ${
+              className={`w-full text-left px-4 py-3.5 border-b border-[hsl(var(--border-light))] transition-colors duration-100 ${
                 selectedId === rfi.id
-                  ? "bg-accent/[0.06] border-l-2 border-l-accent"
-                  : "hover:bg-muted/30 border-l-2 border-l-transparent"
+                  ? "bg-active border-l-2 border-l-foreground"
+                  : "hover:bg-hover border-l-2 border-l-transparent"
               }`}
             >
               <div className="text-sm font-medium leading-snug line-clamp-1">{rfi.title}</div>
@@ -115,13 +115,13 @@ export function RFISplitPanel({ rfis: allRfis, showRaiseButton, className }: RFI
       {selected && (
         <div className="flex flex-1 flex-col">
           {/* Detail Header */}
-          <div className="border-b p-5">
-            <h2 className="font-serif-display text-lg font-semibold">{selected.title}</h2>
+          <div className="border-b border-border p-5">
+            <h2 className="text-base font-semibold">{selected.title}</h2>
             <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground flex-wrap">
               <span>Fund: <span className="text-foreground font-medium">{selected.fundName}</span></span>
               <Badge variant={priorityVariant(selected.priority)}>{selected.priority}</Badge>
               <Badge variant="secondary">{selected.category}</Badge>
-              <span>Raised: {selected.dateRaised}</span>
+              <span className="text-xs">Raised: {selected.dateRaised}</span>
             </div>
           </div>
 
@@ -133,20 +133,20 @@ export function RFISplitPanel({ rfis: allRfis, showRaiseButton, className }: RFI
                 className={`flex ${msg.senderType === "accountant" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[75%] rounded-xl px-4 py-3 ${
+                  className={`max-w-[75%] rounded-lg px-4 py-3 ${
                     msg.senderType === "auditor"
-                      ? "bg-muted"
-                      : "bg-sage-light"
+                      ? "bg-active"
+                      : "bg-status-pass-bg"
                   }`}
                 >
                   <p className="text-sm leading-relaxed">{msg.text}</p>
                   {msg.attachments?.map(file => (
-                    <div key={file} className="flex items-center gap-1.5 mt-2 text-xs text-accent font-medium cursor-pointer hover:underline">
+                    <div key={file} className="flex items-center gap-1.5 mt-2 text-xs text-foreground font-medium cursor-pointer hover:underline">
                       <Paperclip className="h-3 w-3" />
                       {file}
                     </div>
                   ))}
-                  <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
+                  <div className="flex items-center gap-2 mt-2 text-[11px] text-muted-foreground">
                     <span className="font-medium">{msg.sender}</span>
                     <span>{msg.timestamp}</span>
                   </div>
@@ -156,10 +156,10 @@ export function RFISplitPanel({ rfis: allRfis, showRaiseButton, className }: RFI
           </div>
 
           {/* Reply Footer */}
-          <div className="border-t p-4 flex items-center gap-2">
+          <div className="border-t border-border p-4 flex items-center gap-2">
             <Input placeholder="Type your reply…" className="flex-1" />
-            <Button variant="accent" size="sm"><Send className="h-4 w-4 mr-1.5" />Send</Button>
-            <Button variant="accent-outline" size="sm"><CheckCircle2 className="h-4 w-4 mr-1.5" />Resolve</Button>
+            <Button size="sm"><Send className="h-4 w-4 mr-1.5" />Send</Button>
+            <Button variant="outline" size="sm"><CheckCircle2 className="h-4 w-4 mr-1.5" />Resolve</Button>
           </div>
         </div>
       )}
