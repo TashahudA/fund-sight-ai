@@ -4,22 +4,22 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded px-2 py-0.5 text-xs font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary text-primary-foreground",
-        secondary: "border-transparent bg-secondary text-secondary-foreground",
-        destructive: "border-transparent bg-destructive text-destructive-foreground",
-        outline: "text-foreground",
-        pass: "border-transparent bg-status-pass/15 text-status-pass",
-        flag: "border-transparent bg-status-flag/15 text-status-flag",
-        fail: "border-transparent bg-status-fail/15 text-status-fail",
-        new: "border-transparent bg-status-new/15 text-status-new",
-        "in-progress": "border-transparent bg-status-in-progress/15 text-status-in-progress",
-        high: "border-transparent bg-status-fail/15 text-status-fail",
-        medium: "border-transparent bg-status-flag/15 text-status-flag",
-        low: "border-transparent bg-status-new/15 text-status-new",
+        default: "border-border bg-secondary text-foreground",
+        secondary: "border-border bg-secondary text-muted-foreground",
+        destructive: "border-status-fail-border bg-status-fail-bg text-status-fail",
+        outline: "border-border text-foreground",
+        pass: "border-status-pass-border bg-status-pass-bg text-status-pass",
+        flag: "border-status-flag-border bg-status-flag-bg text-status-flag",
+        fail: "border-status-fail-border bg-status-fail-bg text-status-fail",
+        new: "border-status-new-border bg-status-new-bg text-status-new",
+        "in-progress": "border-status-in-progress-border bg-status-in-progress-bg text-status-in-progress",
+        high: "border-status-fail-border bg-status-fail-bg text-status-fail",
+        medium: "border-status-flag-border bg-status-flag-bg text-status-flag",
+        low: "border-status-new-border bg-status-new-bg text-status-new",
       },
     },
     defaultVariants: {
