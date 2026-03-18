@@ -1,22 +1,49 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { CloudUpload, TrendingUp, Clock, FileWarning, Timer, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { CloudUpload, TrendingUp, Clock, FileWarning, Timer, ArrowRight, FileX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NewAuditModal } from "@/components/NewAuditModal";
-import { audits, type AuditStatus } from "@/lib/mockData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import type { Tables } from "@/integrations/supabase/types";
 
-const statusVariant = (s: AuditStatus) => {
-  const map: Record<AuditStatus, "new" | "in-progress" | "pass" | "secondary" | "flag"> = {
-    New: "new", "In Progress": "in-progress", Complete: "pass", "On Hold": "secondary", "RFI Sent": "flag",
+type Audit = Tables<"audits">;
+
+const statusVariant = (s: string | null) => {
+  const map: Record<string, "new" | "in-progress" | "pass" | "secondary" | "flag"> = {
+    pending: "new", "in progress": "in-progress", complete: "pass", "on hold": "secondary", "rfi sent": "flag",
   };
-  return map[s];
+  return map[(s || "").toLowerCase()] || "secondary";
+};
+
+const statusLabel = (s: string | null) => {
+  if (!s) return "Pending";
+  return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
-  const recentAudits = audits.slice(0, 5);
+  const [audits, setAudits] = useState<Audit[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetch = async () => {
+      const { data } = await supabase
+        .from("audits")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      setAudits(data || []);
+      setLoading(false);
+    };
+    fetch();
+  }, [user, location.key]);
 
   return (
     <div className="container max-w-6xl py-8 space-y-8 animate-fade-in">
@@ -73,43 +100,56 @@ export default function Dashboard() {
             View all <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
-        <div className="rounded-lg border border-border bg-background overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Fund</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">FY</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Opinion</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentAudits.map(audit => (
-                <tr
-                  key={audit.id}
-                  onClick={() => navigate(`/audits/${audit.id}`)}
-                  className="border-b border-[hsl(var(--border-light))] last:border-0 cursor-pointer transition-colors duration-100 hover:bg-hover group"
-                >
-                  <td className="px-5 py-3.5">
-                    <div className="font-semibold text-sm group-hover:text-foreground transition-colors">{audit.fundName}</div>
-                    <div className="text-xs text-muted-foreground">{audit.firmName}</div>
-                  </td>
-                  <td className="px-5 py-3.5 text-muted-foreground">{audit.year}</td>
-                  <td className="px-5 py-3.5">
-                    <Badge variant={statusVariant(audit.status)}>{audit.status}</Badge>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    {audit.opinion ? (
-                      <Badge variant={audit.opinion === "Unqualified" ? "pass" : "flag"}>{audit.opinion}</Badge>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
+
+        {!loading && audits.length === 0 ? (
+          <div className="rounded-lg border border-border bg-background p-8 text-center">
+            <FileX className="h-10 w-10 text-border mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">
+              No audits yet —{" "}
+              <button onClick={() => setModalOpen(true)} className="text-foreground font-medium underline underline-offset-2 hover:no-underline">
+                start your first AI audit
+              </button>
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-border bg-background overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Fund</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">FY</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide">Opinion</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {audits.map(audit => (
+                  <tr
+                    key={audit.id}
+                    onClick={() => navigate(`/audits/${audit.id}`)}
+                    className="border-b border-[hsl(var(--border-light))] last:border-0 cursor-pointer transition-colors duration-100 hover:bg-hover group"
+                  >
+                    <td className="px-5 py-3.5">
+                      <div className="font-semibold text-sm group-hover:text-foreground transition-colors">{audit.fund_name}</div>
+                      {audit.fund_abn && <div className="text-xs text-muted-foreground">ABN: {audit.fund_abn}</div>}
+                    </td>
+                    <td className="px-5 py-3.5 text-muted-foreground">{audit.financial_year || "—"}</td>
+                    <td className="px-5 py-3.5">
+                      <Badge variant={statusVariant(audit.status)}>{statusLabel(audit.status)}</Badge>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      {audit.opinion ? (
+                        <Badge variant={audit.opinion === "Unqualified" ? "pass" : "flag"}>{audit.opinion}</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <NewAuditModal open={modalOpen} onOpenChange={setModalOpen} />
