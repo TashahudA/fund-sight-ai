@@ -354,9 +354,24 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                 ) : (
                   messages.map(msg => {
                     const isAI = msg.sender === "claude" || msg.sender === "ai";
+                    const isAuditor = msg.sender === "auditor";
+                    const isRight = isAuditor;
+
+                    const bgColor = isAI
+                      ? "#f0f4ff"
+                      : isAuditor
+                        ? "#f4f4f4"
+                        : "#f0fdf4";
+
+                    const senderLabel = isAI
+                      ? "Auditron"
+                      : isAuditor
+                        ? displayName
+                        : msg.sender;
+
                     return (
-                      <div key={msg.id} className="flex justify-start">
-                        <div className={`max-w-[75%] rounded-lg ${isAI ? "bg-status-new-bg" : "bg-active"}`} style={{ padding: "12px 16px" }}>
+                      <div key={msg.id} className={`flex ${isRight ? "justify-end" : "justify-start"}`}>
+                        <div className="max-w-[75%] rounded-lg" style={{ padding: "12px 16px", backgroundColor: bgColor }}>
                           {isAI && (
                             <div className="flex items-center gap-1.5 mb-1.5">
                               <Bot className="h-3.5 w-3.5 text-status-new" />
@@ -365,7 +380,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                           )}
                           <p className="text-sm leading-relaxed" style={{ fontSize: "14px" }}>{msg.message}</p>
                           <div className="flex items-center gap-2 mt-2 text-muted-foreground" style={{ fontSize: "12px" }}>
-                            <span className="font-medium">{isAI ? "Auditron" : msg.sender}</span>
+                            <span className="font-medium">{senderLabel}</span>
                             <span>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
                           </div>
                         </div>
