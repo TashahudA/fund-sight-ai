@@ -221,7 +221,7 @@ export default function MyAudits() {
             <SelectItem value="pending">Pending</SelectItem>
             <SelectItem value="in progress">In Progress</SelectItem>
             <SelectItem value="complete">Complete</SelectItem>
-            <SelectItem value="on hold">On Hold</SelectItem>
+            
           </SelectContent>
         </Select>
         <div className="flex items-center gap-2">
