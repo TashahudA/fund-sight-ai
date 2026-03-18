@@ -199,7 +199,7 @@ export default function MyAudits() {
           <SelectContent><SelectItem value="pending">Pending</SelectItem><SelectItem value="in progress">In Progress</SelectItem><SelectItem value="complete">Complete</SelectItem><SelectItem value="on hold">On Hold</SelectItem></SelectContent>
         </Select>
         <div className="flex items-center gap-2">
-          <Switch id="completed" checked={includeCompleted} onCheckedChange={setIncludeCompleted} />
+          <Switch id="completed" checked={includeCompleted} onCheckedChange={handleIncludeCompletedChange} />
           <Label htmlFor="completed" className="text-sm text-muted-foreground cursor-pointer">Include completed</Label>
         </div>
       </div>
