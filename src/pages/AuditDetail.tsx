@@ -331,8 +331,7 @@ export default function AuditDetail() {
           </div>
 
           {/* Right: buttons stacked */}
-          <div className="flex flex-col items-stretch gap-2 shrink-0">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
               <Button
                 size="sm"
                 onClick={handleRunAudit}
@@ -345,75 +344,35 @@ export default function AuditDetail() {
                 )}
               </Button>
               <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
+              <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
 
-              {/* Smart status / completion */}
-              {isComplete ? (
-                <Badge variant="pass" className="px-3 py-1.5 text-xs">
-                  <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Complete
-                </Badge>
-              ) : !allResolved ? (
-                <div className="relative group/tooltip">
-                  <Button size="sm" disabled>
-                    <CheckCircle2 className="h-4 w-4 mr-1.5" />Mark Complete
-                  </Button>
-                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-foreground text-background text-xs px-2.5 py-1.5 rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none">
-                    Resolve all RFIs before completing
-                  </div>
-                </div>
-              ) : canAutoComplete ? (
-                <Button size="sm" onClick={handleMarkComplete}>
-                  <CheckCircle2 className="h-4 w-4 mr-1.5" />Mark Complete
-                </Button>
-              ) : needsWarning ? (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button size="sm">
-                      <AlertTriangle className="h-4 w-4 mr-1.5" />Mark Complete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Complete with {audit?.opinion || "non-unqualified"} opinion?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        The current audit opinion is "{audit?.opinion || "unknown"}". Are you sure you want to mark this audit as complete?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleMarkComplete}>Complete Anyway</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              ) : null}
-
-              {/* Force-complete button */}
-              {!isComplete && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <ShieldCheck className="h-4 w-4 mr-1.5" />Force Complete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Force complete this audit?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {rfiCount > 0
-                          ? `There are still ${rfiCount} open RFI${rfiCount !== 1 ? "s" : ""}. `
-                          : ""}
-                        This will mark the audit as complete regardless of outstanding items.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleMarkComplete}>Force Complete</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
+              {/* Status dropdown */}
+              <Select
+                value={(audit.status || "pending").toLowerCase()}
+                onValueChange={handleStatusChange}
+              >
+                <SelectTrigger
+                  className="h-8 w-[140px] text-[13px] font-medium"
+                  style={{
+                    backgroundColor: "hsl(var(--background))",
+                    border: "1px solid #e5e5e5",
+                    borderRadius: "6px",
+                    color: (audit.status || "").toLowerCase() === "complete"
+                      ? "hsl(142, 72%, 36%)"
+                      : (audit.status || "").toLowerCase() === "in progress"
+                        ? "hsl(38, 92%, 50%)"
+                        : "hsl(var(--foreground))",
+                  }}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="in progress">In Progress</SelectItem>
+                  <SelectItem value="complete">Complete</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
-          </div>
         </div>
       </div>
 
