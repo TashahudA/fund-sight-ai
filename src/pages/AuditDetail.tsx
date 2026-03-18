@@ -469,7 +469,7 @@ export default function AuditDetail() {
             />
           )}
 
-          {!showProcessing && aiFindings.length === 0 ? (
+          {!showProcessing && !runningAudit && aiFindings.length === 0 ? (
             <div className="rounded-lg border border-border bg-background p-8 text-center">
               <Info className="h-8 w-8 text-border mx-auto mb-3" />
               <h3 className="text-base font-semibold">No AI Findings Yet</h3>
