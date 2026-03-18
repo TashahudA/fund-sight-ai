@@ -207,11 +207,22 @@ export default function MyAudits() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Search by fund name…" className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <Select><SelectTrigger className="w-[120px]"><SelectValue placeholder="Year" /></SelectTrigger>
-          <SelectContent><SelectItem value="2023">2023</SelectItem><SelectItem value="2024">2024</SelectItem><SelectItem value="2025">2025</SelectItem><SelectItem value="2026">2026</SelectItem></SelectContent>
+        <Select value={filterYear} onValueChange={setFilterYear}>
+          <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Years</SelectItem>
+            {availableYears.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+          </SelectContent>
         </Select>
-        <Select><SelectTrigger className="w-[130px]"><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent><SelectItem value="pending">Pending</SelectItem><SelectItem value="in progress">In Progress</SelectItem><SelectItem value="complete">Complete</SelectItem><SelectItem value="on hold">On Hold</SelectItem></SelectContent>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="in progress">In Progress</SelectItem>
+            <SelectItem value="complete">Complete</SelectItem>
+            <SelectItem value="on hold">On Hold</SelectItem>
+          </SelectContent>
         </Select>
         <div className="flex items-center gap-2">
           <Switch id="completed" checked={includeCompleted} onCheckedChange={handleIncludeCompletedChange} />
