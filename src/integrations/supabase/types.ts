@@ -19,6 +19,7 @@ export type Database = {
           ai_findings: Json | null
           created_at: string | null
           financial_year: string | null
+          findings_completed_at: string | null
           fund_abn: string | null
           fund_name: string
           fund_type: string | null
@@ -32,6 +33,7 @@ export type Database = {
           ai_findings?: Json | null
           created_at?: string | null
           financial_year?: string | null
+          findings_completed_at?: string | null
           fund_abn?: string | null
           fund_name: string
           fund_type?: string | null
@@ -45,6 +47,7 @@ export type Database = {
           ai_findings?: Json | null
           created_at?: string | null
           financial_year?: string | null
+          findings_completed_at?: string | null
           fund_abn?: string | null
           fund_name?: string
           fund_type?: string | null
