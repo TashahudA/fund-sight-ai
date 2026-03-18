@@ -26,7 +26,7 @@ export function TopNav() {
     if (!user) return;
     const [rfiRes, auditRes] = await Promise.all([
       supabase.from("rfis").select("id", { count: "exact", head: true }).eq("status", "open"),
-      supabase.from("audits").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("audits").select("id", { count: "exact", head: true }).eq("user_id", user.id).neq("status", "complete"),
     ]);
     setOpenRfiCount(rfiRes.count ?? 0);
     setAuditCount(auditRes.count ?? 0);
