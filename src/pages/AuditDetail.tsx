@@ -549,7 +549,7 @@ export default function AuditDetail() {
 
         {/* RFIs Tab */}
         <TabsContent value="rfis">
-          <RFITab auditId={audit.id} className="min-h-[600px] h-[calc(100vh-14rem)]" onCountChange={fetchCounts} />
+          <RFITab auditId={audit.id} className="min-h-[600px] h-[calc(100vh-14rem)]" onCountChange={fetchCounts} onAutoComplete={async () => { await fetchAudit(); await fetchCounts(); }} />
         </TabsContent>
 
         {/* Audit Notes Tab */}
