@@ -37,7 +37,13 @@ export default function MyAudits() {
   const [search, setSearch] = useState("");
   const [audits, setAudits] = useState<Audit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [includeCompleted, setIncludeCompleted] = useState(false);
+  const [includeCompleted, setIncludeCompleted] = useState(() => {
+    try { return localStorage.getItem("myAudits_includeCompleted") === "true"; } catch { return false; }
+  });
+  const handleIncludeCompletedChange = (val: boolean) => {
+    setIncludeCompleted(val);
+    try { localStorage.setItem("myAudits_includeCompleted", String(val)); } catch {}
+  };
   const [sortCol, setSortCol] = useState<SortColumn | null>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
