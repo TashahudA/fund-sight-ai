@@ -89,7 +89,6 @@ export default function Dashboard() {
         return s !== "complete" || auditIdsWithOpenRfis.has(a.id);
       });
       console.log("[Dashboard] In Progress count:", inProgress, "audits:", inProgressAudits.map(a => ({ name: a.fund_name, status: a.status, hasOpenRfis: auditIdsWithOpenRfis.has(a.id) })));
-      const auditIdsWithOpenRfis = new Set(openRfis.map(r => r.audit_id));
       const awaitingReview = allAudits.filter(a => {
         return (a.status || "").toLowerCase() !== "complete" && a.ai_findings && auditIdsWithOpenRfis.has(a.id);
       }).length;
