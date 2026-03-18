@@ -243,7 +243,7 @@ export function TopNav() {
                         <button
                           key={n.id}
                           onClick={() => handleNotificationClick(n.link)}
-                          className="w-full text-left px-4 py-3 hover:bg-muted transition-colors border-b border-border last:border-b-0"
+                          className="w-full text-left px-4 py-3 cursor-pointer transition-colors border-b border-border last:border-b-0 hover:bg-[#f9f9f9]"
                         >
                           <p className="text-sm text-foreground leading-snug">{n.message}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">
