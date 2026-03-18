@@ -382,7 +382,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                 )}
               </div>
 
-              <div className="border-t border-border p-4 flex items-center gap-2">
+              <div className="border-t border-border p-4 flex items-center gap-3" style={{ padding: "16px" }}>
                 <input
                   ref={attachInputRef}
                   type="file"
@@ -393,6 +393,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="h-10 w-10 shrink-0"
                   onClick={() => attachInputRef.current?.click()}
                   disabled={attachUploading || aiReviewing}
                 >
@@ -404,17 +405,17 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                 </Button>
                 <Input
                   placeholder="Type your reply…"
-                  className="flex-1"
+                  className="flex-1 h-[44px]"
                   value={replyText}
                   onChange={e => setReplyText(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                 />
-                <Button size="sm" onClick={handleSendMessage} disabled={sending || !replyText.trim()}>
+                <Button className="h-10" onClick={handleSendMessage} disabled={sending || !replyText.trim()}>
                   {sending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Send className="h-4 w-4 mr-1.5" />}
                   Send
                 </Button>
                 {selected.status !== "resolved" && (
-                  <Button variant="outline" size="sm" onClick={handleResolve} disabled={resolving}>
+                  <Button variant="outline" className="h-10" onClick={handleResolve} disabled={resolving}>
                     {resolving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle2 className="h-4 w-4 mr-1.5" />}
                     Resolve
                   </Button>
