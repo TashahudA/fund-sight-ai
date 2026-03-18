@@ -309,6 +309,7 @@ export default function AuditDetail() {
   }
 
   return (
+    <>
     <div className="container max-w-6xl py-8 space-y-6 animate-fade-in">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
