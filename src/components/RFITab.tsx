@@ -37,6 +37,7 @@ interface RFITabProps {
   auditId: string;
   className?: string;
   onCountChange?: () => void;
+  onAutoComplete?: () => void;
 }
 
 export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
