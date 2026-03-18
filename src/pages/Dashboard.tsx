@@ -59,11 +59,12 @@ export default function Dashboard() {
       setAudits(recentRes.data || []);
 
       // Debug: log actual statuses
-      console.log("[Dashboard] Audit statuses:", allAudits.map(a => ({ id: a.id, status: a.status })));
+      console.log("[Dashboard] All audits:", allAudits.map(a => a.status));
 
       const totalAudits = allAudits.length;
-      // IN PROGRESS: count all audits where status is not "complete" (case-insensitive)
+      // IN PROGRESS: JS filter, case-insensitive, exclude "complete"
       const inProgress = allAudits.filter(a => (a.status || "").toLowerCase() !== "complete").length;
+      console.log("[Dashboard] inProgress count:", inProgress);
 
       // Awaiting review: not complete, has ai_findings, and still has open RFIs
       const allRfis = rfisRes.data || [];
@@ -78,18 +79,27 @@ export default function Dashboard() {
       const sevenDays = 7 * 24 * 60 * 60 * 1000;
       const overdueRfis = openRfis.filter(r => r.created_at && now - new Date(r.created_at).getTime() > sevenDays).length;
 
-      // AVG TURNAROUND: updated_at minus created_at for audits with ai_findings
-      const auditsWithFindings = allAudits.filter(a => a.ai_findings && a.updated_at && a.created_at);
+      // AVG TURNAROUND: earliest RFI created_at minus audit created_at
+      // Build map of audit_id -> earliest RFI created_at
+      const earliestRfiMap = new Map<string, number>();
+      for (const rfi of allRfis) {
+        if (!rfi.created_at) continue;
+        const t = new Date(rfi.created_at).getTime();
+        const prev = earliestRfiMap.get(rfi.audit_id);
+        if (!prev || t < prev) earliestRfiMap.set(rfi.audit_id, t);
+      }
+
+      const auditsForTurnaround = allAudits.filter(a => a.ai_findings && a.created_at && earliestRfiMap.has(a.id));
       let avgTurnaround = "—";
-      if (auditsWithFindings.length > 0) {
-        const totalMs = auditsWithFindings.reduce((sum, a) => {
+      if (auditsForTurnaround.length > 0) {
+        const totalMs = auditsForTurnaround.reduce((sum, a) => {
           const createdTime = new Date(a.created_at!).getTime();
-          const updatedTime = new Date(a.updated_at!).getTime();
-          return sum + Math.max(updatedTime - createdTime, 0);
+          const rfiTime = earliestRfiMap.get(a.id)!;
+          return sum + Math.max(rfiTime - createdTime, 0);
         }, 0);
-        const avgMs = totalMs / auditsWithFindings.length;
+        const avgMs = totalMs / auditsForTurnaround.length;
         const avgMins = avgMs / 60000;
-        console.log("[Dashboard] Avg turnaround ms:", avgMs, "mins:", avgMins, "audits counted:", auditsWithFindings.length);
+        console.log("[Dashboard] Avg turnaround mins:", avgMins, "audits counted:", auditsForTurnaround.length);
         if (avgMins < 1) {
           avgTurnaround = "< 1 min";
         } else if (avgMins < 60) {
