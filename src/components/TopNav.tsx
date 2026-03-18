@@ -67,7 +67,6 @@ export function TopNav() {
             </Link>
             <Link to="/audits" className={navLinkClass("/audits")}>
               My Audits
-              {auditCount > 0 && <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0">{auditCount}</Badge>}
               {isActive("/audits") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
             </Link>
             <Link to="/rfis" className={navLinkClass("/rfis")}>
