@@ -464,6 +464,7 @@ export default function AuditDetail() {
           {showProcessing && (
             <AiProcessingAnimation
               active={showProcessing}
+              dataReady={auditDataReady}
               onComplete={() => setShowProcessing(false)}
             />
           )}
