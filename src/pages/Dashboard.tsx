@@ -12,13 +12,15 @@ type Audit = Tables<"audits">;
 
 const statusVariant = (s: string | null) => {
   const map: Record<string, "new" | "in-progress" | "pass" | "secondary" | "flag"> = {
-    pending: "new", "in progress": "in-progress", complete: "pass", "on hold": "secondary", "rfi sent": "flag",
+    pending: "new", "in progress": "in-progress", in_progress: "in-progress", complete: "pass", "on hold": "secondary", "rfi sent": "flag",
   };
   return map[(s || "").toLowerCase()] || "secondary";
 };
 
 const statusLabel = (s: string | null) => {
   if (!s) return "Pending";
+  const lower = s.toLowerCase();
+  if (lower === "in_progress" || lower === "in progress") return "In Progress";
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
