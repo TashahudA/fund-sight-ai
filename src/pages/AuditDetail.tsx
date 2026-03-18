@@ -533,6 +533,22 @@ export default function AuditDetail() {
         </TabsContent>
       </Tabs>
     </div>
+
+      <AlertDialog open={completeConfirmOpen} onOpenChange={setCompleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark audit as complete?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will resolve all open RFIs.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelComplete}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmComplete}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
