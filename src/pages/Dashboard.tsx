@@ -47,32 +47,30 @@ export default function Dashboard() {
     if (!user) return;
     const fetchData = async () => {
       // Fetch all audits and recent 5 in parallel
-      const [allAuditsRes, recentRes, rfisRes, docsRes] = await Promise.all([
+      const [allAuditsRes, recentRes, rfisRes] = await Promise.all([
         supabase.from("audits").select("*").eq("user_id", user.id),
         supabase.from("audits").select("*").eq("user_id", user.id)
           .order("created_at", { ascending: false }).limit(5),
         supabase.from("rfis").select("id, status, created_at, audit_id, audits!inner(user_id)")
-          .eq("audits.user_id", user.id),
-        supabase.from("documents").select("audit_id, created_at, audits!inner(user_id)")
           .eq("audits.user_id", user.id),
       ]);
 
       const allAudits = allAuditsRes.data || [];
       setAudits(recentRes.data || []);
 
+      // Debug: log actual statuses
+      console.log("[Dashboard] Audit statuses:", allAudits.map(a => ({ id: a.id, status: a.status })));
+
       const totalAudits = allAudits.length;
-      const inProgress = allAudits.filter(a => {
-        const s = (a.status || "").toLowerCase();
-        return s !== "complete";
-      }).length;
+      // IN PROGRESS: count all audits where status is not "complete" (case-insensitive)
+      const inProgress = allAudits.filter(a => (a.status || "").toLowerCase() !== "complete").length;
 
       // Awaiting review: not complete, has ai_findings, and still has open RFIs
       const allRfis = rfisRes.data || [];
       const openRfis = allRfis.filter(r => (r.status || "").toLowerCase() === "open");
       const auditIdsWithOpenRfis = new Set(openRfis.map(r => r.audit_id));
       const awaitingReview = allAudits.filter(a => {
-        const s = (a.status || "").toLowerCase();
-        return s !== "complete" && a.ai_findings && auditIdsWithOpenRfis.has(a.id);
+        return (a.status || "").toLowerCase() !== "complete" && a.ai_findings && auditIdsWithOpenRfis.has(a.id);
       }).length;
 
       // Overdue RFIs (open > 7 days)
@@ -80,27 +78,18 @@ export default function Dashboard() {
       const sevenDays = 7 * 24 * 60 * 60 * 1000;
       const overdueRfis = openRfis.filter(r => r.created_at && now - new Date(r.created_at).getTime() > sevenDays).length;
 
-      // Avg turnaround: time from earliest doc upload to ai_findings populated (updated_at)
-      const allDocs = docsRes.data || [];
-      // Build map of audit_id -> earliest document created_at
-      const earliestDocMap = new Map<string, number>();
-      for (const doc of allDocs) {
-        if (!doc.created_at) continue;
-        const t = new Date(doc.created_at).getTime();
-        const prev = earliestDocMap.get(doc.audit_id);
-        if (!prev || t < prev) earliestDocMap.set(doc.audit_id, t);
-      }
-
-      const auditsWithFindings = allAudits.filter(a => a.ai_findings && a.updated_at && earliestDocMap.has(a.id));
+      // AVG TURNAROUND: updated_at minus created_at for audits with ai_findings
+      const auditsWithFindings = allAudits.filter(a => a.ai_findings && a.updated_at && a.created_at);
       let avgTurnaround = "—";
       if (auditsWithFindings.length > 0) {
         const totalMs = auditsWithFindings.reduce((sum, a) => {
-          const docTime = earliestDocMap.get(a.id)!;
-          const findingsTime = new Date(a.updated_at!).getTime();
-          return sum + Math.max(findingsTime - docTime, 0);
+          const createdTime = new Date(a.created_at!).getTime();
+          const updatedTime = new Date(a.updated_at!).getTime();
+          return sum + Math.max(updatedTime - createdTime, 0);
         }, 0);
         const avgMs = totalMs / auditsWithFindings.length;
         const avgMins = avgMs / 60000;
+        console.log("[Dashboard] Avg turnaround ms:", avgMs, "mins:", avgMins, "audits counted:", auditsWithFindings.length);
         if (avgMins < 1) {
           avgTurnaround = "< 1 min";
         } else if (avgMins < 60) {
