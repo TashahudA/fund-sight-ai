@@ -265,9 +265,9 @@ export default function MyAudits() {
                     </td>
                     <td className="px-5 py-3.5">
                       {audit.opinion ? (
-                        <Badge variant={audit.opinion === "Unqualified" ? "pass" : "flag"}>{audit.opinion}</Badge>
+                        <span style={{ fontSize: "14px", color: "#111111", fontWeight: 400 }}>{audit.opinion}</span>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span style={{ fontSize: "14px", color: "#888888" }}>—</span>
                       )}
                     </td>
                   </tr>
