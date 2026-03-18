@@ -1,0 +1,1 @@
+ALTER TABLE public.audits ADD COLUMN findings_completed_at timestamp with time zone DEFAULT NULL;

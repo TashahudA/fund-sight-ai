@@ -119,6 +119,7 @@ Produce a JSON object with this structure:
       opinion: parsed.opinion || "Qualified",
       status: "in progress",
       updated_at: new Date().toISOString(),
+      findings_completed_at: new Date().toISOString(),
     })
     .eq("id", auditId);
 
