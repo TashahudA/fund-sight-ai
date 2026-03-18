@@ -271,7 +271,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
     <>
       <div className={`flex rounded-lg border border-border bg-background overflow-hidden ${className || ""}`}>
         {/* Left Panel */}
-        <div className="flex w-80 shrink-0 flex-col border-r border-border lg:w-96">
+        <div className="flex w-80 shrink-0 flex-col border-r border-border lg:w-[380px]">
           <div className="p-3 border-b border-border flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
