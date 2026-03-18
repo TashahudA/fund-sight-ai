@@ -285,7 +285,7 @@ export default function MyAudits() {
                         {effectiveStatus}
                       </Badge>
                       {openCount > 0 && (
-                        <span className="text-[10px] text-muted-foreground ml-1.5">{openCount} open RFI{openCount !== 1 ? "s" : ""}</span>
+                        <div className="mt-1" style={{ fontSize: "11px", color: "#888888", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }}>{openCount} open RFI{openCount !== 1 ? "s" : ""}</div>
                       )}
                     </td>
                     <td className="px-5 py-3.5 text-muted-foreground">
