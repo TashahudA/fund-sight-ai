@@ -112,6 +112,9 @@ export default function MyAudits() {
     return <ArrowDown className="h-3 w-3 ml-1" />;
   };
 
+  // Unique years from audits for dropdown
+  const availableYears = [...new Set(audits.map(a => a.financial_year).filter(Boolean) as string[])].sort();
+
   const filtered = (() => {
     let list = audits;
 
@@ -121,6 +124,16 @@ export default function MyAudits() {
         const effective = getEffectiveStatus(a).toLowerCase();
         return effective !== "complete";
       });
+    }
+
+    // Year filter
+    if (filterYear !== "all") {
+      list = list.filter(a => a.financial_year === filterYear);
+    }
+
+    // Status filter
+    if (filterStatus !== "all") {
+      list = list.filter(a => getEffectiveStatus(a).toLowerCase() === filterStatus.toLowerCase());
     }
 
     // Search filter
