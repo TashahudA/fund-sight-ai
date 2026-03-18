@@ -74,7 +74,7 @@ export default function MyAudits() {
 
   useEffect(() => {
     fetchAudits();
-  }, [user]);
+  }, [user, location.key]);
 
   const getEffectiveStatus = (audit: Audit): string => {
     const openCount = openRfiCounts[audit.id] || 0;
