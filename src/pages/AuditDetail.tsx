@@ -301,7 +301,7 @@ export default function AuditDetail() {
 
       {/* Header Card */}
       <div className="rounded-lg border border-border bg-background p-6">
-        <div className="flex items-center justify-between gap-6">
+        <div className="flex items-start justify-between gap-6">
           {/* Left: fund info + metadata */}
           <div className="min-w-0">
             <h1 className="text-xl font-bold">{audit.fund_name}</h1>
@@ -330,8 +330,9 @@ export default function AuditDetail() {
             </div>
           </div>
 
-          {/* Right: buttons stacked */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Right: two rows */}
+          <div className="flex flex-col items-stretch gap-2 shrink-0">
+            <div className="flex items-center gap-2">
               <Button
                 size="sm"
                 onClick={handleRunAudit}
@@ -344,7 +345,6 @@ export default function AuditDetail() {
                 )}
               </Button>
               <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
-              <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
 
               {/* Status dropdown */}
               <Select
@@ -373,6 +373,8 @@ export default function AuditDetail() {
                 </SelectContent>
               </Select>
             </div>
+            <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
+          </div>
         </div>
       </div>
 
@@ -563,7 +565,7 @@ function UploadMoreDocuments({ auditId, onUploaded, runningAudit }: { auditId: s
   return (
     <>
       <input ref={fileInputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.docx" onChange={handleUpload} className="hidden" />
-      <Button variant="outline" size="sm" disabled={busy} onClick={() => fileInputRef.current?.click()}>
+      <Button variant="outline" size="sm" className="w-full justify-center" disabled={busy} onClick={() => fileInputRef.current?.click()}>
         {busy ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
         {uploading ? "Uploading…" : "Upload"}
       </Button>
