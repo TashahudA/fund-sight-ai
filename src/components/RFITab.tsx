@@ -155,6 +155,7 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
     } else {
       toast({ title: "RFI resolved" });
       await fetchRfis();
+      await checkAutoComplete();
     }
     setResolving(false);
   };
