@@ -360,8 +360,8 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                               <Badge variant="new" className="text-[10px] px-1.5 py-0">AI</Badge>
                             </div>
                           )}
-                          <p className="text-sm leading-relaxed">{msg.message}</p>
-                          <div className="flex items-center gap-2 mt-2 text-[11px] text-muted-foreground">
+                          <p className="text-sm leading-relaxed" style={{ fontSize: "14px" }}>{msg.message}</p>
+                          <div className="flex items-center gap-2 mt-2 text-muted-foreground" style={{ fontSize: "12px" }}>
                             <span className="font-medium">{isAI ? "Auditron" : msg.sender}</span>
                             <span>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
                           </div>
