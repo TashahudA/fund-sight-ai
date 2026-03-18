@@ -106,11 +106,13 @@ const opinionIcon = (opinion: string | null) => {
 export default function AuditDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [audit, setAudit] = useState<Audit | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [runningAudit, setRunningAudit] = useState(false);
+  const [showProcessing, setShowProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState("findings");
   const [rfiCount, setRfiCount] = useState(0);
   const [docCount, setDocCount] = useState(0);
