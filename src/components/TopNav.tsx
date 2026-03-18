@@ -126,7 +126,7 @@ export function TopNav() {
             id: `audit-status-${audit.id}`,
             message: `${audit.fund_name} status changed to ${audit.status}`,
             time: new Date(audit.updated_at!),
-            link: `/audit/${audit.id}`,
+            link: `/audits/${audit.id}`,
           });
         }
       }
