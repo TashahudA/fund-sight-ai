@@ -119,10 +119,10 @@ export default function Dashboard() {
       {/* Stats Row */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
-          { label: "TOTAL AUDITS", value: "8", sub: "↑ 18% this month", subColor: "text-status-pass", icon: TrendingUp },
-          { label: "IN PROGRESS", value: "2", sub: "4 awaiting review", icon: Clock },
-          { label: "OPEN RFIS", value: "4", sub: "1 overdue", subColor: "text-status-flag", icon: FileWarning, link: "/rfis" },
-          { label: "AVG TURNAROUND", value: "4.1 hrs", sub: "60% faster", subColor: "text-status-pass", icon: Timer },
+          { label: "TOTAL AUDITS", value: String(stats.totalAudits), icon: TrendingUp },
+          { label: "IN PROGRESS", value: String(stats.inProgress), sub: stats.awaitingReview > 0 ? `${stats.awaitingReview} awaiting review` : undefined, icon: Clock },
+          { label: "OPEN RFIS", value: String(stats.openRfis), sub: stats.overdueRfis > 0 ? `${stats.overdueRfis} overdue` : undefined, subColor: stats.overdueRfis > 0 ? "text-amber-500" : undefined, icon: FileWarning, link: "/rfis" },
+          { label: "AVG TURNAROUND", value: stats.avgTurnaround, icon: Timer },
         ].map(stat => (
           <div
             key={stat.label}
@@ -134,9 +134,11 @@ export default function Dashboard() {
               <stat.icon className="h-4 w-4 text-muted-foreground" />
             </div>
             <p className="mt-2 text-2xl font-semibold tracking-tight">{stat.value}</p>
-            <div className="mt-1.5 flex items-center gap-1">
-              <span className={`text-xs font-medium ${stat.subColor || "text-muted-foreground"}`}>{stat.sub}</span>
-            </div>
+            {stat.sub && (
+              <div className="mt-1.5 flex items-center gap-1">
+                <span className={`text-xs font-medium ${stat.subColor || "text-muted-foreground"}`}>{stat.sub}</span>
+              </div>
+            )}
           </div>
         ))}
       </div>
