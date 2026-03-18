@@ -1,0 +1,1 @@
+UPDATE public.audits SET findings_completed_at = NULL, audit_started_at = NULL;
