@@ -47,32 +47,48 @@ export default function Dashboard() {
     if (!user) return;
     const fetchData = async () => {
       // Fetch all audits and recent 5 in parallel
-      const [allAuditsRes, recentRes, rfisRes, completeCountRes] = await Promise.all([
+      const [allAuditsRes, recentRes, rfisRes] = await Promise.all([
         supabase.from("audits").select("*").eq("user_id", user.id),
         supabase.from("audits").select("*").eq("user_id", user.id)
           .order("created_at", { ascending: false }).limit(5),
         supabase.from("rfis").select("id, status, created_at, audit_id, audits!inner(user_id)")
           .eq("audits.user_id", user.id),
-        supabase.from("audits").select("id", { count: "exact", head: true })
-          .eq("user_id", user.id).ilike("status", "%complete%"),
       ]);
 
       const allAudits = allAuditsRes.data || [];
       setAudits(recentRes.data || []);
 
-      // Debug: log actual statuses
-      console.log("[Dashboard] All audits:", allAudits.map(a => a.status));
-
-      const totalAudits = allAudits.length;
-      // IN PROGRESS: total minus complete (using ilike for case-insensitive match)
-      const completeCount = completeCountRes.count || 0;
-      const inProgress = totalAudits - completeCount;
-      console.log("[Dashboard] inProgress:", inProgress, "total:", totalAudits, "complete:", completeCount);
-
-      // Awaiting review: not complete, has ai_findings, and still has open RFIs
       const allRfis = rfisRes.data || [];
       const openRfis = allRfis.filter(r => (r.status || "").toLowerCase() === "open");
       const auditIdsWithOpenRfis = new Set(openRfis.map(r => r.audit_id));
+
+      // Fix DB consistency: set status to "in_progress" for any "complete" audit with open RFIs
+      const completeWithOpenRfis = allAudits.filter(a =>
+        (a.status || "").toLowerCase() === "complete" && auditIdsWithOpenRfis.has(a.id)
+      );
+      if (completeWithOpenRfis.length > 0) {
+        console.log("[Dashboard] Fixing inconsistent audits (complete but have open RFIs):", completeWithOpenRfis.map(a => a.fund_name));
+        await Promise.all(completeWithOpenRfis.map(a =>
+          supabase.from("audits").update({ status: "in_progress" }).eq("id", a.id)
+        ));
+        // Update local data to reflect the fix
+        completeWithOpenRfis.forEach(a => { a.status = "in_progress"; });
+      }
+
+      const totalAudits = allAudits.length;
+
+      // IN PROGRESS: status != "complete" OR status == "complete" but has open RFIs
+      // (after the DB fix above, the open-RFI ones are already set to in_progress)
+      const inProgress = allAudits.filter(a => {
+        const s = (a.status || "").toLowerCase();
+        return s !== "complete" || auditIdsWithOpenRfis.has(a.id);
+      }).length;
+
+      const inProgressAudits = allAudits.filter(a => {
+        const s = (a.status || "").toLowerCase();
+        return s !== "complete" || auditIdsWithOpenRfis.has(a.id);
+      });
+      console.log("[Dashboard] In Progress count:", inProgress, "audits:", inProgressAudits.map(a => ({ name: a.fund_name, status: a.status, hasOpenRfis: auditIdsWithOpenRfis.has(a.id) })));
       const awaitingReview = allAudits.filter(a => {
         return (a.status || "").toLowerCase() !== "complete" && a.ai_findings && auditIdsWithOpenRfis.has(a.id);
       }).length;
