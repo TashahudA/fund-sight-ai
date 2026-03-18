@@ -224,6 +224,8 @@ export default function AuditDetail() {
   const handleRunAudit = async () => {
     if (!audit) return;
     setRunningAudit(true);
+    setShowProcessing(true);
+    setActiveTab("findings");
     try {
       const { data, error } = await supabase.functions.invoke("dynamic-processor", {
         body: { audit_id: audit.id },
@@ -240,6 +242,7 @@ export default function AuditDetail() {
       toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
     } catch (err: any) {
       console.error("AI Audit error:", err);
+      setShowProcessing(false);
       toast({ title: "Error running audit", description: err.message || "Something went wrong. Please try again.", variant: "destructive" });
     } finally {
       setRunningAudit(false);
