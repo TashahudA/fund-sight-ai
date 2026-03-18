@@ -112,7 +112,7 @@ export function TopNav() {
             id: `overdue-rfis-${key}`,
             message: `${g.count} overdue RFI${g.count > 1 ? "s" : ""} for ${g.fundName}`,
             time: g.latest,
-            link: `/audit/${g.auditId}`,
+            link: `/audits/${g.auditId}?tab=rfis`,
           });
         }
       }
