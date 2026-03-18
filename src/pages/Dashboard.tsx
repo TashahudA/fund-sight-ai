@@ -100,20 +100,19 @@ export default function Dashboard() {
       const sevenDays = 7 * 24 * 60 * 60 * 1000;
       const overdueRfis = openRfis.filter(r => r.created_at && now - new Date(r.created_at).getTime() > sevenDays).length;
 
-      // AVG TURNAROUND: findings_completed_at minus created_at
+      // AVG TURNAROUND: findings_completed_at minus audit_started_at (true AI processing time)
       const auditsForTurnaround = allAudits.filter(
-        (a: any) => a.findings_completed_at && a.created_at
+        (a: any) => a.findings_completed_at && a.audit_started_at
       );
       let avgTurnaround = "—";
       if (auditsForTurnaround.length > 0) {
         const totalMs = auditsForTurnaround.reduce((sum: number, a: any) => {
-          const createdTime = new Date(a.created_at!).getTime();
+          const startedTime = new Date(a.audit_started_at).getTime();
           const findingsTime = new Date(a.findings_completed_at).getTime();
-          return sum + Math.max(findingsTime - createdTime, 0);
+          return sum + Math.max(findingsTime - startedTime, 0);
         }, 0);
         const avgMs = totalMs / auditsForTurnaround.length;
         const avgMins = avgMs / 60000;
-        console.log("[Dashboard] Avg turnaround mins:", avgMins, "audits counted:", auditsForTurnaround.length);
         if (avgMins < 1) {
           avgTurnaround = "< 1 min";
         } else if (avgMins < 60) {
