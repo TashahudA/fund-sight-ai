@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload } from "lucide-react";
 import { AiProcessingAnimation } from "@/components/AiProcessingAnimation";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { auditNotes } from "@/lib/mockData";
 import { RFITab } from "@/components/RFITab";
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { supabase } from "@/integrations/supabase/client";
@@ -114,6 +114,8 @@ export default function AuditDetail() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [noteText, setNoteText] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
+  const [auditNotes, setAuditNotes] = useState<{ id: string; note_text: string; created_at: string; full_name: string | null; email: string | null }[]>([]);
   const [runningAudit, setRunningAudit] = useState(false);
   const [showProcessing, setShowProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState("findings");
@@ -145,7 +147,46 @@ export default function AuditDetail() {
     setDocCount(docRes.count ?? 0);
   }, [id]);
 
-  useEffect(() => { fetchAudit(); fetchCounts(); }, [fetchAudit, fetchCounts]);
+  const { user } = useAuth();
+
+  const fetchNotes = useCallback(async () => {
+    if (!id) return;
+    const { data } = await supabase
+      .from("audit_notes")
+      .select("id, note_text, created_at, user_id")
+      .eq("audit_id", id)
+      .order("created_at", { ascending: false });
+    if (!data) { setAuditNotes([]); return; }
+    const userIds = [...new Set(data.map(n => n.user_id))];
+    const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", userIds);
+    const profileMap = new Map((profiles || []).map(p => [p.id, p.full_name]));
+    setAuditNotes(data.map(n => ({
+      id: n.id,
+      note_text: n.note_text,
+      created_at: n.created_at || "",
+      full_name: profileMap.get(n.user_id) || null,
+      email: user?.email || null,
+    })));
+  }, [id, user]);
+
+  const handleAddNote = async () => {
+    if (!id || !user || !noteText.trim()) return;
+    setSavingNote(true);
+    const { error } = await supabase.from("audit_notes").insert({
+      audit_id: id,
+      user_id: user.id,
+      note_text: noteText.trim(),
+    });
+    if (error) {
+      toast({ title: "Failed to save note", description: error.message, variant: "destructive" });
+    } else {
+      setNoteText("");
+      await fetchNotes();
+    }
+    setSavingNote(false);
+  };
+
+  useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); }, [fetchAudit, fetchCounts, fetchNotes]);
 
   // Auto-trigger AI audit on page load if documents exist but no findings yet
   const [autoTriggered, setAutoTriggered] = useState(false);
@@ -513,24 +554,28 @@ export default function AuditDetail() {
                 className="min-h-[80px] resize-none"
               />
               <div className="flex justify-end">
-                <Button size="sm" disabled={!noteText.trim()}>
-                  <Plus className="h-4 w-4 mr-1" />
+                <Button size="sm" disabled={!noteText.trim() || savingNote} onClick={handleAddNote}>
+                  {savingNote ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
                   Add Note
                 </Button>
               </div>
             </div>
 
             <div className="space-y-3 pt-2 border-t border-border">
-              {auditNotes.map(note => (
-                <div key={note.id} className="rounded-lg border border-border p-3 space-y-1">
-                  <p className="text-sm leading-relaxed">{note.text}</p>
-                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                    <span className="font-medium">{note.author}</span>
-                    <span>·</span>
-                    <span>{note.timestamp}</span>
+              {auditNotes.length === 0 ? (
+                <p style={{ fontSize: "14px", color: "#888888", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }}>No notes yet</p>
+              ) : (
+                auditNotes.map(note => (
+                  <div key={note.id} className="rounded-lg border border-border p-3 space-y-1">
+                    <p style={{ fontSize: "14px", color: "#111111", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }} className="leading-relaxed">{note.note_text}</p>
+                    <div style={{ fontSize: "11px", color: "#888888", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }} className="flex items-center gap-2">
+                      <span>{note.full_name || note.email || "Unknown"}</span>
+                      <span>·</span>
+                      <span>{new Date(note.created_at).toLocaleString()}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </TabsContent>
