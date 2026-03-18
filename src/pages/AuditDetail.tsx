@@ -309,7 +309,7 @@ export default function AuditDetail() {
               {audit.financial_year ? `Financial Year ${audit.financial_year}` : "No financial year set"}
               {audit.fund_type && <span className="ml-3 capitalize">· {audit.fund_type}</span>}
             </p>
-            <div className="flex items-center gap-4 mt-3 text-sm">
+            <div className="flex items-center gap-4 mt-3 text-sm flex-nowrap whitespace-nowrap">
               <Badge variant={!allResolved && (audit.status || "").toLowerCase() === "complete" ? statusVariant("in progress") : statusVariant(audit.status)}>
                 {!allResolved && (audit.status || "").toLowerCase() === "complete" ? "In Progress" : statusLabel(audit.status)}
               </Badge>
@@ -563,7 +563,7 @@ function UploadMoreDocuments({ auditId, onUploaded, runningAudit }: { auditId: s
   return (
     <>
       <input ref={fileInputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.docx" onChange={handleUpload} className="hidden" />
-      <Button variant="outline" size="sm" className="w-full justify-center" disabled={busy} onClick={() => fileInputRef.current?.click()}>
+      <Button variant="outline" size="sm" disabled={busy} onClick={() => fileInputRef.current?.click()}>
         {busy ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
         {uploading ? "Uploading…" : "Upload"}
       </Button>
