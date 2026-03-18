@@ -271,7 +271,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
     <>
       <div className={`flex rounded-lg border border-border bg-background overflow-hidden ${className || ""}`}>
         {/* Left Panel */}
-        <div className="flex w-80 shrink-0 flex-col border-r border-border lg:w-96">
+        <div className="flex w-80 shrink-0 flex-col border-r border-border lg:w-[380px]">
           <div className="p-3 border-b border-border flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -301,7 +301,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
               <button
                 key={rfi.id}
                 onClick={() => setSelectedId(rfi.id)}
-                className={`w-full text-left px-4 py-3.5 border-b border-[hsl(var(--border-light))] transition-colors duration-100 ${
+                className={`w-full text-left px-4 py-4 border-b border-[hsl(var(--border-light))] transition-colors duration-100 ${
                   selectedId === rfi.id
                     ? "bg-active border-l-2 border-l-foreground"
                     : "hover:bg-hover border-l-2 border-l-transparent"
@@ -353,15 +353,15 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                     const isAI = msg.sender === "claude" || msg.sender === "ai";
                     return (
                       <div key={msg.id} className="flex justify-start">
-                        <div className={`max-w-[75%] rounded-lg px-4 py-3 ${isAI ? "bg-status-new-bg" : "bg-active"}`}>
+                        <div className={`max-w-[75%] rounded-lg ${isAI ? "bg-status-new-bg" : "bg-active"}`} style={{ padding: "12px 16px" }}>
                           {isAI && (
                             <div className="flex items-center gap-1.5 mb-1.5">
                               <Bot className="h-3.5 w-3.5 text-status-new" />
                               <Badge variant="new" className="text-[10px] px-1.5 py-0">AI</Badge>
                             </div>
                           )}
-                          <p className="text-sm leading-relaxed">{msg.message}</p>
-                          <div className="flex items-center gap-2 mt-2 text-[11px] text-muted-foreground">
+                          <p className="text-sm leading-relaxed" style={{ fontSize: "14px" }}>{msg.message}</p>
+                          <div className="flex items-center gap-2 mt-2 text-muted-foreground" style={{ fontSize: "12px" }}>
                             <span className="font-medium">{isAI ? "Auditron" : msg.sender}</span>
                             <span>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
                           </div>
@@ -382,7 +382,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                 )}
               </div>
 
-              <div className="border-t border-border p-4 flex items-center gap-2">
+              <div className="border-t border-border p-4 flex items-center gap-3" style={{ padding: "16px" }}>
                 <input
                   ref={attachInputRef}
                   type="file"
@@ -393,6 +393,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="h-10 w-10 shrink-0"
                   onClick={() => attachInputRef.current?.click()}
                   disabled={attachUploading || aiReviewing}
                 >
@@ -404,17 +405,17 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                 </Button>
                 <Input
                   placeholder="Type your reply…"
-                  className="flex-1"
+                  className="flex-1 h-[44px]"
                   value={replyText}
                   onChange={e => setReplyText(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                 />
-                <Button size="sm" onClick={handleSendMessage} disabled={sending || !replyText.trim()}>
+                <Button className="h-10" onClick={handleSendMessage} disabled={sending || !replyText.trim()}>
                   {sending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Send className="h-4 w-4 mr-1.5" />}
                   Send
                 </Button>
                 {selected.status !== "resolved" && (
-                  <Button variant="outline" size="sm" onClick={handleResolve} disabled={resolving}>
+                  <Button variant="outline" className="h-10" onClick={handleResolve} disabled={resolving}>
                     {resolving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle2 className="h-4 w-4 mr-1.5" />}
                     Resolve
                   </Button>
