@@ -302,7 +302,14 @@ export default function AuditDetail() {
               {audit.fund_type && <span className="ml-3 capitalize">· {audit.fund_type}</span>}
             </p>
             <div className="flex items-center gap-4 mt-3 text-sm">
-              <Badge variant={statusVariant(audit.status)}>{statusLabel(audit.status)}</Badge>
+              <Badge variant={!allResolved && (audit.status || "").toLowerCase() === "complete" ? statusVariant("in progress") : statusVariant(audit.status)}>
+                {!allResolved && (audit.status || "").toLowerCase() === "complete" ? "In Progress" : statusLabel(audit.status)}
+              </Badge>
+              {!allResolved && rfiCount > 0 && (
+                <Badge variant="flag" className="text-xs">
+                  <AlertTriangle className="h-3 w-3 mr-1" />{rfiCount} open RFI{rfiCount !== 1 ? "s" : ""}
+                </Badge>
+              )}
               <span className="text-muted-foreground">
                 Opinion: {audit.opinion || "Pending"}
               </span>
