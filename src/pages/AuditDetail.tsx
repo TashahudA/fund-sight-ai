@@ -114,7 +114,8 @@ export default function AuditDetail() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [noteText, setNoteText] = useState("");
-  const [runningAudit, setRunningAudit] = useState(false);
+  const [savingNote, setSavingNote] = useState(false);
+  const [auditNotes, setAuditNotes] = useState<{ id: string; note_text: string; created_at: string; full_name: string | null; email: string | null }[]>([]);
   const [showProcessing, setShowProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState("findings");
   const [rfiCount, setRfiCount] = useState(0);
