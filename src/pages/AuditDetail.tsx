@@ -147,7 +147,46 @@ export default function AuditDetail() {
     setDocCount(docRes.count ?? 0);
   }, [id]);
 
-  useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); }, [fetchAudit, fetchCounts]);
+  const { user } = useAuth();
+
+  const fetchNotes = useCallback(async () => {
+    if (!id) return;
+    const { data } = await supabase
+      .from("audit_notes")
+      .select("id, note_text, created_at, user_id")
+      .eq("audit_id", id)
+      .order("created_at", { ascending: false });
+    if (!data) { setAuditNotes([]); return; }
+    const userIds = [...new Set(data.map(n => n.user_id))];
+    const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", userIds);
+    const profileMap = new Map((profiles || []).map(p => [p.id, p.full_name]));
+    setAuditNotes(data.map(n => ({
+      id: n.id,
+      note_text: n.note_text,
+      created_at: n.created_at || "",
+      full_name: profileMap.get(n.user_id) || null,
+      email: user?.email || null,
+    })));
+  }, [id, user]);
+
+  const handleAddNote = async () => {
+    if (!id || !user || !noteText.trim()) return;
+    setSavingNote(true);
+    const { error } = await supabase.from("audit_notes").insert({
+      audit_id: id,
+      user_id: user.id,
+      note_text: noteText.trim(),
+    });
+    if (error) {
+      toast({ title: "Failed to save note", description: error.message, variant: "destructive" });
+    } else {
+      setNoteText("");
+      await fetchNotes();
+    }
+    setSavingNote(false);
+  };
+
+  useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); }, [fetchAudit, fetchCounts, fetchNotes]);
 
   // Auto-trigger AI audit on page load if documents exist but no findings yet
   const [autoTriggered, setAutoTriggered] = useState(false);
