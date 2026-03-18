@@ -40,6 +40,8 @@ interface RFITabProps {
 }
 
 export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
+  const { user, profile } = useAuth();
+  const displayName = profile?.full_name || user?.email || "You";
   const [rfis, setRfis] = useState<RFI[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabFilter>("all");
