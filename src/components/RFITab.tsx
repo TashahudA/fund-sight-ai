@@ -37,9 +37,10 @@ interface RFITabProps {
   auditId: string;
   className?: string;
   onCountChange?: () => void;
+  onAutoComplete?: () => void;
 }
 
-export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
+export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RFITabProps) {
   const { user, profile } = useAuth();
   const displayName = profile?.full_name || user?.email || "You";
   const [rfis, setRfis] = useState<RFI[]>([]);
@@ -70,6 +71,19 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
     if (!error && data) setRfis(data);
     setLoading(false);
     onCountChange?.();
+  };
+
+  const checkAutoComplete = async () => {
+    const { count } = await supabase
+      .from("rfis")
+      .select("id", { count: "exact", head: true })
+      .eq("audit_id", auditId)
+      .eq("status", "open");
+    if ((count ?? 0) === 0) {
+      await supabase.from("audits").update({ status: "complete", updated_at: new Date().toISOString() }).eq("id", auditId);
+      toast({ title: "Audit marked as complete — all items resolved" });
+      onAutoComplete?.();
+    }
   };
 
   useEffect(() => { fetchRfis(); }, [auditId]);
@@ -121,6 +135,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
       });
       if (fnError) throw fnError;
       await Promise.all([fetchMessages(selectedId), fetchRfis()]);
+      await checkAutoComplete();
     } catch (err: any) {
       console.error("AI chat error:", err);
       toast({ title: "AI response failed", description: err.message, variant: "destructive" });
@@ -141,6 +156,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
     } else {
       toast({ title: "RFI resolved" });
       await fetchRfis();
+      await checkAutoComplete();
     }
     setResolving(false);
   };
@@ -198,6 +214,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
         });
         if (fnError) throw fnError;
         await Promise.all([fetchMessages(selectedId), fetchRfis()]);
+        await checkAutoComplete();
       } catch (err: any) {
         console.error("AI review error:", err);
         toast({ title: "AI review failed", description: err.message, variant: "destructive" });
