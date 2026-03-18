@@ -89,7 +89,7 @@ export function TopNav() {
           id: `new-rfis-${key}`,
           message: `${g.count} new RFI${g.count > 1 ? "s" : ""} raised for ${g.fundName}`,
           time: g.latest,
-          link: `/audit/${g.auditId}`,
+          link: `/audits/${g.auditId}?tab=rfis`,
         });
       }
 
