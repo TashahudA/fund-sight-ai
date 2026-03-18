@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { ChevronRight, Download, ShieldCheck, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload } from "lucide-react";
+import { AiProcessingAnimation } from "@/components/AiProcessingAnimation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -105,11 +106,13 @@ const opinionIcon = (opinion: string | null) => {
 export default function AuditDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [audit, setAudit] = useState<Audit | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [runningAudit, setRunningAudit] = useState(false);
+  const [showProcessing, setShowProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState("findings");
   const [rfiCount, setRfiCount] = useState(0);
   const [docCount, setDocCount] = useState(0);
@@ -221,6 +224,8 @@ export default function AuditDetail() {
   const handleRunAudit = async () => {
     if (!audit) return;
     setRunningAudit(true);
+    setShowProcessing(true);
+    setActiveTab("findings");
     try {
       const { data, error } = await supabase.functions.invoke("dynamic-processor", {
         body: { audit_id: audit.id },
@@ -237,6 +242,7 @@ export default function AuditDetail() {
       toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
     } catch (err: any) {
       console.error("AI Audit error:", err);
+      setShowProcessing(false);
       toast({ title: "Error running audit", description: err.message || "Something went wrong. Please try again.", variant: "destructive" });
     } finally {
       setRunningAudit(false);
@@ -408,7 +414,14 @@ export default function AuditDetail() {
 
         {/* Findings Tab */}
         <TabsContent value="findings" className="space-y-4">
-          {aiFindings.length === 0 ? (
+          {showProcessing && (
+            <AiProcessingAnimation
+              active={showProcessing}
+              onComplete={() => setShowProcessing(false)}
+            />
+          )}
+
+          {!showProcessing && aiFindings.length === 0 ? (
             <div className="rounded-lg border border-border bg-background p-8 text-center">
               <Info className="h-8 w-8 text-border mx-auto mb-3" />
               <h3 className="text-base font-semibold">No AI Findings Yet</h3>
@@ -428,7 +441,7 @@ export default function AuditDetail() {
                 )}
               </Button>
             </div>
-          ) : (
+          ) : !showProcessing && aiFindings.length > 0 ? (
             <>
               {/* Opinion Banner */}
               <div className={`flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>
@@ -461,12 +474,12 @@ export default function AuditDetail() {
                       <Badge variant={findingBadgeVariant(f.status)}>{findingLabel(f.status)}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed">{f.detail}</p>
-                    <p className="text-xs text-[#aaaaaa]">{f.reference}</p>
+                    <p className="text-xs text-muted-foreground">{f.reference}</p>
                   </div>
                 ))}
               </div>
             </>
-          )}
+          ) : null}
         </TabsContent>
 
         {/* Documents Tab */}
