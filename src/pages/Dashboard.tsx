@@ -47,11 +47,13 @@ export default function Dashboard() {
     if (!user) return;
     const fetchData = async () => {
       // Fetch all audits and recent 5 in parallel
-      const [allAuditsRes, recentRes, rfisRes] = await Promise.all([
+      const [allAuditsRes, recentRes, rfisRes, docsRes] = await Promise.all([
         supabase.from("audits").select("*").eq("user_id", user.id),
         supabase.from("audits").select("*").eq("user_id", user.id)
           .order("created_at", { ascending: false }).limit(5),
         supabase.from("rfis").select("id, status, created_at, audit_id, audits!inner(user_id)")
+          .eq("audits.user_id", user.id),
+        supabase.from("documents").select("audit_id, created_at, audits!inner(user_id)")
           .eq("audits.user_id", user.id),
       ]);
 
