@@ -48,17 +48,25 @@ export function AiProcessingAnimation({ active, dataReady, onComplete }: AiProce
     return () => timers.forEach(clearTimeout);
   }, [active]);
 
-  // When dataReady becomes true and we're on step 3, mark step 4 complete then fade out
+  // When dataReady becomes true, jump to step 3 if not there yet, then complete
   useEffect(() => {
-    if (dataReady && currentStep === 3 && !step4Complete) {
-      setStep4Complete(true);
-      const t1 = setTimeout(() => setFadingOut(true), 800);
-      const t2 = setTimeout(() => {
-        setFinished(true);
-        onCompleteRef.current?.();
-      }, 1300);
-      return () => { clearTimeout(t1); clearTimeout(t2); };
+    if (!dataReady || step4Complete) return;
+    if (currentStep < 0) return; // animation hasn't started
+
+    if (currentStep < 3) {
+      // Edge Function finished before animation reached step 3 — jump ahead
+      setCurrentStep(3);
+      return; // this state change will re-trigger this effect with currentStep === 3
     }
+
+    // currentStep === 3 and dataReady — mark complete
+    setStep4Complete(true);
+    const t1 = setTimeout(() => setFadingOut(true), 800);
+    const t2 = setTimeout(() => {
+      setFinished(true);
+      onCompleteRef.current?.();
+    }, 1300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [dataReady, currentStep, step4Complete]);
 
   if (!active || finished) return null;
