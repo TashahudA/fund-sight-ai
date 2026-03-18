@@ -46,6 +46,8 @@ export default function MyAudits() {
   };
   const [sortCol, setSortCol] = useState<SortColumn | null>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [filterYear, setFilterYear] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   // Open RFI counts per audit
   const [openRfiCounts, setOpenRfiCounts] = useState<Record<string, number>>({});
