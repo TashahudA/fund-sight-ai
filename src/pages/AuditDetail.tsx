@@ -249,18 +249,26 @@ export default function AuditDetail() {
     }
   };
 
-  const handleMarkComplete = async () => {
+  const handleStatusChange = async (newStatus: string) => {
     if (!audit) return;
-    await supabase.from("audits").update({ status: "complete" }).eq("id", audit.id);
+    if (newStatus === "complete") {
+      // Check open RFIs
+      const { count } = await supabase
+        .from("rfis")
+        .select("id", { count: "exact", head: true })
+        .eq("audit_id", audit.id)
+        .eq("status", "open");
+      if (count && count > 0) {
+        toast({ title: "Cannot complete", description: "Resolve all RFIs first", variant: "destructive" });
+        return;
+      }
+    }
+    await supabase.from("audits").update({ status: newStatus }).eq("id", audit.id);
     await fetchAudit();
-    toast({ title: "Audit marked complete" });
+    toast({ title: `Status updated to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}` });
   };
 
-  const isComplete = (audit?.status || "").toLowerCase() === "complete";
-  const opinion = (audit?.opinion || envelope.opinion || "").toLowerCase();
   const allResolved = rfiCount === 0;
-  const canAutoComplete = allResolved && opinion === "unqualified";
-  const needsWarning = allResolved && opinion && opinion !== "unqualified";
 
   if (loading) {
     return (
