@@ -40,7 +40,7 @@ interface RFITabProps {
   onAutoComplete?: () => void;
 }
 
-export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
+export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RFITabProps) {
   const { user, profile } = useAuth();
   const displayName = profile?.full_name || user?.email || "You";
   const [rfis, setRfis] = useState<RFI[]>([]);
