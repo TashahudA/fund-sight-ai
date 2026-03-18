@@ -274,17 +274,22 @@ export default function AuditDetail() {
     setAuditDataReady(false);
     setActiveTab("findings");
     try {
-      const { data, error } = await supabase.functions.invoke("dynamic-processor", {
+      const { error } = await supabase.functions.invoke("dynamic-processor", {
         body: { audit_id: audit.id },
       });
       if (error) throw error;
+
+      // Re-fetch audit data so findings are in state
       await fetchAudit();
+
+      // Auto-resolve RFIs based on new findings
       const { data: freshAudit } = await supabase.from("audits").select("ai_findings").eq("id", audit.id).single();
       if (freshAudit) {
         const { findings } = parseFindings(freshAudit.ai_findings);
         await autoResolveRfis(findings);
       }
       await fetchCounts();
+
       // Auto-complete if zero open RFIs after audit
       const { count: openAfter } = await supabase
         .from("rfis")
@@ -298,12 +303,15 @@ export default function AuditDetail() {
       } else {
         toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
       }
+
+      // Signal animation that data is ready — animation will fade out then set showProcessing=false
       setAuditDataReady(true);
     } catch (err: any) {
       console.error("AI Audit error:", err);
+      // Stop animation immediately on error
       setShowProcessing(false);
       setAuditDataReady(false);
-      toast({ title: "Error running audit", description: err.message || "Something went wrong. Please try again.", variant: "destructive" });
+      toast({ title: "AI audit failed — please try again", description: err.message || "Something went wrong.", variant: "destructive" });
     } finally {
       setRunningAudit(false);
     }
