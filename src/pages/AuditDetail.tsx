@@ -414,7 +414,14 @@ export default function AuditDetail() {
 
         {/* Findings Tab */}
         <TabsContent value="findings" className="space-y-4">
-          {aiFindings.length === 0 ? (
+          {showProcessing && (
+            <AiProcessingAnimation
+              active={showProcessing}
+              onComplete={() => setShowProcessing(false)}
+            />
+          )}
+
+          {!showProcessing && aiFindings.length === 0 ? (
             <div className="rounded-lg border border-border bg-background p-8 text-center">
               <Info className="h-8 w-8 text-border mx-auto mb-3" />
               <h3 className="text-base font-semibold">No AI Findings Yet</h3>
@@ -434,7 +441,7 @@ export default function AuditDetail() {
                 )}
               </Button>
             </div>
-          ) : (
+          ) : !showProcessing && aiFindings.length > 0 ? (
             <>
               {/* Opinion Banner */}
               <div className={`flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>
@@ -467,12 +474,12 @@ export default function AuditDetail() {
                       <Badge variant={findingBadgeVariant(f.status)}>{findingLabel(f.status)}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed">{f.detail}</p>
-                    <p className="text-xs text-[#aaaaaa]">{f.reference}</p>
+                    <p className="text-xs text-muted-foreground">{f.reference}</p>
                   </div>
                 ))}
               </div>
             </>
-          )}
+          ) : null}
         </TabsContent>
 
         {/* Documents Tab */}
