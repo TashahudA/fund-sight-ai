@@ -80,13 +80,24 @@ export default function Dashboard() {
       const sevenDays = 7 * 24 * 60 * 60 * 1000;
       const overdueRfis = openRfis.filter(r => r.created_at && now - new Date(r.created_at).getTime() > sevenDays).length;
 
-      // Avg turnaround: for audits with ai_findings, difference between created_at and updated_at
-      const auditsWithFindings = allAudits.filter(a => a.ai_findings && a.created_at && a.updated_at);
+      // Avg turnaround: time from earliest doc upload to ai_findings populated (updated_at)
+      const allDocs = docsRes.data || [];
+      // Build map of audit_id -> earliest document created_at
+      const earliestDocMap = new Map<string, number>();
+      for (const doc of allDocs) {
+        if (!doc.created_at) continue;
+        const t = new Date(doc.created_at).getTime();
+        const prev = earliestDocMap.get(doc.audit_id);
+        if (!prev || t < prev) earliestDocMap.set(doc.audit_id, t);
+      }
+
+      const auditsWithFindings = allAudits.filter(a => a.ai_findings && a.updated_at && earliestDocMap.has(a.id));
       let avgTurnaround = "—";
       if (auditsWithFindings.length > 0) {
         const totalMs = auditsWithFindings.reduce((sum, a) => {
-          const diff = new Date(a.updated_at!).getTime() - new Date(a.created_at!).getTime();
-          return sum + Math.max(diff, 0);
+          const docTime = earliestDocMap.get(a.id)!;
+          const findingsTime = new Date(a.updated_at!).getTime();
+          return sum + Math.max(findingsTime - docTime, 0);
         }, 0);
         const avgMs = totalMs / auditsWithFindings.length;
         const avgMins = avgMs / 60000;
