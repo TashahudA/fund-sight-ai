@@ -265,10 +265,13 @@ export default function AuditDetail() {
     }
   };
 
+  const [auditDataReady, setAuditDataReady] = useState(false);
+
   const handleRunAudit = async () => {
     if (!audit) return;
     setRunningAudit(true);
     setShowProcessing(true);
+    setAuditDataReady(false);
     setActiveTab("findings");
     try {
       const { data, error } = await supabase.functions.invoke("dynamic-processor", {
@@ -282,11 +285,12 @@ export default function AuditDetail() {
         await autoResolveRfis(findings);
       }
       await fetchCounts();
-      setActiveTab("findings");
+      setAuditDataReady(true);
       toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
     } catch (err: any) {
       console.error("AI Audit error:", err);
       setShowProcessing(false);
+      setAuditDataReady(false);
       toast({ title: "Error running audit", description: err.message || "Something went wrong. Please try again.", variant: "destructive" });
     } finally {
       setRunningAudit(false);
@@ -460,11 +464,12 @@ export default function AuditDetail() {
           {showProcessing && (
             <AiProcessingAnimation
               active={showProcessing}
+              dataReady={auditDataReady}
               onComplete={() => setShowProcessing(false)}
             />
           )}
 
-          {!showProcessing && aiFindings.length === 0 ? (
+          {!showProcessing && !runningAudit && aiFindings.length === 0 ? (
             <div className="rounded-lg border border-border bg-background p-8 text-center">
               <Info className="h-8 w-8 text-border mx-auto mb-3" />
               <h3 className="text-base font-semibold">No AI Findings Yet</h3>
@@ -484,7 +489,7 @@ export default function AuditDetail() {
                 )}
               </Button>
             </div>
-          ) : !showProcessing && aiFindings.length > 0 ? (
+          ) : !showProcessing && !runningAudit && aiFindings.length > 0 ? (
             <>
               {/* Opinion Banner */}
               <div className={`flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>

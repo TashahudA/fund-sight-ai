@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FileText, ClipboardCheck, Sparkles, Check, Loader2 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 
 interface AiProcessingAnimationProps {
   active: boolean;
+  dataReady?: boolean;
   onComplete?: () => void;
 }
 
@@ -11,55 +11,59 @@ const steps = [
   { label: "Reading documents...", icon: FileText },
   { label: "Checking compliance...", icon: ClipboardCheck },
   { label: "Generating findings...", icon: Sparkles },
-  { label: "Complete", icon: Check },
+  { label: "Finalising analysis...", icon: Sparkles },
 ];
 
 const STEP_DURATION = 2200;
 
-export function AiProcessingAnimation({ active, onComplete }: AiProcessingAnimationProps) {
+export function AiProcessingAnimation({ active, dataReady, onComplete }: AiProcessingAnimationProps) {
   const [currentStep, setCurrentStep] = useState(-1);
   const [finished, setFinished] = useState(false);
   const [fadingOut, setFadingOut] = useState(false);
+  const [step4Complete, setStep4Complete] = useState(false);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     if (!active) {
       setCurrentStep(-1);
       setFinished(false);
       setFadingOut(false);
+      setStep4Complete(false);
       return;
     }
 
-    // Start step 0 immediately
     setCurrentStep(0);
     setFinished(false);
     setFadingOut(false);
+    setStep4Complete(false);
 
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    for (let i = 1; i < steps.length; i++) {
+    // Advance steps 1-3 on timers; step 3 (index 3) waits for dataReady
+    for (let i = 1; i <= 3; i++) {
       timers.push(setTimeout(() => setCurrentStep(i), STEP_DURATION * i));
     }
 
-    // After last step completes, fade out
-    timers.push(
-      setTimeout(() => {
-        setFadingOut(true);
-      }, STEP_DURATION * steps.length)
-    );
-
-    timers.push(
-      setTimeout(() => {
-        setFinished(true);
-        onComplete?.();
-      }, STEP_DURATION * steps.length + 500)
-    );
-
     return () => timers.forEach(clearTimeout);
-  }, [active, onComplete]);
+  }, [active]);
+
+  // When dataReady becomes true and we're on step 3, mark step 4 complete then fade out
+  useEffect(() => {
+    if (dataReady && currentStep === 3 && !step4Complete) {
+      setStep4Complete(true);
+      const t1 = setTimeout(() => setFadingOut(true), 800);
+      const t2 = setTimeout(() => {
+        setFinished(true);
+        onCompleteRef.current?.();
+      }, 1300);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
+  }, [dataReady, currentStep, step4Complete]);
 
   if (!active || finished) return null;
 
-  const progress = Math.min(((currentStep + 1) / steps.length) * 100, 100);
+  const progress = step4Complete ? 100 : Math.min(((Math.min(currentStep + 1, 3)) / 4) * 100, 75);
 
   return (
     <div
@@ -67,7 +71,6 @@ export function AiProcessingAnimation({ active, onComplete }: AiProcessingAnimat
         fadingOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      {/* Progress bar */}
       <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"
@@ -78,14 +81,13 @@ export function AiProcessingAnimation({ active, onComplete }: AiProcessingAnimat
         />
       </div>
 
-      {/* Steps */}
       <div className="space-y-0">
         {steps.map((step, i) => {
           if (i > currentStep) return null;
 
-          const isComplete = i < currentStep;
-          const isCurrent = i === currentStep && currentStep < steps.length - 1;
-          const isFinalComplete = i === steps.length - 1 && currentStep === steps.length - 1;
+          const isLastStep = i === 3;
+          const isComplete = isLastStep ? step4Complete : i < currentStep;
+          const isCurrent = isLastStep ? !step4Complete : i === currentStep && i < 3;
           const StepIcon = step.icon;
 
           return (
@@ -94,8 +96,7 @@ export function AiProcessingAnimation({ active, onComplete }: AiProcessingAnimat
               className="flex items-center gap-3 py-2.5 animate-fade-in"
               style={{ animationDuration: "0.3s" }}
             >
-              {/* Icon area */}
-              {isComplete || isFinalComplete ? (
+              {isComplete ? (
                 <div className="flex items-center justify-center h-6 w-6 rounded-full shrink-0" style={{ backgroundColor: "#16a34a20" }}>
                   <Check className="h-3.5 w-3.5" style={{ color: "#16a34a" }} />
                 </div>
@@ -109,18 +110,16 @@ export function AiProcessingAnimation({ active, onComplete }: AiProcessingAnimat
                 </div>
               )}
 
-              {/* Label */}
               <span
                 className="text-sm font-medium"
                 style={{
-                  color: isComplete || isFinalComplete ? "#16a34a" : isCurrent ? "hsl(var(--foreground))" : "#888888",
+                  color: isComplete ? "#16a34a" : isCurrent ? "hsl(var(--foreground))" : "#888888",
                 }}
               >
-                {step.label}
+                {isLastStep && step4Complete ? "Complete" : step.label}
               </span>
 
-              {/* Step icon on the right for context */}
-              {isCurrent && (
+              {isCurrent && !isLastStep && (
                 <StepIcon className="h-4 w-4 ml-auto text-muted-foreground" />
               )}
             </div>
