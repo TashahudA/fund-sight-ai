@@ -31,6 +31,7 @@ type SortDir = "asc" | "desc";
 
 export default function MyAudits() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
