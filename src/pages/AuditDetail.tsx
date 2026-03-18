@@ -274,6 +274,9 @@ export default function AuditDetail() {
     setAuditDataReady(false);
     setActiveTab("findings");
     try {
+      // Record when user clicked "Run AI Audit" for turnaround tracking
+      await supabase.from("audits").update({ audit_started_at: new Date().toISOString() }).eq("id", audit.id);
+
       const { error } = await supabase.functions.invoke("dynamic-processor", {
         body: { audit_id: audit.id },
       });
