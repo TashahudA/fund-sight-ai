@@ -301,7 +301,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
               <button
                 key={rfi.id}
                 onClick={() => setSelectedId(rfi.id)}
-                className={`w-full text-left px-4 py-3.5 border-b border-[hsl(var(--border-light))] transition-colors duration-100 ${
+                className={`w-full text-left px-4 py-4 border-b border-[hsl(var(--border-light))] transition-colors duration-100 ${
                   selectedId === rfi.id
                     ? "bg-active border-l-2 border-l-foreground"
                     : "hover:bg-hover border-l-2 border-l-transparent"
