@@ -554,24 +554,28 @@ export default function AuditDetail() {
                 className="min-h-[80px] resize-none"
               />
               <div className="flex justify-end">
-                <Button size="sm" disabled={!noteText.trim()}>
-                  <Plus className="h-4 w-4 mr-1" />
+                <Button size="sm" disabled={!noteText.trim() || savingNote} onClick={handleAddNote}>
+                  {savingNote ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
                   Add Note
                 </Button>
               </div>
             </div>
 
             <div className="space-y-3 pt-2 border-t border-border">
-              {auditNotes.map(note => (
-                <div key={note.id} className="rounded-lg border border-border p-3 space-y-1">
-                  <p className="text-sm leading-relaxed">{note.text}</p>
-                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                    <span className="font-medium">{note.author}</span>
-                    <span>·</span>
-                    <span>{note.timestamp}</span>
+              {auditNotes.length === 0 ? (
+                <p style={{ fontSize: "14px", color: "#888888", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }}>No notes yet</p>
+              ) : (
+                auditNotes.map(note => (
+                  <div key={note.id} className="rounded-lg border border-border p-3 space-y-1">
+                    <p style={{ fontSize: "14px", color: "#111111", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }} className="leading-relaxed">{note.note_text}</p>
+                    <div style={{ fontSize: "11px", color: "#888888", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }} className="flex items-center gap-2">
+                      <span>{note.full_name || note.email || "Unknown"}</span>
+                      <span>·</span>
+                      <span>{new Date(note.created_at).toLocaleString()}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </TabsContent>
