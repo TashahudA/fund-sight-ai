@@ -49,6 +49,7 @@ export type Database = {
       audits: {
         Row: {
           ai_findings: Json | null
+          audit_started_at: string | null
           created_at: string | null
           financial_year: string | null
           findings_completed_at: string | null
@@ -63,6 +64,7 @@ export type Database = {
         }
         Insert: {
           ai_findings?: Json | null
+          audit_started_at?: string | null
           created_at?: string | null
           financial_year?: string | null
           findings_completed_at?: string | null
@@ -77,6 +79,7 @@ export type Database = {
         }
         Update: {
           ai_findings?: Json | null
+          audit_started_at?: string | null
           created_at?: string | null
           financial_year?: string | null
           findings_completed_at?: string | null
