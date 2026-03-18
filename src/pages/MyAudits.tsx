@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Search, Plus, Loader2, FileX, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ type SortDir = "asc" | "desc";
 
 export default function MyAudits() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -73,7 +74,7 @@ export default function MyAudits() {
 
   useEffect(() => {
     fetchAudits();
-  }, [user]);
+  }, [user, location.key]);
 
   const getEffectiveStatus = (audit: Audit): string => {
     const openCount = openRfiCounts[audit.id] || 0;
