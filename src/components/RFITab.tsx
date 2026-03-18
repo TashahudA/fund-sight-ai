@@ -353,7 +353,7 @@ export function RFITab({ auditId, className, onCountChange }: RFITabProps) {
                     const isAI = msg.sender === "claude" || msg.sender === "ai";
                     return (
                       <div key={msg.id} className="flex justify-start">
-                        <div className={`max-w-[75%] rounded-lg px-4 py-3 ${isAI ? "bg-status-new-bg" : "bg-active"}`}>
+                        <div className={`max-w-[75%] rounded-lg ${isAI ? "bg-status-new-bg" : "bg-active"}`} style={{ padding: "12px 16px" }}>
                           {isAI && (
                             <div className="flex items-center gap-1.5 mb-1.5">
                               <Bot className="h-3.5 w-3.5 text-status-new" />
