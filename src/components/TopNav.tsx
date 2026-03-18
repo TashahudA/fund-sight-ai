@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Bell, Plus, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NewAuditModal } from "@/components/NewAuditModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,9 +16,25 @@ import {
 export function TopNav() {
   const location = useLocation();
   const [modalOpen, setModalOpen] = useState(false);
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
+  const [openRfiCount, setOpenRfiCount] = useState(0);
+  const [auditCount, setAuditCount] = useState(0);
 
   const displayName = profile?.full_name || "User";
+
+  const fetchCounts = async () => {
+    if (!user) return;
+    const [rfiRes, auditRes] = await Promise.all([
+      supabase.from("rfis").select("id", { count: "exact", head: true }).eq("status", "open"),
+      supabase.from("audits").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+    ]);
+    setOpenRfiCount(rfiRes.count ?? 0);
+    setAuditCount(auditRes.count ?? 0);
+  };
+
+  useEffect(() => {
+    fetchCounts();
+  }, [user, location.key]);
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
@@ -50,12 +67,12 @@ export function TopNav() {
             </Link>
             <Link to="/audits" className={navLinkClass("/audits")}>
               My Audits
-              <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0">8</Badge>
+              {auditCount > 0 && <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0">{auditCount}</Badge>}
               {isActive("/audits") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
             </Link>
             <Link to="/rfis" className={navLinkClass("/rfis")}>
               My RFIs
-              <Badge variant="flag" className="ml-1.5 text-[10px] px-1.5 py-0">4</Badge>
+              {openRfiCount > 0 && <Badge variant="flag" className="ml-1.5 text-[10px] px-1.5 py-0">{openRfiCount}</Badge>}
               {isActive("/rfis") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
             </Link>
           </div>
