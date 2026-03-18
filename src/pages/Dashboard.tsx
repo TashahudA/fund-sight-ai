@@ -22,6 +22,15 @@ const statusLabel = (s: string | null) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
+interface DashboardStats {
+  totalAudits: number;
+  inProgress: number;
+  awaitingReview: number;
+  openRfis: number;
+  overdueRfis: number;
+  avgTurnaround: string;
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,20 +38,63 @@ export default function Dashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [audits, setAudits] = useState<Audit[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalAudits: 0, inProgress: 0, awaitingReview: 0,
+    openRfis: 0, overdueRfis: 0, avgTurnaround: "—",
+  });
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("audits")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(5);
-      setAudits(data || []);
+    const fetchData = async () => {
+      // Fetch all audits and recent 5 in parallel
+      const [allAuditsRes, recentRes, rfisRes] = await Promise.all([
+        supabase.from("audits").select("*").eq("user_id", user.id),
+        supabase.from("audits").select("*").eq("user_id", user.id)
+          .order("created_at", { ascending: false }).limit(5),
+        supabase.from("rfis").select("id, status, created_at, audit_id, audits!inner(user_id)")
+          .eq("audits.user_id", user.id),
+      ]);
+
+      const allAudits = allAuditsRes.data || [];
+      setAudits(recentRes.data || []);
+
+      const totalAudits = allAudits.length;
+      const inProgress = allAudits.filter(a => {
+        const s = (a.status || "").toLowerCase();
+        return s === "in progress" || s === "in_progress" || s === "pending";
+      }).length;
+
+      // Awaiting review: has ai_findings but still has open RFIs
+      const allRfis = rfisRes.data || [];
+      const openRfis = allRfis.filter(r => (r.status || "").toLowerCase() === "open");
+      const auditIdsWithOpenRfis = new Set(openRfis.map(r => r.audit_id));
+      const awaitingReview = allAudits.filter(a => a.ai_findings && auditIdsWithOpenRfis.has(a.id)).length;
+
+      // Overdue RFIs (open > 7 days)
+      const now = Date.now();
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+      const overdueRfis = openRfis.filter(r => r.created_at && now - new Date(r.created_at).getTime() > sevenDays).length;
+
+      // Avg turnaround: for audits with ai_findings, time between created_at and updated_at
+      const auditsWithFindings = allAudits.filter(a => a.ai_findings && a.created_at && a.updated_at);
+      let avgTurnaround = "—";
+      if (auditsWithFindings.length > 0) {
+        const totalMs = auditsWithFindings.reduce((sum, a) => {
+          return sum + (new Date(a.updated_at!).getTime() - new Date(a.created_at!).getTime());
+        }, 0);
+        const avgMs = totalMs / auditsWithFindings.length;
+        const avgMins = avgMs / 60000;
+        if (avgMins < 60) {
+          avgTurnaround = `${Math.round(avgMins)} mins`;
+        } else {
+          avgTurnaround = `${(avgMins / 60).toFixed(1)} hrs`;
+        }
+      }
+
+      setStats({ totalAudits, inProgress, awaitingReview, openRfis: openRfis.length, overdueRfis, avgTurnaround });
       setLoading(false);
     };
-    fetch();
+    fetchData();
   }, [user, location.key]);
 
   return (
