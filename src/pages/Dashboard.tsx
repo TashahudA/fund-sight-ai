@@ -47,12 +47,14 @@ export default function Dashboard() {
     if (!user) return;
     const fetchData = async () => {
       // Fetch all audits and recent 5 in parallel
-      const [allAuditsRes, recentRes, rfisRes] = await Promise.all([
+      const [allAuditsRes, recentRes, rfisRes, completeCountRes] = await Promise.all([
         supabase.from("audits").select("*").eq("user_id", user.id),
         supabase.from("audits").select("*").eq("user_id", user.id)
           .order("created_at", { ascending: false }).limit(5),
         supabase.from("rfis").select("id, status, created_at, audit_id, audits!inner(user_id)")
           .eq("audits.user_id", user.id),
+        supabase.from("audits").select("id", { count: "exact", head: true })
+          .eq("user_id", user.id).ilike("status", "%complete%"),
       ]);
 
       const allAudits = allAuditsRes.data || [];
@@ -62,9 +64,10 @@ export default function Dashboard() {
       console.log("[Dashboard] All audits:", allAudits.map(a => a.status));
 
       const totalAudits = allAudits.length;
-      // IN PROGRESS: JS filter, case-insensitive, exclude "complete"
-      const inProgress = allAudits.filter(a => (a.status || "").toLowerCase() !== "complete").length;
-      console.log("[Dashboard] inProgress count:", inProgress);
+      // IN PROGRESS: total minus complete (using ilike for case-insensitive match)
+      const completeCount = completeCountRes.count || 0;
+      const inProgress = totalAudits - completeCount;
+      console.log("[Dashboard] inProgress:", inProgress, "total:", totalAudits, "complete:", completeCount);
 
       // Awaiting review: not complete, has ai_findings, and still has open RFIs
       const allRfis = rfisRes.data || [];
@@ -79,23 +82,16 @@ export default function Dashboard() {
       const sevenDays = 7 * 24 * 60 * 60 * 1000;
       const overdueRfis = openRfis.filter(r => r.created_at && now - new Date(r.created_at).getTime() > sevenDays).length;
 
-      // AVG TURNAROUND: earliest RFI created_at minus audit created_at
-      // Build map of audit_id -> earliest RFI created_at
-      const earliestRfiMap = new Map<string, number>();
-      for (const rfi of allRfis) {
-        if (!rfi.created_at) continue;
-        const t = new Date(rfi.created_at).getTime();
-        const prev = earliestRfiMap.get(rfi.audit_id);
-        if (!prev || t < prev) earliestRfiMap.set(rfi.audit_id, t);
-      }
-
-      const auditsForTurnaround = allAudits.filter(a => a.ai_findings && a.created_at && earliestRfiMap.has(a.id));
+      // AVG TURNAROUND: findings_completed_at minus created_at
+      const auditsForTurnaround = allAudits.filter(
+        (a: any) => a.findings_completed_at && a.created_at
+      );
       let avgTurnaround = "—";
       if (auditsForTurnaround.length > 0) {
-        const totalMs = auditsForTurnaround.reduce((sum, a) => {
+        const totalMs = auditsForTurnaround.reduce((sum: number, a: any) => {
           const createdTime = new Date(a.created_at!).getTime();
-          const rfiTime = earliestRfiMap.get(a.id)!;
-          return sum + Math.max(rfiTime - createdTime, 0);
+          const findingsTime = new Date(a.findings_completed_at).getTime();
+          return sum + Math.max(findingsTime - createdTime, 0);
         }, 0);
         const avgMs = totalMs / auditsForTurnaround.length;
         const avgMins = avgMs / 60000;
