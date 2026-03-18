@@ -147,7 +147,7 @@ export default function AuditDetail() {
     setDocCount(docRes.count ?? 0);
   }, [id]);
 
-  useEffect(() => { fetchAudit(); fetchCounts(); }, [fetchAudit, fetchCounts]);
+  useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); }, [fetchAudit, fetchCounts]);
 
   // Auto-trigger AI audit on page load if documents exist but no findings yet
   const [autoTriggered, setAutoTriggered] = useState(false);
