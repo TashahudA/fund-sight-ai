@@ -489,7 +489,7 @@ export default function AuditDetail() {
                 )}
               </Button>
             </div>
-          ) : !showProcessing && aiFindings.length > 0 ? (
+          ) : !showProcessing && !runningAudit && aiFindings.length > 0 ? (
             <>
               {/* Opinion Banner */}
               <div className={`flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>
