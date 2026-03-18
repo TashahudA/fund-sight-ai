@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { auditNotes } from "@/lib/mockData";
 import { RFITab } from "@/components/RFITab";
 import { DocumentsTab } from "@/components/DocumentsTab";
@@ -249,23 +250,40 @@ export default function AuditDetail() {
     }
   };
 
+  const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+
   const handleStatusChange = async (newStatus: string) => {
     if (!audit) return;
     if (newStatus === "complete") {
-      // Check open RFIs
-      const { count } = await supabase
-        .from("rfis")
-        .select("id", { count: "exact", head: true })
-        .eq("audit_id", audit.id)
-        .eq("status", "open");
-      if (count && count > 0) {
-        toast({ title: "Cannot complete", description: "Resolve all RFIs first", variant: "destructive" });
-        return;
-      }
+      setPendingStatus(audit.status || "pending");
+      setCompleteConfirmOpen(true);
+      return;
     }
     await supabase.from("audits").update({ status: newStatus }).eq("id", audit.id);
     await fetchAudit();
     toast({ title: `Status updated to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}` });
+  };
+
+  const handleConfirmComplete = async () => {
+    if (!audit) return;
+    // Resolve all open RFIs
+    await supabase
+      .from("rfis")
+      .update({ status: "resolved" })
+      .eq("audit_id", audit.id)
+      .eq("status", "open");
+    // Update audit status
+    await supabase.from("audits").update({ status: "complete" }).eq("id", audit.id);
+    await Promise.all([fetchAudit(), fetchCounts()]);
+    setCompleteConfirmOpen(false);
+    setPendingStatus(null);
+    toast({ title: "Audit marked complete", description: "All open RFIs have been resolved." });
+  };
+
+  const handleCancelComplete = () => {
+    setCompleteConfirmOpen(false);
+    setPendingStatus(null);
   };
 
   const allResolved = rfiCount === 0;
@@ -291,6 +309,7 @@ export default function AuditDetail() {
   }
 
   return (
+    <>
     <div className="container max-w-6xl py-8 space-y-6 animate-fade-in">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -515,6 +534,22 @@ export default function AuditDetail() {
         </TabsContent>
       </Tabs>
     </div>
+
+      <AlertDialog open={completeConfirmOpen} onOpenChange={setCompleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark audit as complete?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will resolve all open RFIs.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelComplete}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmComplete}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
