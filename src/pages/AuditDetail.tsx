@@ -285,8 +285,20 @@ export default function AuditDetail() {
         await autoResolveRfis(findings);
       }
       await fetchCounts();
+      // Auto-complete if zero open RFIs after audit
+      const { count: openAfter } = await supabase
+        .from("rfis")
+        .select("id", { count: "exact", head: true })
+        .eq("audit_id", audit.id)
+        .eq("status", "open");
+      if ((openAfter ?? 0) === 0) {
+        await supabase.from("audits").update({ status: "complete", updated_at: new Date().toISOString() }).eq("id", audit.id);
+        await fetchAudit();
+        toast({ title: "Audit marked as complete — all items resolved" });
+      } else {
+        toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
+      }
       setAuditDataReady(true);
-      toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
     } catch (err: any) {
       console.error("AI Audit error:", err);
       setShowProcessing(false);
