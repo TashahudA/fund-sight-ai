@@ -302,7 +302,14 @@ export default function AuditDetail() {
               {audit.fund_type && <span className="ml-3 capitalize">· {audit.fund_type}</span>}
             </p>
             <div className="flex items-center gap-4 mt-3 text-sm">
-              <Badge variant={statusVariant(audit.status)}>{statusLabel(audit.status)}</Badge>
+              <Badge variant={!allResolved && (audit.status || "").toLowerCase() === "complete" ? statusVariant("in progress") : statusVariant(audit.status)}>
+                {!allResolved && (audit.status || "").toLowerCase() === "complete" ? "In Progress" : statusLabel(audit.status)}
+              </Badge>
+              {!allResolved && rfiCount > 0 && (
+                <Badge variant="flag" className="text-xs">
+                  <AlertTriangle className="h-3 w-3 mr-1" />{rfiCount} open RFI{rfiCount !== 1 ? "s" : ""}
+                </Badge>
+              )}
               <span className="text-muted-foreground">
                 Opinion: {audit.opinion || "Pending"}
               </span>
@@ -337,9 +344,14 @@ export default function AuditDetail() {
                   <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Complete
                 </Badge>
               ) : !allResolved ? (
-                <Badge variant="flag" className="px-3 py-1.5 text-xs">
-                  <AlertTriangle className="h-3.5 w-3.5 mr-1" /> In Progress · {rfiCount} open RFI{rfiCount !== 1 ? "s" : ""}
-                </Badge>
+                <div className="relative group/tooltip">
+                  <Button size="sm" disabled>
+                    <CheckCircle2 className="h-4 w-4 mr-1.5" />Mark Complete
+                  </Button>
+                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-foreground text-background text-xs px-2.5 py-1.5 rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none">
+                    Resolve all RFIs before completing
+                  </div>
+                </div>
               ) : canAutoComplete ? (
                 <Button size="sm" onClick={handleMarkComplete}>
                   <CheckCircle2 className="h-4 w-4 mr-1.5" />Mark Complete
