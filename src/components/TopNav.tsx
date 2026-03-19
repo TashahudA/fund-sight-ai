@@ -168,7 +168,7 @@ export function TopNav() {
   };
 
   const isActive = (path: string) => {
-    if (path === "/") return location.pathname === "/";
+    if (path === "/dashboard") return location.pathname === "/dashboard";
     return location.pathname.startsWith(path);
   };
 
@@ -184,7 +184,7 @@ export function TopNav() {
       <nav className="sticky top-0 z-50 bg-background border-b border-border">
         <div className="container flex h-14 items-center justify-between">
           {/* Logo — text only */}
-          <Link to="/" className="flex items-center">
+          <Link to="/dashboard" className="flex items-center">
             <span className="text-base font-bold tracking-tight text-foreground">
               Auditron
             </span>
@@ -192,9 +192,9 @@ export function TopNav() {
 
           {/* Nav Links */}
           <div className="flex items-center gap-1">
-            <Link to="/" className={navLinkClass("/")}>
+            <Link to="/dashboard" className={navLinkClass("/dashboard")}>
               Dashboard
-              {isActive("/") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
+              {isActive("/dashboard") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
             </Link>
             <Link to="/audits" className={navLinkClass("/audits")}>
               My Audits
