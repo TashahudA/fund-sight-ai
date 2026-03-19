@@ -58,7 +58,7 @@ function StaggerChild({ children, index }: { children: React.ReactNode; index: n
   );
 }
 
-function SlideIn({ children, direction = "right", className = "" }: { children: React.ReactNode; direction?: "left" | "right"; className?: string }) {
+function SlideIn({ children, direction = "right", className = "", style = {} }: { children: React.ReactNode; direction?: "left" | "right"; className?: string; style?: React.CSSProperties }) {
   const { ref, visible } = useScrollReveal();
   const x = direction === "right" ? "60px" : "-60px";
   return (
@@ -69,6 +69,7 @@ function SlideIn({ children, direction = "right", className = "" }: { children: 
         opacity: visible ? 1 : 0,
         transform: visible ? "translateX(0)" : `translateX(${x})`,
         transition: "opacity 0.7s ease-out, transform 0.7s ease-out",
+        ...style,
       }}
     >
       {children}

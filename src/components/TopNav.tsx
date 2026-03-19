@@ -182,7 +182,7 @@ export function TopNav() {
   return (
     <>
       <nav className="sticky top-0 z-50 bg-background border-b border-border">
-        <div className="flex h-14 items-center justify-between px-8">
+        <div className="flex h-14 items-center justify-between" style={{ paddingLeft: "32px", paddingRight: "32px", maxWidth: "1200px", margin: "0 auto" }}>
           {/* Logo — text only */}
           <Link to="/dashboard" className="flex items-center">
             <span className="text-base font-bold tracking-tight text-foreground">
