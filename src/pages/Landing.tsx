@@ -293,7 +293,7 @@ export default function Landing() {
               {/* Line 1: AI-Powered */}
               <p style={{
                 fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "25px",
-                color: "#999999", letterSpacing: "6px", textTransform: "uppercase",
+                color: "#999999", letterSpacing: "0.08em", textTransform: "uppercase",
                 marginBottom: "20px",
               }}>
                 AI-Powered
