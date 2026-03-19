@@ -268,10 +268,10 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* ==== HERO ==== */}
-      <section className="relative z-10 flex items-center justify-center" style={{ minHeight: "100vh", paddingTop: "80px", paddingBottom: "60px" }}>
+      {/* ==== HERO + VIDEO ==== */}
+      <section className="relative z-10" style={{ minHeight: "100vh", paddingTop: "80px" }}>
         {/* Hero glow — large radial behind headline */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true" style={{ top: "-10%" }}>
           <div style={{
             width: "800px", height: "800px", borderRadius: "50%",
             background: "radial-gradient(circle, rgba(0,0,0,0.04) 0%, transparent 70%)",
@@ -279,91 +279,88 @@ export default function Landing() {
           }} />
         </div>
 
-        <div className="text-center relative z-10 px-6" style={{ maxWidth: "800px", margin: "0 auto" }}>
-          <RevealSection>
-            {/* Line 1: AI-Powered */}
-            <p style={{
-              fontFamily: "'Open Sans', sans-serif", fontWeight: 300, fontSize: "24px",
-              color: "#999999", letterSpacing: "8px", textTransform: "uppercase",
-              marginBottom: "12px",
-            }}>
-              AI-Powered
-            </p>
-
-            {/* Line 2: SMSF Auditing */}
-            <h1 className="leading-tight">
-              <span className="hidden md:block" style={{
-                fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "72px", color: "#111111",
+        {/* Hero text content — positioned in upper portion */}
+        <div className="relative z-10 flex flex-col items-center justify-center px-6" style={{ minHeight: "calc(65vh - 80px)" }}>
+          <div className="text-center" style={{ maxWidth: "800px" }}>
+            <RevealSection>
+              {/* Line 1: AI-Powered */}
+              <p style={{
+                fontFamily: "'Open Sans', sans-serif", fontWeight: 300, fontSize: "24px",
+                color: "#999999", letterSpacing: "8px", textTransform: "uppercase",
+                marginBottom: "12px",
               }}>
-                SMSF <span className="auditing-glow">Auditing</span>
-              </span>
-              <span className="block md:hidden" style={{
-                fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "44px", color: "#111111",
+                AI-Powered
+              </p>
+
+              {/* Line 2: SMSF Auditing */}
+              <h1 className="leading-tight">
+                <span className="hidden md:block" style={{
+                  fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "72px", color: "#111111",
+                }}>
+                  SMSF <span className="auditing-glow">Auditing</span>
+                </span>
+                <span className="block md:hidden" style={{
+                  fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "44px", color: "#111111",
+                }}>
+                  SMSF <span className="auditing-glow">Auditing</span>
+                </span>
+              </h1>
+
+              {/* Subheading */}
+              <p className="mt-6" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "22px", color: "#888888" }}>
+                SMSF compliance in{" "}
+                <span style={{
+                  fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#888888",
+                  textShadow: "0 0 30px rgba(0,0,0,0.12)",
+                }}>minutes</span>
+                , not hours.
+              </p>
+
+              {/* Description */}
+              <p className="mt-6 mx-auto leading-relaxed" style={{
+                fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px",
+                color: "#999999", maxWidth: "540px",
               }}>
-                SMSF <span className="auditing-glow">Auditing</span>
-              </span>
-            </h1>
+                Upload your fund documents. Get AI-powered compliance findings, automated RFIs, and audit-ready reports — in a fraction of the time.
+              </p>
 
-            {/* Subheading */}
-            <p className="mt-6" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "22px", color: "#888888" }}>
-              SMSF compliance in{" "}
-              <span style={{
-                fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#888888",
-                textShadow: "0 0 30px rgba(0,0,0,0.12)",
-              }}>minutes</span>
-              , not hours.
-            </p>
-
-            {/* Description */}
-            <p className="mt-6 mx-auto leading-relaxed" style={{
-              fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px",
-              color: "#999999", maxWidth: "540px",
-            }}>
-              Upload your fund documents. Get AI-powered compliance findings, automated RFIs, and audit-ready reports — in a fraction of the time.
-            </p>
-
-            {/* Buttons */}
-            <div className="mt-8 flex items-center justify-center gap-3">
-              <Button size="lg" asChild>
-                <a href="mailto:hello@auditron.com.au">Book a Demo</a>
-              </Button>
-              <button
-                onClick={() => scrollTo("how-it-works")}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-6 transition-colors"
-                style={{ border: "1px solid #dddddd", background: "transparent", color: "#111111" }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#f9f9f9"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-              >
-                See How It Works
-              </button>
-            </div>
-          </RevealSection>
+              {/* Buttons */}
+              <div className="mt-8 flex items-center justify-center gap-3">
+                <Button size="lg" asChild>
+                  <a href="mailto:hello@auditron.com.au">Book a Demo</a>
+                </Button>
+                <button
+                  onClick={() => scrollTo("how-it-works")}
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-6 transition-colors"
+                  style={{ border: "1px solid #dddddd", background: "transparent", color: "#111111" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#f9f9f9"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  See How It Works
+                </button>
+              </div>
+            </RevealSection>
+          </div>
         </div>
-      </section>
 
-      {/* ==== VIDEO ==== */}
-      <section className="relative z-10 pb-24 px-6">
-        <RevealSection className="text-center mb-10">
-          <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "32px", color: "#111111" }}>
-            See it in action
-          </h2>
-        </RevealSection>
-        <RevealSection>
+        {/* Video — peeks from bottom of hero viewport */}
+        <div className="relative z-10 px-6" style={{ marginTop: "40px", paddingBottom: "80px" }}>
           <div className="mx-auto" style={{ maxWidth: "1100px" }}>
             <div style={{
               borderRadius: "16px", border: "1px solid #e5e5e5",
-              boxShadow: "0 12px 48px rgba(0,0,0,0.08)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.1)",
               overflow: "hidden", aspectRatio: "16/9",
+              background: "#f5f5f5", padding: "8px",
             }}>
               <video
                 autoPlay muted loop playsInline controls={false}
                 className="w-full h-full"
-                style={{ objectFit: "contain" }}
+                style={{ objectFit: "contain", borderRadius: "10px" }}
                 src="https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screen%20Recording%202026-03-19%20at%20101437%20am.mp4"
               />
             </div>
           </div>
-        </RevealSection>
+        </div>
       </section>
 
       {/* ==== HOW IT WORKS — Dark section ==== */}
