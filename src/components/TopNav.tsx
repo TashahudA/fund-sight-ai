@@ -189,9 +189,6 @@ export function TopNav() {
               Auditron
             </span>
           </Link>
-              Auditron
-            </span>
-          </Link>
 
           {/* Nav Links */}
           <div className="flex items-center gap-1">
