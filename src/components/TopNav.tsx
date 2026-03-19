@@ -195,9 +195,9 @@ export function TopNav() {
 
           {/* Nav Links */}
           <div className="flex items-center gap-1">
-            <Link to="/" className={navLinkClass("/")}>
+            <Link to="/dashboard" className={navLinkClass("/dashboard")}>
               Dashboard
-              {isActive("/") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
+              {isActive("/dashboard") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
             </Link>
             <Link to="/audits" className={navLinkClass("/audits")}>
               My Audits
