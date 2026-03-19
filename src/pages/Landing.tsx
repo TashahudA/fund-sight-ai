@@ -162,7 +162,7 @@ const features = [
   {
     title: "Catches what others miss",
     desc: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Auditron flags the material risks, not the paperwork gaps.",
-    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.15.02%20pm.png",
+    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png",
     imgSide: "right" as const,
   },
   {
