@@ -292,8 +292,9 @@ export default function Landing() {
             <RevealSection>
               {/* Line 1: AI-Powered */}
               <p style={{
-                fontFamily: "'Open Sans', sans-serif", fontWeight: 300, fontSize: "14px",
-                color: "#999999", letterSpacing: "6px", textTransform: "uppercase",
+                fontFamily: "'Open Sans', sans-serif", fontWeight: 595, fontSize: "27px",
+                letterSpacing: "0.08em",
+                color: "#999999", textTransform: "uppercase",
                 marginBottom: "20px",
               }}>
                 AI-Powered
