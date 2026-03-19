@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Check, Plus, X } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /* ------------------------------------------------------------------ */
@@ -62,7 +62,12 @@ function StaggerChild({ children, index }: { children: React.ReactNode; index: n
 /* ------------------------------------------------------------------ */
 function AccentWord({ children }: { children: React.ReactNode }) {
   return (
-    <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#999999" }}>
+    <span style={{
+      fontFamily: "'Playfair Display', serif",
+      fontStyle: "italic",
+      color: "#999999",
+      textShadow: "0 0 40px rgba(0,0,0,0.08)",
+    }}>
       {children}
     </span>
   );
@@ -72,11 +77,12 @@ function AccentWord({ children }: { children: React.ReactNode }) {
 /*  FAQ Accordion                                                      */
 /* ------------------------------------------------------------------ */
 const faqItems = [
-  { q: "What types of SMSFs can Auditron audit?", a: "Auditron supports all SMSF structures including single-member, multi-member, corporate trustee, and individual trustee funds. Our AI is trained on ATO compliance requirements for all fund types." },
-  { q: "How accurate is the AI analysis?", a: "Our AI achieves over 95% accuracy on compliance checks, cross-referencing against current SIS Act requirements, ATO rulings, and APES 110 standards. Every finding includes source references for auditor verification." },
-  { q: "Can I export audit reports?", a: "Yes — Auditron generates comprehensive audit reports that can be exported as PDF. Reports include all findings, RFI tracking, and compliance opinions formatted for professional use." },
-  { q: "Is my client data secure?", a: "Absolutely. All data is encrypted at rest and in transit. We use enterprise-grade infrastructure with SOC 2 compliance, and your data is never used to train AI models." },
-  { q: "How does the RFI workflow work?", a: "When the AI identifies missing information, it automatically generates RFIs categorised by priority. You can track responses, attach documents, and the AI re-evaluates once information is provided." },
+  { q: "What types of SMSFs can Auditron audit?", a: "Any SMSF — accumulation, pension, or hybrid funds. Auditron checks compliance across all 12 SIS Act areas regardless of fund complexity." },
+  { q: "How accurate is the AI analysis?", a: "Auditron cites specific dollar amounts and document references for every finding. It focuses on material compliance risks — the same issues that trigger ATO contravention reports." },
+  { q: "Can I export audit reports?", a: "Yes. Download a formatted PDF compliance report with findings, RFIs, and draft opinion." },
+  { q: "Is my client data secure?", a: "All data encrypted in transit and at rest. Documents stored in Australia. Each auditor's data is completely isolated." },
+  { q: "How does the RFI workflow work?", a: "AI automatically generates RFIs for unresolved compliance items. Each RFI names the exact document or figure needed. You can chat with the AI auditor to discuss findings and resolve items." },
+  { q: "Is Auditron a replacement for a registered auditor?", a: "No. Auditron produces a draft compliance assessment for review. The registered auditor reviews, adjusts, and signs off. This saves time, not replaces judgment." },
 ];
 
 function FAQAccordion() {
@@ -172,6 +178,13 @@ function ScreenshotPlaceholder() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Smooth scroll helper                                               */
+/* ------------------------------------------------------------------ */
+function scrollTo(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Landing Page                                                  */
 /* ------------------------------------------------------------------ */
 export default function Landing() {
@@ -198,22 +211,25 @@ export default function Landing() {
   ];
 
   const pricingFeatures = [
-    "Unlimited SMSF audits",
-    "AI compliance analysis",
-    "Automated RFI generation",
-    "Document management",
-    "Audit report export",
-    "Priority support",
+    "AI compliance analysis across 12 SIS Act areas",
+    "Specific findings with dollar amounts and references",
+    "Auto-generated RFIs for unresolved items",
+    "Draft audit opinion with reasoning",
+    "Unlimited document uploads per audit",
+    "Results in minutes, not hours",
+  ];
+
+  const navLinks = [
+    { label: "How It Works", id: "how-it-works" },
+    { label: "Features", id: "features" },
+    { label: "Pricing", id: "pricing" },
+    { label: "FAQ", id: "faq" },
   ];
 
   return (
     <div className="min-h-screen bg-background" style={{ overflow: "hidden" }}>
       {/* ---- Background glows ---- */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0"
-        aria-hidden="true"
-      >
-        {/* Hero glow 1 */}
+      <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
         <div
           style={{
             position: "absolute",
@@ -226,7 +242,6 @@ export default function Landing() {
             animation: "glowDrift1 25s ease-in-out infinite",
           }}
         />
-        {/* Hero glow 2 */}
         <div
           style={{
             position: "absolute",
@@ -253,13 +268,34 @@ export default function Landing() {
         }}
       >
         <div className="container max-w-6xl flex h-14 items-center justify-between">
-          <span className="text-base font-bold tracking-tight text-foreground">Auditron</span>
+          {/* Left: Logo */}
+          <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "20px", color: "#111111" }}>
+            Auditron
+          </span>
+
+          {/* Centre: Nav links (hidden on mobile) */}
+          <div className="hidden md:flex items-center gap-6">
+            {navLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => scrollTo(link.id)}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none cursor-pointer"
+              >
+                {link.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Right: Actions */}
           <div className="flex items-center gap-3">
             <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Log in
+              Login
             </Link>
-            <Button size="sm" onClick={() => navigate("/signup")}>
-              Get Started
+            <Button
+              size="sm"
+              asChild
+            >
+              <a href="mailto:hello@auditron.com.au">Book a Demo</a>
             </Button>
           </div>
         </div>
@@ -272,8 +308,15 @@ export default function Landing() {
             {/* Shimmer pill */}
             <div className="inline-flex items-center mb-8">
               <span
-                className="relative overflow-hidden rounded-full border px-4 py-1.5 text-xs font-medium text-muted-foreground"
-                style={{ borderColor: "#e5e5e5" }}
+                className="relative overflow-hidden rounded-full"
+                style={{
+                  border: "1px solid #e5e5e5",
+                  background: "#f4f4f4",
+                  padding: "8px 20px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#666666",
+                }}
               >
                 <span className="relative z-10">AI-Powered SMSF Auditing</span>
                 <span
@@ -286,22 +329,36 @@ export default function Landing() {
               </span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-tight">
-              SMSF compliance in<br />
-              <AccentWord>minutes</AccentWord>, not hours.
+            <h1
+              className="leading-tight"
+              style={{
+                fontFamily: "'Open Sans', sans-serif",
+                fontWeight: 800,
+                fontSize: "56px",
+                color: "#111111",
+              }}
+            >
+              <span className="block md:hidden" style={{ fontSize: "36px" }}>
+                SMSF compliance in{" "}
+                <AccentWord>minutes</AccentWord>
+                , not hours.
+              </span>
+              <span className="hidden md:block">
+                SMSF compliance in{" "}
+                <AccentWord>minutes</AccentWord>
+                , not hours.
+              </span>
             </h1>
 
-            <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="mt-6 max-w-[600px] mx-auto leading-relaxed" style={{ fontSize: "18px", color: "#666666" }}>
               Upload your fund documents. Get AI-powered compliance findings, automated RFIs, and audit-ready reports — in a fraction of the time.
             </p>
 
             <div className="mt-8 flex items-center justify-center gap-3">
-              <Button size="lg" onClick={() => navigate("/signup")}>
-                Start Free Audit
+              <Button size="lg" asChild>
+                <a href="mailto:hello@auditron.com.au">Book a Demo</a>
               </Button>
-              <Button size="lg" variant="outline" onClick={() => {
-                document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
-              }}>
+              <Button size="lg" variant="outline" onClick={() => scrollTo("how-it-works")}>
                 See How It Works
               </Button>
             </div>
@@ -310,34 +367,37 @@ export default function Landing() {
           {/* Demo video */}
           <RevealSection className="mt-16">
             <div
-              className="mx-auto"
-              style={{
-                maxWidth: "960px",
-                borderRadius: "12px",
-                border: "1px solid #e5e5e5",
-                boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
-                overflow: "hidden",
-                aspectRatio: "16/9",
-              }}
+              className="mx-auto px-4 md:px-0"
+              style={{ maxWidth: "960px" }}
             >
-              <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full h-full object-cover"
-                src="/demo-video.mp4"
-              />
+              <div
+                style={{
+                  borderRadius: "12px",
+                  border: "1px solid #e5e5e5",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+                  overflow: "hidden",
+                  aspectRatio: "16/9",
+                }}
+              >
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover"
+                  src="/demo-video.mp4"
+                />
+              </div>
             </div>
           </RevealSection>
         </div>
       </section>
 
-      {/* ---- Section divider wave ---- */}
-      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #ffffff 100%)", animation: "waveBand 8s ease-in-out infinite alternate" }} />
+      {/* ---- Section divider ---- */}
+      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #ffffff 100%)" }} />
 
       {/* ---- How it works ---- */}
-      <section id="how-it-works" className="relative z-10 py-20">
+      <section id="how-it-works" className="relative z-10 py-20" style={{ background: "#fafafa" }}>
         <div className="container max-w-6xl">
           <RevealSection className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
@@ -359,10 +419,10 @@ export default function Landing() {
         </div>
       </section>
 
-      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #ffffff 100%)", animation: "waveBand 8s ease-in-out infinite alternate" }} />
+      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #fafafa 0%, #ffffff 50%, #fafafa 100%)" }} />
 
       {/* ---- Features ---- */}
-      <section className="relative z-10 py-20">
+      <section id="features" className="relative z-10 py-20">
         <div className="container max-w-6xl">
           <RevealSection className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
@@ -386,15 +446,12 @@ export default function Landing() {
         </div>
       </section>
 
-      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #ffffff 100%)", animation: "waveBand 8s ease-in-out infinite alternate" }} />
+      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #ffffff 100%)" }} />
 
       {/* ---- Pricing ---- */}
-      <section className="relative z-10 py-20">
+      <section id="pricing" className="relative z-10 py-20" style={{ background: "#fafafa" }}>
         {/* Pricing glow */}
-        <div
-          className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center"
-          aria-hidden="true"
-        >
+        <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
           <div
             style={{
               width: "50%",
@@ -410,35 +467,37 @@ export default function Landing() {
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
               Simple <AccentWord>pricing</AccentWord>
             </h2>
-            <p className="mt-4 text-muted-foreground">One plan. Everything included. No surprises.</p>
+            <p className="mt-4 text-muted-foreground">Pay per audit. No subscriptions. No surprises.</p>
           </RevealSection>
           <RevealSection>
             <HoverCard className="text-center">
-              <span className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Professional</span>
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-foreground">$49</span>
-                <span className="text-muted-foreground text-sm"> / month</span>
+              <div className="mt-2">
+                <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "48px", color: "#111111" }}>$29</span>
+                <p className="text-muted-foreground text-sm mt-1">per audit</p>
               </div>
               <ul className="mt-8 space-y-3 text-left">
                 {pricingFeatures.map((feat, i) => (
                   <li key={i} className="flex items-center gap-3 text-sm text-foreground">
-                    <Check className="h-4 w-4 text-foreground shrink-0" strokeWidth={2.5} />
+                    <Check className="h-4 w-4 shrink-0" style={{ color: "#111111" }} strokeWidth={2.5} />
                     {feat}
                   </li>
                 ))}
               </ul>
-              <Button className="w-full mt-8" size="lg" onClick={() => navigate("/signup")}>
-                Get Started
+              <Button className="w-full mt-8" size="lg" asChild>
+                <a href="mailto:hello@auditron.com.au">Book a Demo</a>
               </Button>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Volume pricing available for firms processing 20+ audits per month.
+              </p>
             </HoverCard>
           </RevealSection>
         </div>
       </section>
 
-      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #ffffff 100%)", animation: "waveBand 8s ease-in-out infinite alternate" }} />
+      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #fafafa 0%, #ffffff 50%, #fafafa 100%)" }} />
 
       {/* ---- FAQ ---- */}
-      <section className="relative z-10 py-20">
+      <section id="faq" className="relative z-10 py-20">
         <div className="container max-w-2xl">
           <RevealSection className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
@@ -447,6 +506,30 @@ export default function Landing() {
           </RevealSection>
           <RevealSection>
             <FAQAccordion />
+          </RevealSection>
+        </div>
+      </section>
+
+      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #ffffff 100%)" }} />
+
+      {/* ---- Bottom CTA ---- */}
+      <section className="relative z-10 py-20" style={{ background: "#fafafa" }}>
+        <div className="container max-w-6xl text-center">
+          <RevealSection>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+              Ready to <AccentWord>streamline</AccentWord> your audits?
+            </h2>
+            <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
+              See how Auditron can cut your SMSF audit time in half.
+            </p>
+            <div className="mt-8 flex items-center justify-center gap-3">
+              <Button size="lg" asChild>
+                <a href="mailto:hello@auditron.com.au">Book a Demo</a>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link to="/login">Login</Link>
+              </Button>
+            </div>
           </RevealSection>
         </div>
       </section>
@@ -477,9 +560,9 @@ export default function Landing() {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
         }
-        @keyframes waveBand {
-          0% { opacity: 0.6; }
-          100% { opacity: 1; }
+        @media (max-width: 768px) {
+          h1 .hidden { display: none !important; }
+          h1 .block { display: block !important; }
         }
       `}</style>
     </div>
