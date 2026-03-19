@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { TopNav } from "@/components/TopNav";
+import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
 import MyAudits from "@/pages/MyAudits";
 import AuditDetail from "@/pages/AuditDetail";
@@ -19,10 +20,11 @@ const queryClient = new QueryClient();
 function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route
-        path="/"
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <TopNav />
