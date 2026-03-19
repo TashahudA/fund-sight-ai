@@ -345,17 +345,16 @@ export default function Landing() {
 
         {/* Video — peeks from bottom of hero viewport */}
         <div className="relative z-10 px-6" style={{ marginTop: "40px", paddingBottom: "80px" }}>
-          <div className="mx-auto" style={{ maxWidth: "1100px" }}>
+          <div className="mx-auto flex justify-center" style={{ maxWidth: "1100px" }}>
             <div style={{
               borderRadius: "16px", border: "1px solid #e5e5e5",
               boxShadow: "0 20px 60px rgba(0,0,0,0.1)",
-              overflow: "hidden", aspectRatio: "16/9",
-              background: "#f5f5f5", padding: "8px",
+              overflow: "hidden",
+              display: "inline-block",
             }}>
               <video
                 autoPlay muted loop playsInline controls={false}
-                className="w-full h-full"
-                style={{ objectFit: "contain", borderRadius: "10px" }}
+                style={{ display: "block", width: "auto", height: "auto", maxWidth: "100%", borderRadius: "0" }}
                 src="https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screen%20Recording%202026-03-19%20at%20101437%20am.mp4"
               />
             </div>
