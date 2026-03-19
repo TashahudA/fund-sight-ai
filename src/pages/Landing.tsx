@@ -4,7 +4,7 @@ import { Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /* ------------------------------------------------------------------ */
-/*  Intersection Observer hook for scroll-reveal                       */
+/*  Intersection Observer hook                                         */
 /* ------------------------------------------------------------------ */
 function useScrollReveal() {
   const ref = useRef<HTMLDivElement>(null);
@@ -24,7 +24,7 @@ function useScrollReveal() {
   return { ref, visible };
 }
 
-function RevealSection({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function RevealSection({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   const { ref, visible } = useScrollReveal();
   return (
     <div
@@ -32,8 +32,9 @@ function RevealSection({ children, className = "" }: { children: React.ReactNode
       className={className}
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(30px)",
-        transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
+        transform: visible ? "translateY(0)" : "translateY(50px)",
+        transition: "opacity 0.7s ease-out, transform 0.7s ease-out",
+        ...style,
       }}
     >
       {children}
@@ -48,8 +49,26 @@ function StaggerChild({ children, index }: { children: React.ReactNode; index: n
       ref={ref}
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(30px)",
-        transition: `opacity 0.6s ease-out ${index * 100}ms, transform 0.6s ease-out ${index * 100}ms`,
+        transform: visible ? "translateY(0)" : "translateY(50px)",
+        transition: `opacity 0.7s ease-out ${index * 150}ms, transform 0.7s ease-out ${index * 150}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SlideIn({ children, direction = "right", className = "" }: { children: React.ReactNode; direction?: "left" | "right"; className?: string }) {
+  const { ref, visible } = useScrollReveal();
+  const x = direction === "right" ? "40px" : "-40px";
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateX(0)" : `translateX(${x})`,
+        transition: "opacity 0.7s ease-out, transform 0.7s ease-out",
       }}
     >
       {children}
@@ -58,7 +77,7 @@ function StaggerChild({ children, index }: { children: React.ReactNode; index: n
 }
 
 /* ------------------------------------------------------------------ */
-/*  Accent word component                                              */
+/*  Accent word                                                        */
 /* ------------------------------------------------------------------ */
 function AccentWord({ children }: { children: React.ReactNode }) {
   return (
@@ -66,7 +85,7 @@ function AccentWord({ children }: { children: React.ReactNode }) {
       fontFamily: "'Playfair Display', serif",
       fontStyle: "italic",
       color: "#999999",
-      textShadow: "0 0 40px rgba(0,0,0,0.08)",
+      textShadow: "0 0 60px rgba(0,0,0,0.06)",
     }}>
       {children}
     </span>
@@ -127,28 +146,31 @@ function FAQAccordion() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Card component with hover                                          */
+/*  HoverCard                                                          */
 /* ------------------------------------------------------------------ */
-function HoverCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function HoverCard({ children, className = "", dark = false }: { children: React.ReactNode; className?: string; dark?: boolean }) {
   return (
     <div
       className={className}
       style={{
-        border: "1px solid #e5e5e5",
+        border: dark ? "1px solid #333333" : "1px solid #e5e5e5",
         borderRadius: "12px",
         padding: "32px",
         transition: "all 0.2s ease",
         cursor: "default",
+        position: "relative",
+        overflow: "hidden",
+        background: dark ? "#1a1a1a" : "#ffffff",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "#cccccc";
-        e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)";
-        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.borderColor = dark ? "#555555" : "#cccccc";
+        e.currentTarget.style.boxShadow = dark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 4px 20px rgba(0,0,0,0.06)";
+        e.currentTarget.style.transform = "translateY(-2px) scale(1.01)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "#e5e5e5";
+        e.currentTarget.style.borderColor = dark ? "#333333" : "#e5e5e5";
         e.currentTarget.style.boxShadow = "none";
-        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.transform = "translateY(0) scale(1)";
       }}
     >
       {children}
@@ -157,32 +179,40 @@ function HoverCard({ children, className = "" }: { children: React.ReactNode; cl
 }
 
 /* ------------------------------------------------------------------ */
-/*  Screenshot placeholder                                             */
+/*  Feature image                                                      */
 /* ------------------------------------------------------------------ */
-function ScreenshotPlaceholder() {
+function FeatureImage({ src, alt }: { src: string; alt: string }) {
   return (
     <div
       style={{
-        aspectRatio: "4/3",
-        background: "#f4f4f4",
-        border: "1px solid #e5e5e5",
+        aspectRatio: "16/10",
         borderRadius: "12px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        border: "1px solid #e5e5e5",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+        overflow: "hidden",
       }}
     >
-      <span style={{ color: "#cccccc", fontSize: "14px" }}>Screenshot</span>
+      <img src={src} alt={alt} className="w-full h-full object-cover" loading="lazy" />
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Smooth scroll helper                                               */
+/*  Smooth scroll                                                      */
 /* ------------------------------------------------------------------ */
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 }
+
+/* ------------------------------------------------------------------ */
+/*  Feature screenshots map                                            */
+/* ------------------------------------------------------------------ */
+const featureScreenshots: Record<string, string> = {
+  "AI-Powered Findings": "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png",
+  "Audit Opinions": "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.15.51%20pm.png",
+  "Document Management": "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.15.02%20pm.png",
+  "Smart RFI Tracking": "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.15.51%20pm.png",
+};
 
 /* ------------------------------------------------------------------ */
 /*  Main Landing Page                                                  */
@@ -267,13 +297,11 @@ export default function Landing() {
           transition: "all 0.3s ease",
         }}
       >
-        <div className="container max-w-6xl flex h-14 items-center justify-between">
-          {/* Left: Logo */}
+        <div className="flex h-14 items-center justify-between" style={{ paddingLeft: "32px", paddingRight: "32px", maxWidth: "1200px", margin: "0 auto" }}>
           <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "20px", color: "#111111" }}>
             Auditron
           </span>
 
-          {/* Centre: Nav links (hidden on mobile) */}
           <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
               <button
@@ -286,15 +314,11 @@ export default function Landing() {
             ))}
           </div>
 
-          {/* Right: Actions */}
           <div className="flex items-center gap-3">
             <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Login
             </Link>
-            <Button
-              size="sm"
-              asChild
-            >
+            <Button size="sm" asChild>
               <a href="mailto:hello@auditron.com.au">Book a Demo</a>
             </Button>
           </div>
@@ -302,53 +326,64 @@ export default function Landing() {
       </nav>
 
       {/* ---- Hero ---- */}
-      <section className="relative z-10 pt-32 pb-20">
-        <div className="container max-w-6xl text-center">
+      <section className="relative z-10 flex items-center justify-center" style={{ minHeight: "90vh", paddingTop: "80px", paddingBottom: "40px" }}>
+        {/* Hero glow */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
+          <div
+            style={{
+              width: "600px",
+              height: "600px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(200,200,200,0.15) 0%, transparent 70%)",
+              animation: "heroGlow 8s ease-in-out infinite",
+            }}
+          />
+        </div>
+
+        <div className="container max-w-6xl text-center relative z-10">
           <RevealSection>
-            {/* Shimmer pill */}
-            <div className="inline-flex items-center mb-8">
+            {/* Brand stamp */}
+            <div className="inline-flex items-center mb-6">
               <span
-                className="relative overflow-hidden rounded-full"
                 style={{
-                  border: "1px solid #e5e5e5",
-                  background: "#f4f4f4",
-                  padding: "8px 20px",
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "#666666",
+                  fontFamily: "'Open Sans', sans-serif",
+                  fontWeight: 800,
+                  fontSize: "32px",
+                  color: "#ffffff",
+                  background: "#111111",
+                  borderRadius: "8px",
+                  padding: "6px 20px",
+                  display: "inline-block",
                 }}
               >
-                <span className="relative z-10">AI-Powered SMSF Auditing</span>
-                <span
-                  className="absolute inset-0 z-0"
-                  style={{
-                    background: "linear-gradient(90deg, transparent, rgba(0,0,0,0.04), transparent)",
-                    animation: "shimmer 3s linear infinite",
-                  }}
-                />
+                Auditron
               </span>
             </div>
 
+            {/* Main headline */}
             <h1
               className="leading-tight"
               style={{
                 fontFamily: "'Open Sans', sans-serif",
                 fontWeight: 800,
-                fontSize: "56px",
+                fontSize: "64px",
                 color: "#111111",
               }}
             >
-              <span className="block md:hidden" style={{ fontSize: "36px" }}>
-                SMSF compliance in{" "}
-                <AccentWord>minutes</AccentWord>
-                , not hours.
+              <span className="block md:hidden" style={{ fontSize: "40px" }}>
+                AI-Powered SMSF Auditing
               </span>
               <span className="hidden md:block">
-                SMSF compliance in{" "}
-                <AccentWord>minutes</AccentWord>
-                , not hours.
+                AI-Powered SMSF Auditing
               </span>
             </h1>
+
+            {/* Subheading */}
+            <p className="mt-6" style={{ fontSize: "28px", color: "#666666", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }}>
+              SMSF compliance in{" "}
+              <AccentWord>minutes</AccentWord>
+              , not hours.
+            </p>
 
             <p className="mt-6 max-w-[600px] mx-auto leading-relaxed" style={{ fontSize: "18px", color: "#666666" }}>
               Upload your fund documents. Get AI-powered compliance findings, automated RFIs, and audit-ready reports — in a fraction of the time.
@@ -366,17 +401,15 @@ export default function Landing() {
 
           {/* Demo video */}
           <RevealSection className="mt-16">
-            <div
-              className="mx-auto px-4 md:px-0"
-              style={{ maxWidth: "960px" }}
-            >
+            <div className="mx-auto px-4 md:px-0" style={{ maxWidth: "1100px" }}>
               <div
                 style={{
-                  borderRadius: "12px",
+                  borderRadius: "16px",
                   border: "1px solid #e5e5e5",
-                  boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+                  boxShadow: "0 8px 40px rgba(0,0,0,0.08)",
                   overflow: "hidden",
                   aspectRatio: "16/9",
+                  transform: "perspective(1200px) rotateX(2deg)",
                 }}
               >
                 <video
@@ -394,25 +427,42 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ---- Section divider ---- */}
-      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #ffffff 100%)" }} />
-
-      {/* ---- How it works ---- */}
-      <section id="how-it-works" className="relative z-10 py-20" style={{ background: "#fafafa" }}>
+      {/* ---- How it works (DARK section) ---- */}
+      <section id="how-it-works" className="relative z-10 py-24" style={{ background: "#111111" }}>
         <div className="container max-w-6xl">
           <RevealSection className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-              How it <AccentWord>works</AccentWord>
+            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "36px", color: "#ffffff" }}>
+              How it{" "}
+              <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#777777", textShadow: "0 0 60px rgba(255,255,255,0.06)" }}>
+                works
+              </span>
             </h2>
-            <p className="mt-4 text-muted-foreground max-w-xl mx-auto">Three steps from documents to a complete audit report.</p>
+            <p className="mt-4 max-w-xl mx-auto" style={{ color: "#999999" }}>Three steps from documents to a complete audit report.</p>
           </RevealSection>
           <div className="grid md:grid-cols-3 gap-6">
             {howItWorks.map((item, i) => (
               <StaggerChild key={i} index={i}>
-                <HoverCard>
-                  <span className="text-xs font-semibold text-muted-foreground tracking-wider">{item.step}</span>
-                  <h3 className="mt-3 text-base font-semibold text-foreground">{item.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                <HoverCard dark>
+                  {/* Large faded number */}
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: "12px",
+                      right: "16px",
+                      fontFamily: "'Open Sans', sans-serif",
+                      fontWeight: 800,
+                      fontSize: "120px",
+                      lineHeight: 1,
+                      color: "rgba(255,255,255,0.04)",
+                      pointerEvents: "none",
+                      userSelect: "none",
+                    }}
+                  >
+                    {item.step}
+                  </span>
+                  <span className="text-xs font-semibold tracking-wider" style={{ color: "#777777" }}>{item.step}</span>
+                  <h3 className="mt-3 text-base font-semibold" style={{ color: "#ffffff" }}>{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed" style={{ color: "#999999" }}>{item.desc}</p>
                 </HoverCard>
               </StaggerChild>
             ))}
@@ -420,10 +470,8 @@ export default function Landing() {
         </div>
       </section>
 
-      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #fafafa 0%, #ffffff 50%, #fafafa 100%)" }} />
-
       {/* ---- Features ---- */}
-      <section id="features" className="relative z-10 py-20">
+      <section id="features" className="relative z-10 py-24" style={{ background: "#fafafa" }}>
         <div className="container max-w-6xl">
           <RevealSection className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
@@ -431,15 +479,18 @@ export default function Landing() {
             </h2>
             <p className="mt-4 text-muted-foreground max-w-xl mx-auto">Every feature designed to reduce manual work and improve audit quality.</p>
           </RevealSection>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-8">
             {features.map((feat, i) => (
               <StaggerChild key={i} index={i}>
                 <HoverCard>
                   <h3 className="text-base font-semibold text-foreground">{feat.title}</h3>
                   <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{feat.desc}</p>
-                  <div className="mt-4">
-                    <ScreenshotPlaceholder />
-                  </div>
+                  <SlideIn direction={i % 2 === 0 ? "left" : "right"} className="mt-4">
+                    <FeatureImage
+                      src={featureScreenshots[feat.title]}
+                      alt={feat.title}
+                    />
+                  </SlideIn>
                 </HoverCard>
               </StaggerChild>
             ))}
@@ -447,19 +498,17 @@ export default function Landing() {
         </div>
       </section>
 
-      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #ffffff 100%)" }} />
-
       {/* ---- Pricing ---- */}
-      <section id="pricing" className="relative z-10 py-20" style={{ background: "#fafafa" }}>
+      <section id="pricing" className="relative z-10 py-24" style={{ background: "#ffffff" }}>
         {/* Pricing glow */}
         <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
           <div
             style={{
-              width: "50%",
-              height: "60%",
+              width: "600px",
+              height: "600px",
               borderRadius: "50%",
-              background: "radial-gradient(circle, rgba(0,0,0,0.04) 0%, transparent 70%)",
-              animation: "pricingPulse 6s ease-in-out infinite",
+              background: "radial-gradient(circle, rgba(200,200,200,0.15) 0%, transparent 70%)",
+              animation: "heroGlow 8s ease-in-out infinite",
             }}
           />
         </div>
@@ -471,34 +520,44 @@ export default function Landing() {
             <p className="mt-4 text-muted-foreground">Pay per audit. No subscriptions. No surprises.</p>
           </RevealSection>
           <RevealSection>
-            <HoverCard className="text-center">
-              <div className="mt-2">
-                <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "48px", color: "#111111" }}>$29</span>
-                <p className="text-muted-foreground text-sm mt-1">per audit</p>
+            <div className="pricing-card-wrapper">
+              <div
+                className="text-center"
+                style={{
+                  border: "1px solid #e5e5e5",
+                  borderRadius: "16px",
+                  padding: "48px",
+                  background: "#ffffff",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                <div className="mt-2">
+                  <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "64px", color: "#111111" }}>$29</span>
+                  <p className="text-muted-foreground text-sm mt-1">per audit</p>
+                </div>
+                <ul className="mt-8 space-y-3 text-left">
+                  {pricingFeatures.map((feat, i) => (
+                    <li key={i} className="flex items-center gap-3 text-sm text-foreground">
+                      <Check className="h-4 w-4 shrink-0" style={{ color: "#111111" }} strokeWidth={2.5} />
+                      {feat}
+                    </li>
+                  ))}
+                </ul>
+                <Button className="w-full mt-8" size="lg" asChild>
+                  <a href="mailto:hello@auditron.com.au">Book a Demo</a>
+                </Button>
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Volume pricing available for firms processing 20+ audits per month.
+                </p>
               </div>
-              <ul className="mt-8 space-y-3 text-left">
-                {pricingFeatures.map((feat, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm text-foreground">
-                    <Check className="h-4 w-4 shrink-0" style={{ color: "#111111" }} strokeWidth={2.5} />
-                    {feat}
-                  </li>
-                ))}
-              </ul>
-              <Button className="w-full mt-8" size="lg" asChild>
-                <a href="mailto:hello@auditron.com.au">Book a Demo</a>
-              </Button>
-              <p className="mt-4 text-xs text-muted-foreground">
-                Volume pricing available for firms processing 20+ audits per month.
-              </p>
-            </HoverCard>
+            </div>
           </RevealSection>
         </div>
       </section>
 
-      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #fafafa 0%, #ffffff 50%, #fafafa 100%)" }} />
-
       {/* ---- FAQ ---- */}
-      <section id="faq" className="relative z-10 py-20">
+      <section id="faq" className="relative z-10 py-24" style={{ background: "#fafafa" }}>
         <div className="container max-w-2xl">
           <RevealSection className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
@@ -511,11 +570,21 @@ export default function Landing() {
         </div>
       </section>
 
-      <div className="h-24 relative z-10" style={{ background: "linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #ffffff 100%)" }} />
-
       {/* ---- Bottom CTA ---- */}
-      <section className="relative z-10 py-20" style={{ background: "#fafafa" }}>
-        <div className="container max-w-6xl text-center">
+      <section className="relative z-10 py-24" style={{ background: "#ffffff" }}>
+        {/* CTA glow */}
+        <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
+          <div
+            style={{
+              width: "600px",
+              height: "600px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(200,200,200,0.15) 0%, transparent 70%)",
+              animation: "heroGlow 8s ease-in-out infinite",
+            }}
+          />
+        </div>
+        <div className="container max-w-6xl text-center relative z-10">
           <RevealSection>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
               Ready to <AccentWord>streamline</AccentWord> your audits?
@@ -553,13 +622,29 @@ export default function Landing() {
           0%, 100% { transform: translate(0, 0); }
           50% { transform: translate(-8%, 5%); }
         }
-        @keyframes pricingPulse {
-          0%, 100% { opacity: 0.02; }
-          50% { opacity: 0.06; }
+        @keyframes heroGlow {
+          0%, 100% { opacity: 0.08; }
+          50% { opacity: 0.15; }
         }
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
+        }
+        @keyframes borderRotate {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .pricing-card-wrapper {
+          position: relative;
+          border-radius: 17px;
+          padding: 1px;
+          background: conic-gradient(from 0deg, #e5e5e5, #cccccc, #e5e5e5, #f0f0f0, #e5e5e5);
+          animation: borderRotate 8s linear infinite;
+          background-size: 100% 100%;
+        }
+        .pricing-card-wrapper > div {
+          position: relative;
+          z-index: 1;
         }
         @media (max-width: 768px) {
           h1 .hidden { display: none !important; }
