@@ -321,7 +321,7 @@ export default function Landing() {
                 fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px",
                 color: "#999999", maxWidth: "540px",
               }}>
-                Upload your fund documents. Get AI-powered compliance findings, automated RFIs, and audit-ready reports — in a fraction of the time.
+                Upload your fund documents. Get AI-powered compliance findings, automated RFIs, and audit-ready reports - in 60 SECONDS
               </p>
 
               {/* Buttons */}
