@@ -235,9 +235,9 @@ export default function Landing() {
         }}
       >
         <div className="flex h-14 items-center justify-between mx-auto" style={{ paddingLeft: "32px", paddingRight: "32px", maxWidth: "1200px" }}>
-          <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "20px", color: "#111111" }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "20px", color: "#111111", textDecoration: "none", cursor: "pointer" }}>
             Auditron
-          </span>
+          </a>
 
           <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
