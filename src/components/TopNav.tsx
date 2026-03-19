@@ -184,8 +184,11 @@ export function TopNav() {
       <nav className="sticky top-0 z-50 bg-background border-b border-border">
         <div className="container flex h-14 items-center justify-between">
           {/* Logo — text only */}
-          <Link to="/" className="flex items-center">
+          <Link to="/dashboard" className="flex items-center">
             <span className="text-base font-bold tracking-tight text-foreground">
+              Auditron
+            </span>
+          </Link>
               Auditron
             </span>
           </Link>
