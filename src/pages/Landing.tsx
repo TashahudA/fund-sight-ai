@@ -384,8 +384,9 @@ export default function Landing() {
                   muted
                   loop
                   playsInline
+                  controls={false}
                   className="w-full h-full object-cover"
-                  src="/demo-video.mp4"
+                  src="https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screen%20Recording%202026-03-19%20at%20101437%20am.mp4"
                 />
               </div>
             </div>
