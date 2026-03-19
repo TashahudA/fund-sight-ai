@@ -294,7 +294,7 @@ export default function Landing() {
               <p style={{
                 fontFamily: "'Open Sans', sans-serif", fontWeight: 595, fontSize: "27px",
                 letterSpacing: "0.08em",
-                color: "#999999", letterSpacing: "6px", textTransform: "uppercase",
+                color: "#999999", textTransform: "uppercase",
                 marginBottom: "20px",
               }}>
                 AI-Powered
