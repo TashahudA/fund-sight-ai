@@ -60,6 +60,7 @@ export default function MyRFIs() {
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
   const [resolving, setResolving] = useState(false);
+  const [aiReviewing, setAiReviewing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const fetchRfis = async () => {
