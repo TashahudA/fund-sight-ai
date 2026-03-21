@@ -423,18 +423,32 @@ export default function Landing() {
                     {currentStep.desc}
                   </p>
                 </div>
-                {/* Right — placeholder */}
+                {/* Right — image */}
                 <div style={{
                   flex: 1,
                   minWidth: "260px",
-                  background: "#e8e8e8",
+                  background: "#f0f0f0",
                   borderRadius: "16px",
-                  height: "320px",
+                  height: "340px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  overflow: "hidden",
+                  padding: "16px",
                 }}>
-                  <span style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "14px", color: "#bbbbbb" }}>#screenshot coming</span>
+                  <img
+                    src={currentStep.img}
+                    alt={currentStep.title}
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      width: "auto",
+                      height: "auto",
+                      objectFit: "contain",
+                      borderRadius: "10px",
+                      display: "block",
+                    }}
+                  />
                 </div>
               </div>
             </div>
