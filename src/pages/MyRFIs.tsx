@@ -60,6 +60,7 @@ export default function MyRFIs() {
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
   const [resolving, setResolving] = useState(false);
+  const [aiReviewing, setAiReviewing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const fetchRfis = async () => {
@@ -115,19 +116,43 @@ export default function MyRFIs() {
 
   const handleSendMessage = async () => {
     if (!replyText.trim() || !selectedId) return;
+    const messageText = replyText.trim();
+    const selectedRfi = rfis.find(r => r.id === selectedId);
+    if (!selectedRfi) return;
     setSending(true);
     const { error } = await supabase.from("rfi_messages").insert({
       rfi_id: selectedId,
-      message: replyText.trim(),
+      message: messageText,
       sender: "auditor",
     });
     if (error) {
       toast({ title: "Error sending message", description: error.message, variant: "destructive" });
-    } else {
-      setReplyText("");
-      await fetchMessages(selectedId);
+      setSending(false);
+      return;
     }
+    setReplyText("");
+    await fetchMessages(selectedId);
     setSending(false);
+
+    // Trigger AI response
+    setAiReviewing(true);
+    try {
+      const { error: fnError } = await supabase.functions.invoke("dynamic-processor", {
+        body: {
+          audit_id: selectedRfi.audit_id,
+          mode: "rfi_chat",
+          rfi_id: selectedId,
+          message: messageText,
+        },
+      });
+      if (fnError) throw fnError;
+      await Promise.all([fetchMessages(selectedId), fetchRfis()]);
+    } catch (err: any) {
+      console.error("AI chat error:", err);
+      toast({ title: "AI response failed", description: err.message, variant: "destructive" });
+    } finally {
+      setAiReviewing(false);
+    }
   };
 
   const handleResolve = async () => {
@@ -320,6 +345,16 @@ export default function MyRFIs() {
                       </div>
                     );
                   })
+                )}
+                {aiReviewing && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[75%] rounded-lg px-4 py-3 bg-status-new-bg">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-status-new" />
+                        <span className="text-sm text-muted-foreground">Auditron is reviewing...</span>
+                      </div>
+                    </div>
+                  </div>
                 )}
                 <div ref={messagesEndRef} />
               </div>
