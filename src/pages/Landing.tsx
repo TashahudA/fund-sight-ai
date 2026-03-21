@@ -79,16 +79,16 @@ function FAQAccordion() {
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */
 const howItWorksTabs = [
-  { num: "01", tab: "Upload", title: "Drop in the fund pack", desc: "Financial statements, workpapers, bank statements, tax returns — drag them all in. Auditron reads every page." },
-  { num: "02", tab: "Analyse", title: "AI checks every SIS Act area", desc: "Contribution caps, pension minimums, in-house assets, related party transactions. Checked automatically. Referenced to source." },
-  { num: "03", tab: "Review", title: "Findings ready for sign-off", desc: "Specific dollar amounts. Exact document references. RFIs already drafted. Your job is to review and sign." },
+  { num: "01", tab: "Upload", title: "Drop in the fund pack", desc: "Financial statements, workpapers, bank statements, tax returns — drag them all in. Auditron reads every page.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png" },
+  { num: "02", tab: "Analyse", title: "AI checks every SIS Act area", desc: "Contribution caps, pension minimums, in-house assets, related party transactions. Checked automatically. Referenced to source.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.27.20%20pm.png" },
+  { num: "03", tab: "Review", title: "Findings ready for sign-off", desc: "Specific dollar amounts. Exact document references. RFIs already drafted. Your job is to review and sign.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.29.00%20pm.png" },
 ];
 
 const features = [
-  { pill: "AI ANALYSIS", title: "Finds what junior auditors miss", desc: "Auditron reads every figure, every balance, every reference — then cross-checks them across all your documents simultaneously. No skimming. No assumptions.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png", imgSide: "right" as const },
-  { pill: "RFIs", title: "RFIs written like a senior auditor", desc: "Every RFI names the exact document, figure, and transaction that needs clarification. The actual questions your client needs to answer.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.12.44%20pm.png", imgSide: "left" as const },
+  { pill: "AI ANALYSIS", title: "Finds what auditors miss", desc: "Auditron reads every figure, every balance, every reference — then cross-checks them across all your documents simultaneously. No skimming. No assumptions.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png", imgSide: "right" as const },
+  { pill: "RFIs", title: "RFIs written like a senior auditor", desc: "Every RFI names the exact document, figure, and transaction that needs clarification. The actual questions your client needs to answer.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.24.12%20pm.png", imgSide: "left" as const },
   { pill: "RISK FLAGS", title: "The risks hiding in plain sight", desc: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Material risks, not paperwork gaps.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png", imgSide: "right" as const },
-  { pill: "AUDIT OPINION", title: "Sign-off ready. Not just a summary.", desc: "Every audit produces an opinion — unqualified, qualified, or adverse — with detailed reasoning citing specific compliance areas and document references.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.15.51%20pm.png", imgSide: "left" as const },
+  { pill: "AUDIT OPINION", title: "Sign-off ready. Not just a summary.", desc: "Every audit produces an opinion — unqualified, qualified, or adverse — with detailed reasoning citing specific compliance areas and document references.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.24.12%20pm.png", imgSide: "left" as const },
 ];
 
 const pricingFeatures = [
@@ -423,18 +423,32 @@ export default function Landing() {
                     {currentStep.desc}
                   </p>
                 </div>
-                {/* Right — placeholder */}
+                {/* Right — image */}
                 <div style={{
                   flex: 1,
                   minWidth: "260px",
-                  background: "#e8e8e8",
+                  background: "#f0f0f0",
                   borderRadius: "16px",
-                  height: "320px",
+                  height: "340px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  overflow: "hidden",
+                  padding: "16px",
                 }}>
-                  <span style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "14px", color: "#bbbbbb" }}>#screenshot coming</span>
+                  <img
+                    src={currentStep.img}
+                    alt={currentStep.title}
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      width: "auto",
+                      height: "auto",
+                      objectFit: "contain",
+                      borderRadius: "10px",
+                      display: "block",
+                    }}
+                  />
                 </div>
               </div>
             </div>
