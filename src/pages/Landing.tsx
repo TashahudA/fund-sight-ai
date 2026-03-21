@@ -79,9 +79,9 @@ function FAQAccordion() {
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */
 const howItWorksTabs = [
-  { num: "01", tab: "Upload", title: "Drop in the fund pack", desc: "Financial statements, workpapers, bank statements, tax returns — drag them all in. Auditron reads every page." },
-  { num: "02", tab: "Analyse", title: "AI checks every SIS Act area", desc: "Contribution caps, pension minimums, in-house assets, related party transactions. Checked automatically. Referenced to source." },
-  { num: "03", tab: "Review", title: "Findings ready for sign-off", desc: "Specific dollar amounts. Exact document references. RFIs already drafted. Your job is to review and sign." },
+  { num: "01", tab: "Upload", title: "Drop in the fund pack", desc: "Financial statements, workpapers, bank statements, tax returns — drag them all in. Auditron reads every page.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png" },
+  { num: "02", tab: "Analyse", title: "AI checks every SIS Act area", desc: "Contribution caps, pension minimums, in-house assets, related party transactions. Checked automatically. Referenced to source.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.27.20%20pm.png" },
+  { num: "03", tab: "Review", title: "Findings ready for sign-off", desc: "Specific dollar amounts. Exact document references. RFIs already drafted. Your job is to review and sign.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.29.00%20pm.png" },
 ];
 
 const features = [
