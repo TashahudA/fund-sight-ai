@@ -78,17 +78,17 @@ function FAQAccordion() {
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */
-const howItWorksSteps = [
-  { num: "01", title: "Upload", desc: "Drag and drop your fund pack. Financial statements, workpapers, bank statements — Auditron reads them all." },
-  { num: "02", title: "Analyse", desc: "AI checks compliance across 12 SIS Act areas. Contribution caps, pension minimums, in-house assets, related party transactions." },
-  { num: "03", title: "Review", desc: "Get structured findings with specific dollar amounts and document references. RFIs auto-generated for unresolved items." },
+const howItWorksTabs = [
+  { num: "01", tab: "Upload", title: "Drop in the fund pack", desc: "Financial statements, workpapers, bank statements, tax returns — drag them all in. Auditron reads every page." },
+  { num: "02", tab: "Analyse", title: "AI checks every SIS Act area", desc: "Contribution caps, pension minimums, in-house assets, related party transactions. Checked automatically. Referenced to source." },
+  { num: "03", tab: "Review", title: "Findings ready for sign-off", desc: "Specific dollar amounts. Exact document references. RFIs already drafted. Your job is to review and sign." },
 ];
 
 const features = [
-  { title: "Finds what junior auditors miss", desc: "Auditron reads every figure, every balance, every reference — then cross-checks them across all your documents simultaneously. No skimming. No assumptions.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png", imgSide: "right" as const },
-  { title: "RFIs written like a senior auditor", desc: "Every RFI names the exact document, figure, and transaction that needs clarification. Not a checklist. The actual questions your client needs to answer.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.12.44%20pm.png", imgSide: "left" as const },
-  { title: "The risks hiding in plain sight", desc: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Auditron flags material risks — not paperwork gaps.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png", imgSide: "right" as const },
-  { title: "Sign-off ready. Not just a summary.", desc: "Every audit produces an opinion — unqualified, qualified, or adverse — with detailed reasoning citing specific compliance areas and document references.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.15.51%20pm.png", imgSide: "left" as const },
+  { pill: "AI ANALYSIS", title: "Finds what junior auditors miss", desc: "Auditron reads every figure, every balance, every reference — then cross-checks them across all your documents simultaneously. No skimming. No assumptions.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png", imgSide: "right" as const },
+  { pill: "RFIs", title: "RFIs written like a senior auditor", desc: "Every RFI names the exact document, figure, and transaction that needs clarification. The actual questions your client needs to answer.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.12.44%20pm.png", imgSide: "left" as const },
+  { pill: "RISK FLAGS", title: "The risks hiding in plain sight", desc: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Material risks, not paperwork gaps.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png", imgSide: "right" as const },
+  { pill: "AUDIT OPINION", title: "Sign-off ready. Not just a summary.", desc: "Every audit produces an opinion — unqualified, qualified, or adverse — with detailed reasoning citing specific compliance areas and document references.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.15.51%20pm.png", imgSide: "left" as const },
 ];
 
 const pricingFeatures = [
@@ -113,39 +113,75 @@ const navLinks = [
 export default function Landing() {
   const [scrolled, setScrolled] = useState(false);
   const [videoRotate, setVideoRotate] = useState(6);
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeTab, setActiveTab] = useState(0);
+  const [tabProgress, setTabProgress] = useState(0);
+  const [contentVisible, setContentVisible] = useState(true);
   const [formSubmitted, setFormSubmitted] = useState(false);
 
-  const howItWorksRef = useRef<HTMLDivElement>(null);
+  const tabTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Scroll handler: nav pill + video tilt + how-it-works step calc
+  // Scroll handler: nav pill + video tilt
   useEffect(() => {
     const handler = () => {
       setScrolled(window.scrollY > 80);
-      // Video tilt interpolation: 6deg at 0px → 0deg at 400px
       const t = Math.min(window.scrollY / 400, 1);
       setVideoRotate(6 * (1 - t));
-
-      // How It Works: scroll-position based step calculation
-      const container = howItWorksRef.current;
-      if (container) {
-        const rect = container.getBoundingClientRect();
-        const containerTop = window.scrollY + rect.top;
-        const containerHeight = container.offsetHeight;
-        const progress = Math.max(0, Math.min(1, (window.scrollY - containerTop) / (containerHeight - window.innerHeight)));
-        if (progress < 0.33) setActiveStep(0);
-        else if (progress < 0.66) setActiveStep(1);
-        else setActiveStep(2);
-      }
     };
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
+  // Tab auto-advance timer
+  const startTabTimer = useCallback((fromTab: number) => {
+    if (tabTimerRef.current) clearTimeout(tabTimerRef.current);
+    if (progressRef.current) clearInterval(progressRef.current);
+    setTabProgress(0);
+
+    const progressInterval = setInterval(() => {
+      setTabProgress(prev => {
+        if (prev >= 100) return 100;
+        return prev + (100 / (4000 / 50)); // 50ms intervals over 4s
+      });
+    }, 50);
+    progressRef.current = progressInterval;
+
+    tabTimerRef.current = setTimeout(() => {
+      clearInterval(progressInterval);
+      const next = (fromTab + 1) % 3;
+      setContentVisible(false);
+      setTimeout(() => {
+        setActiveTab(next);
+        setContentVisible(true);
+        startTabTimer(next);
+      }, 150);
+    }, 4000);
+  }, []);
+
+  useEffect(() => {
+    startTabTimer(0);
+    return () => {
+      if (tabTimerRef.current) clearTimeout(tabTimerRef.current);
+      if (progressRef.current) clearInterval(progressRef.current);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleTabClick = useCallback((index: number) => {
+    if (index === activeTab) return;
+    setContentVisible(false);
+    setTimeout(() => {
+      setActiveTab(index);
+      setContentVisible(true);
+      startTabTimer(index);
+    }, 150);
+  }, [activeTab, startTabTimer]);
+
   const handleFormSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     setFormSubmitted(true);
   }, []);
+
+  const currentStep = howItWorksTabs[activeTab];
 
   return (
     <div className="min-h-screen" style={{ background: "#ffffff", overflow: "hidden" }}>
@@ -219,7 +255,6 @@ export default function Landing() {
       <section className="relative z-10" style={{ minHeight: "100vh", paddingTop: "100px", background: "#ffffff" }}>
         <div className="relative z-10 flex flex-col items-center justify-center px-6" style={{ minHeight: "calc(60vh - 100px)" }}>
           <div className="text-center" style={{ maxWidth: "800px" }}>
-            {/* AI-POWERED label with shimmer */}
             <p className="ai-powered-shimmer" style={{
               fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "14px",
               letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: "20px",
@@ -228,7 +263,6 @@ export default function Landing() {
               AI-POWERED
             </p>
 
-            {/* SMSF Auditing */}
             <h1 style={{ lineHeight: 1.0, marginBottom: "20px" }}>
               <span className="hidden md:block" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "76px", color: "#111111", letterSpacing: "-0.03em" }}>
                 SMSF <span className="auditing-glow">Auditing</span>
@@ -238,17 +272,14 @@ export default function Landing() {
               </span>
             </h1>
 
-            {/* Sub-headline */}
             <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "20px", color: "#333333", marginBottom: "12px" }}>
               Auditron prepares the audit. You review it. You sign it.
             </p>
 
-            {/* Description */}
             <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#888888", maxWidth: "480px", margin: "0 auto", lineHeight: 1.7 }}>
               Upload your fund documents. Get AI-powered compliance findings, automated RFIs, and audit-ready reports — in 60 SECONDS
             </p>
 
-            {/* Buttons */}
             <div style={{ marginTop: "36px", display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
               <button
                 onClick={() => scrollTo("contact")}
@@ -278,7 +309,7 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* VIDEO MOCKUP with browser chrome */}
+        {/* VIDEO MOCKUP */}
         <div className="relative z-10 px-6" style={{ marginTop: "56px", paddingBottom: "0" }}>
           <div className="mx-auto" style={{ maxWidth: "1000px" }}>
             <div style={{
@@ -289,7 +320,6 @@ export default function Landing() {
               borderRadius: "12px",
               overflow: "hidden",
             }}>
-              {/* Browser chrome bar */}
               <div style={{
                 background: "#1a1a1a", height: "38px", borderRadius: "12px 12px 0 0",
                 padding: "0 16px", display: "flex", alignItems: "center", position: "relative",
@@ -307,7 +337,6 @@ export default function Landing() {
                   <span style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "12px", color: "#888888" }}>app.auditron.com.au</span>
                 </div>
               </div>
-              {/* Video */}
               <div style={{ overflow: "hidden", borderRadius: "0 0 12px 12px" }}>
                 <video
                   autoPlay muted loop playsInline controls={false}
@@ -320,96 +349,104 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ==== HOW IT WORKS — SCROLL-PINNED STICKY ==== */}
-      <section
-        id="how-it-works"
-        style={{
-          background: "linear-gradient(to bottom, #ffffff 0%, #111111 8%, #1a1a1a 40%, #2d2d2d 75%, #ffffff 100%)",
-          position: "relative",
-        }}
-      >
-        <div style={{ paddingTop: "100px", paddingBottom: "0", textAlign: "center" }}>
-          <RevealSection>
-            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#ffffff", letterSpacing: "-0.02em", paddingBottom: "80px" }}>
+      {/* ==== HOW IT WORKS — TAB SWITCHER ==== */}
+      <section id="how-it-works" style={{ background: "#ffffff", padding: "120px 24px" }}>
+        <div className="mx-auto" style={{ maxWidth: "1100px" }}>
+          <RevealSection className="text-center" style={{ marginBottom: "48px" }}>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
+              HOW IT WORKS
+            </p>
+            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
               From upload to opinion in 3 steps
             </h2>
           </RevealSection>
-        </div>
 
-        {/* Scroll-pinned layout */}
-        <div ref={howItWorksRef} style={{ height: "250vh", position: "relative" }}>
-          <div style={{ position: "sticky", top: 0, height: "100vh", display: "flex", overflow: "hidden" }}>
-            {/* LEFT — step indicator */}
-            <div className="hidden md:flex" style={{ width: "35%", flexDirection: "column", justifyContent: "center", paddingLeft: "80px", position: "relative" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "48px", position: "relative" }}>
-                {/* Vertical line */}
-                <div style={{
-                  position: "absolute", left: "7px", top: "8px", bottom: "8px", width: "2px", background: "#222222",
-                }}>
-                  <div style={{
-                    width: "2px", background: "#ffffff",
-                    height: `${((activeStep) / 2) * 100}%`,
-                    transition: "height 0.4s ease",
-                  }} />
-                </div>
-                {howItWorksSteps.map((step, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "20px", paddingLeft: "24px" }}>
-                    <span style={{
+          <RevealSection>
+            <div style={{
+              background: "#f5f5f5",
+              borderRadius: "24px",
+              padding: "64px",
+              boxShadow: "0 2px 40px rgba(0,0,0,0.06)",
+            }}>
+              {/* Tab buttons */}
+              <div style={{ display: "flex", justifyContent: "center", gap: "8px", flexWrap: "wrap" }}>
+                {howItWorksTabs.map((step, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleTabClick(i)}
+                    style={{
                       fontFamily: "'Open Sans', sans-serif",
-                      fontWeight: activeStep === i ? 700 : 400,
-                      fontSize: activeStep === i ? "18px" : "16px",
-                      color: activeStep === i ? "#ffffff" : "#444444",
-                      transition: "all 0.4s ease",
-                    }}>
-                      {step.num}
-                    </span>
-                    <span style={{
-                      fontFamily: "'Open Sans', sans-serif",
-                      fontWeight: activeStep === i ? 700 : 400,
-                      fontSize: activeStep === i ? "18px" : "16px",
-                      color: activeStep === i ? "#ffffff" : "#444444",
-                      transition: "all 0.4s ease",
-                    }}>
-                      {step.title}
-                    </span>
-                  </div>
+                      fontWeight: 500,
+                      fontSize: "14px",
+                      background: activeTab === i ? "#111111" : "#ebebeb",
+                      color: activeTab === i ? "#ffffff" : "#666666",
+                      borderRadius: "100px",
+                      padding: "10px 24px",
+                      border: "none",
+                      cursor: "pointer",
+                      transition: "all 0.25s ease",
+                    }}
+                  >
+                    {step.num}&nbsp;&nbsp;{step.tab}
+                  </button>
                 ))}
               </div>
-            </div>
 
-            {/* RIGHT — scrolling panels */}
-            <div style={{ width: "100%", flex: 1, overflowY: "auto", scrollbarWidth: "none" }} className="hide-scrollbar">
-              {howItWorksSteps.map((step, i) => (
-                <div
-                  key={i}
-                  style={{
-                    height: "100vh", display: "flex", alignItems: "center", padding: "60px",
-                  }}
-                >
-                  <div>
-                    {/* Mobile step number */}
-                    <span className="block md:hidden" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "14px", color: "#555555", letterSpacing: "0.1em", marginBottom: "12px" }}>
-                      STEP {step.num}
-                    </span>
-                    <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#ffffff", letterSpacing: "-0.02em" }}>
-                      {step.title}
-                    </h3>
-                    <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#aaaaaa", maxWidth: "400px", marginTop: "16px", lineHeight: 1.7 }}>
-                      {step.desc}
-                    </p>
-                  </div>
+              {/* Progress bar */}
+              <div style={{ maxWidth: "200px", margin: "16px auto 0", height: "2px", background: "#dddddd", borderRadius: "1px", overflow: "hidden" }}>
+                <div style={{
+                  height: "100%",
+                  background: "#111111",
+                  width: `${tabProgress}%`,
+                  transition: "width 50ms linear",
+                }} />
+              </div>
+
+              {/* Content panel */}
+              <div
+                style={{
+                  marginTop: "48px",
+                  display: "flex",
+                  gap: "48px",
+                  alignItems: "center",
+                  opacity: contentVisible ? 1 : 0,
+                  transition: "opacity 0.25s ease",
+                  flexWrap: "wrap",
+                }}
+              >
+                {/* Left — text */}
+                <div style={{ flex: "0 0 40%", minWidth: "260px" }}>
+                  <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#111111", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+                    {currentStep.title}
+                  </h3>
+                  <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", lineHeight: 1.75, marginTop: "16px", maxWidth: "360px" }}>
+                    {currentStep.desc}
+                  </p>
                 </div>
-              ))}
+                {/* Right — placeholder */}
+                <div style={{
+                  flex: 1,
+                  minWidth: "260px",
+                  background: "#e8e8e8",
+                  borderRadius: "16px",
+                  height: "320px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                  <span style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "14px", color: "#bbbbbb" }}>#screenshot coming</span>
+                </div>
+              </div>
             </div>
-          </div>
+          </RevealSection>
         </div>
       </section>
 
       {/* ==== FEATURES ==== */}
       <section id="features" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "1100px" }}>
-          <RevealSection className="text-center" style={{ marginBottom: "80px" }}>
-            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "14px", color: "#999999", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: "16px" }}>
+          <RevealSection className="text-center" style={{ marginBottom: "64px" }}>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
               FEATURES
             </p>
             <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
@@ -422,24 +459,33 @@ export default function Landing() {
             return (
               <RevealSection key={i}>
                 <div
-                  className={`flex flex-col ${imgLeft ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-12 md:gap-20`}
-                  style={{ padding: "60px 0" }}
+                  className={`flex flex-col ${imgLeft ? "md:flex-row-reverse" : "md:flex-row"} items-center`}
+                  style={{ gap: "48px", paddingTop: i === 0 ? "0" : "100px" }}
                 >
-                  <div className="flex-1" style={{ maxWidth: "400px" }}>
-                    <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#111111", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+                  {/* Text column — 40% */}
+                  <div style={{ flex: "0 0 40%", minWidth: "240px" }}>
+                    <span style={{
+                      fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "12px",
+                      color: "#666666", background: "#f0f0f0", borderRadius: "100px",
+                      padding: "4px 14px", display: "inline-block", marginBottom: "14px",
+                    }}>
+                      {feat.pill}
+                    </span>
+                    <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#111111", lineHeight: 1.2, letterSpacing: "-0.02em", marginBottom: "16px" }}>
                       {feat.title}
                     </h3>
-                    <p className="mt-5" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "17px", color: "#555555", lineHeight: 1.75, maxWidth: "400px" }}>
+                    <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", lineHeight: 1.75, maxWidth: "380px" }}>
                       {feat.desc}
                     </p>
                   </div>
-                  <div className="flex-1" style={{ maxWidth: "560px", width: "100%" }}>
+                  {/* Image column — 60% */}
+                  <div style={{ flex: "0 0 60%", minWidth: "280px", width: "100%" }}>
                     <div className="feature-img-card" style={{
-                      borderRadius: "12px", overflow: "hidden",
-                      boxShadow: "0 24px 64px rgba(0,0,0,0.10)",
+                      borderRadius: "16px", overflow: "hidden",
+                      boxShadow: "0 16px 56px rgba(0,0,0,0.12)",
                       transition: "all 0.3s ease",
                     }}>
-                      <img src={feat.img} alt={feat.title} className="w-full" loading="lazy" style={{ objectFit: "contain", display: "block" }} />
+                      <img src={feat.img} alt={feat.title} className="w-full" loading="lazy" style={{ objectFit: "contain", display: "block", width: "100%" }} />
                     </div>
                   </div>
                 </div>
@@ -450,47 +496,46 @@ export default function Landing() {
       </section>
 
       {/* ==== PRICING ==== */}
-      <section id="pricing" style={{ background: "linear-gradient(to bottom, #ffffff 0%, #0f0f0f 15%, #0f0f0f 85%, #ffffff 100%)", padding: "120px 24px" }}>
-        <div className="mx-auto relative z-10" style={{ maxWidth: "560px" }}>
-          <RevealSection className="text-center" style={{ marginBottom: "60px" }}>
-            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "14px", color: "#555555", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: "16px" }}>
+      <section id="pricing" style={{ background: "#ffffff", padding: "120px 24px" }}>
+        <div className="mx-auto" style={{ maxWidth: "680px" }}>
+          <RevealSection className="text-center" style={{ marginBottom: "64px" }}>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
               PRICING
             </p>
-            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#ffffff", letterSpacing: "-0.02em" }}>
+            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
               Simple pricing. No surprises.
             </h2>
           </RevealSection>
           <RevealSection>
-            <div className="pricing-border-wrap">
-              <div className="text-center" style={{
-                background: "#1a1a1a", borderRadius: "16px", padding: "64px", position: "relative",
-                boxShadow: "0 30px 80px rgba(0,0,0,0.4)",
-              }}>
-                <div>
-                  <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "80px", color: "#ffffff", letterSpacing: "-0.03em" }}>$29</span>
-                  <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "18px", color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>per audit</p>
-                </div>
-                <ul className="mt-12 space-y-5 text-left">
-                  {pricingFeatures.map((feat, i) => (
-                    <li key={i} className="flex items-start gap-3" style={{ fontSize: "15px", color: "rgba(255,255,255,0.7)" }}>
-                      <Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "#ffffff" }} strokeWidth={2.5} />
-                      {feat}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  className="w-full mt-12 btn-hover-lift"
-                  style={{ height: "48px", borderRadius: "8px", fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "15px", background: "#ffffff", color: "#111111", border: "none", cursor: "pointer", transition: "all 0.2s ease" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "#f0f0f0"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "#ffffff"; }}
-                  onClick={() => scrollTo("contact")}
-                >
-                  Book a Demo
-                </button>
-                <p className="mt-5" style={{ fontSize: "14px", color: "rgba(255,255,255,0.3)" }}>
-                  Volume pricing available for firms processing 20+ audits per month.
-                </p>
+            <div className="text-center" style={{
+              background: "#111111", borderRadius: "24px", padding: "64px", position: "relative",
+              boxShadow: "0 8px 48px rgba(0,0,0,0.18)",
+              maxWidth: "680px", margin: "0 auto",
+            }}>
+              <div>
+                <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "80px", color: "#ffffff", letterSpacing: "-0.03em" }}>$29</span>
+                <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "18px", color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>per audit</p>
               </div>
+              <ul className="mt-12 space-y-5 text-left">
+                {pricingFeatures.map((feat, i) => (
+                  <li key={i} className="flex items-start gap-3" style={{ fontSize: "15px", color: "rgba(255,255,255,0.7)" }}>
+                    <Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "#ffffff" }} strokeWidth={2.5} />
+                    {feat}
+                  </li>
+                ))}
+              </ul>
+              <button
+                className="w-full mt-12 btn-hover-lift"
+                style={{ height: "48px", borderRadius: "8px", fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "15px", background: "#ffffff", color: "#111111", border: "none", cursor: "pointer", transition: "all 0.2s ease" }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#f0f0f0"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "#ffffff"; }}
+                onClick={() => scrollTo("contact")}
+              >
+                Book a Demo
+              </button>
+              <p className="mt-5" style={{ fontSize: "14px", color: "rgba(255,255,255,0.3)" }}>
+                Volume pricing available for firms processing 20+ audits per month.
+              </p>
             </div>
           </RevealSection>
         </div>
@@ -499,8 +544,8 @@ export default function Landing() {
       {/* ==== FAQ ==== */}
       <section id="faq" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "680px" }}>
-          <RevealSection className="text-center" style={{ marginBottom: "60px" }}>
-            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "14px", color: "#999999", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: "16px" }}>
+          <RevealSection className="text-center" style={{ marginBottom: "64px" }}>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
               FAQ
             </p>
             <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
@@ -517,7 +562,7 @@ export default function Landing() {
       <section id="contact" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "520px" }}>
           <RevealSection className="text-center" style={{ marginBottom: "48px" }}>
-            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "14px", color: "#999999", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: "16px" }}>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
               CONTACT
             </p>
             <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
@@ -619,19 +664,6 @@ export default function Landing() {
           animation: shimmerSweep 2.5s linear infinite;
         }
 
-        @keyframes pricingBorderSpin {
-          0% { background: conic-gradient(from 0deg, rgba(255,255,255,0.03), rgba(255,255,255,0.18), rgba(255,255,255,0.03), rgba(255,255,255,0.12), rgba(255,255,255,0.03)); }
-          100% { background: conic-gradient(from 360deg, rgba(255,255,255,0.03), rgba(255,255,255,0.18), rgba(255,255,255,0.03), rgba(255,255,255,0.12), rgba(255,255,255,0.03)); }
-        }
-        .pricing-border-wrap {
-          position: relative;
-          border-radius: 17px;
-          padding: 1px;
-          background: conic-gradient(from 0deg, rgba(255,255,255,0.03), rgba(255,255,255,0.18), rgba(255,255,255,0.03), rgba(255,255,255,0.12), rgba(255,255,255,0.03));
-          animation: pricingBorderSpin 8s linear infinite;
-          transform: scale(1.03);
-        }
-
         .nav-link-hover { position: relative; transition: color 0.2s ease; }
         .nav-link-hover::after {
           content: '';
@@ -652,9 +684,6 @@ export default function Landing() {
           box-shadow: 0 0 0 3px rgba(0,0,0,0.06) !important;
           outline: none;
         }
-
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );
