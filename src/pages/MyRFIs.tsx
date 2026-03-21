@@ -346,6 +346,16 @@ export default function MyRFIs() {
                     );
                   })
                 )}
+                {aiReviewing && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[75%] rounded-lg px-4 py-3 bg-status-new-bg">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-status-new" />
+                        <span className="text-sm text-muted-foreground">Auditron is reviewing...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div ref={messagesEndRef} />
               </div>
 
