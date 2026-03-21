@@ -85,10 +85,10 @@ const howItWorksSteps = [
 ];
 
 const features = [
-  { title: "Reads your documents, not just filenames", desc: "Auditron uses native PDF reading to extract real figures from financial statements, general ledgers, and workpapers. It cross-references numbers across documents — just like a senior auditor would.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png", imgSide: "right" as const },
-  { title: "RFIs that matter", desc: "No generic checklist items. Every RFI names the exact document, figure, or transaction that needs clarification. The same questions a 15-year auditor would send to the accountant.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.12.44%20pm.png", imgSide: "left" as const },
-  { title: "Catches what others miss", desc: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Auditron flags the material risks, not the paperwork gaps.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png", imgSide: "right" as const },
-  { title: "Draft opinions with full reasoning", desc: "Every audit produces an opinion — unqualified, qualified, or adverse — with detailed reasoning citing specific compliance areas and document references.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.15.51%20pm.png", imgSide: "left" as const },
+  { title: "Finds what junior auditors miss", desc: "Auditron reads every figure, every balance, every reference — then cross-checks them across all your documents simultaneously. No skimming. No assumptions.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png", imgSide: "right" as const },
+  { title: "RFIs written like a senior auditor", desc: "Every RFI names the exact document, figure, and transaction that needs clarification. Not a checklist. The actual questions your client needs to answer.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.12.44%20pm.png", imgSide: "left" as const },
+  { title: "The risks hiding in plain sight", desc: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Auditron flags material risks — not paperwork gaps.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png", imgSide: "right" as const },
+  { title: "Sign-off ready. Not just a summary.", desc: "Every audit produces an opinion — unqualified, qualified, or adverse — with detailed reasoning citing specific compliance areas and document references.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.15.51%20pm.png", imgSide: "left" as const },
 ];
 
 const pricingFeatures = [
@@ -116,33 +116,30 @@ export default function Landing() {
   const [activeStep, setActiveStep] = useState(0);
   const [formSubmitted, setFormSubmitted] = useState(false);
 
-  const stepRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
+  const howItWorksRef = useRef<HTMLDivElement>(null);
 
-  // Scroll handler: nav pill + video tilt
+  // Scroll handler: nav pill + video tilt + how-it-works step calc
   useEffect(() => {
     const handler = () => {
       setScrolled(window.scrollY > 80);
       // Video tilt interpolation: 6deg at 0px → 0deg at 400px
       const t = Math.min(window.scrollY / 400, 1);
       setVideoRotate(6 * (1 - t));
+
+      // How It Works: scroll-position based step calculation
+      const container = howItWorksRef.current;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const containerTop = window.scrollY + rect.top;
+        const containerHeight = container.offsetHeight;
+        const progress = Math.max(0, Math.min(1, (window.scrollY - containerTop) / (containerHeight - window.innerHeight)));
+        if (progress < 0.33) setActiveStep(0);
+        else if (progress < 0.66) setActiveStep(1);
+        else setActiveStep(2);
+      }
     };
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
-  }, []);
-
-  // Intersection observer for how-it-works steps
-  useEffect(() => {
-    const observers: IntersectionObserver[] = [];
-    stepRefs.forEach((ref, i) => {
-      if (!ref.current) return;
-      const obs = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) setActiveStep(i); },
-        { threshold: 0.5 }
-      );
-      obs.observe(ref.current);
-      observers.push(obs);
-    });
-    return () => observers.forEach(o => o.disconnect());
   }, []);
 
   const handleFormSubmit = useCallback((e: React.FormEvent) => {
@@ -321,13 +318,16 @@ export default function Landing() {
             </div>
           </div>
         </div>
-
-        {/* Hero bottom gradient */}
-        <div style={{ height: "160px", background: "linear-gradient(to bottom, #ffffff, #111111)", position: "relative", zIndex: 1 }} />
       </section>
 
       {/* ==== HOW IT WORKS — SCROLL-PINNED STICKY ==== */}
-      <section id="how-it-works" style={{ background: "#111111", position: "relative" }}>
+      <section
+        id="how-it-works"
+        style={{
+          background: "linear-gradient(to bottom, #ffffff 0%, #111111 8%, #1a1a1a 40%, #2d2d2d 75%, #ffffff 100%)",
+          position: "relative",
+        }}
+      >
         <div style={{ paddingTop: "100px", paddingBottom: "0", textAlign: "center" }}>
           <RevealSection>
             <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#ffffff", letterSpacing: "-0.02em", paddingBottom: "80px" }}>
@@ -337,7 +337,7 @@ export default function Landing() {
         </div>
 
         {/* Scroll-pinned layout */}
-        <div style={{ height: "300vh", position: "relative" }}>
+        <div ref={howItWorksRef} style={{ height: "250vh", position: "relative" }}>
           <div style={{ position: "sticky", top: 0, height: "100vh", display: "flex", overflow: "hidden" }}>
             {/* LEFT — step indicator */}
             <div className="hidden md:flex" style={{ width: "35%", flexDirection: "column", justifyContent: "center", paddingLeft: "80px", position: "relative" }}>
@@ -382,7 +382,6 @@ export default function Landing() {
               {howItWorksSteps.map((step, i) => (
                 <div
                   key={i}
-                  ref={stepRefs[i]}
                   style={{
                     height: "100vh", display: "flex", alignItems: "center", padding: "60px",
                   }}
@@ -404,9 +403,6 @@ export default function Landing() {
             </div>
           </div>
         </div>
-
-        {/* Section bottom gradient */}
-        <div style={{ height: "160px", background: "linear-gradient(to bottom, #111111, #ffffff)", position: "relative", zIndex: 1 }} />
       </section>
 
       {/* ==== FEATURES ==== */}
@@ -429,11 +425,11 @@ export default function Landing() {
                   className={`flex flex-col ${imgLeft ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-12 md:gap-20`}
                   style={{ padding: "60px 0" }}
                 >
-                  <div className="flex-1" style={{ maxWidth: "420px" }}>
-                    <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "28px", color: "#111111", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+                  <div className="flex-1" style={{ maxWidth: "400px" }}>
+                    <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#111111", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
                       {feat.title}
                     </h3>
-                    <p className="mt-5" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", lineHeight: 1.7, maxWidth: "420px" }}>
+                    <p className="mt-5" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "17px", color: "#555555", lineHeight: 1.75, maxWidth: "400px" }}>
                       {feat.desc}
                     </p>
                   </div>
@@ -451,13 +447,10 @@ export default function Landing() {
             );
           })}
         </div>
-
-        {/* Section bottom gradient */}
-        <div style={{ height: "160px", background: "linear-gradient(to bottom, #ffffff, #111111)", marginLeft: "-24px", marginRight: "-24px", marginBottom: "-120px" }} />
       </section>
 
       {/* ==== PRICING ==== */}
-      <section id="pricing" style={{ background: "#111111", padding: "120px 24px" }}>
+      <section id="pricing" style={{ background: "linear-gradient(to bottom, #ffffff 0%, #0f0f0f 15%, #0f0f0f 85%, #ffffff 100%)", padding: "120px 24px" }}>
         <div className="mx-auto relative z-10" style={{ maxWidth: "560px" }}>
           <RevealSection className="text-center" style={{ marginBottom: "60px" }}>
             <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "14px", color: "#555555", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: "16px" }}>
@@ -501,13 +494,10 @@ export default function Landing() {
             </div>
           </RevealSection>
         </div>
-
-        {/* Section bottom gradient */}
-        <div style={{ height: "160px", background: "linear-gradient(to bottom, #111111, #fafafa)", marginLeft: "-24px", marginRight: "-24px", marginBottom: "-120px" }} />
       </section>
 
       {/* ==== FAQ ==== */}
-      <section id="faq" style={{ background: "#fafafa", padding: "120px 24px" }}>
+      <section id="faq" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "680px" }}>
           <RevealSection className="text-center" style={{ marginBottom: "60px" }}>
             <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "14px", color: "#999999", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: "16px" }}>
@@ -521,9 +511,6 @@ export default function Landing() {
             <FAQAccordion />
           </RevealSection>
         </div>
-
-        {/* Section bottom gradient */}
-        <div style={{ height: "80px", background: "linear-gradient(to bottom, #fafafa, #ffffff)", marginLeft: "-24px", marginRight: "-24px", marginBottom: "-120px" }} />
       </section>
 
       {/* ==== CONTACT / BOOK A DEMO ==== */}
@@ -543,32 +530,32 @@ export default function Landing() {
 
           <RevealSection>
             <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              <input
-                type="text" placeholder="Jane Smith" required
-                className="contact-input"
-                style={inputStyle}
-              />
-              <input
-                type="email" placeholder="jane@smithauditing.com.au" required
-                className="contact-input"
-                style={inputStyle}
-              />
-              <input
-                type="text" placeholder="Smith SMSF Auditing"
-                className="contact-input"
-                style={inputStyle}
-              />
-              <select
-                className="contact-input"
-                style={{ ...inputStyle, color: "#888888", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}
-                defaultValue=""
-              >
-                <option value="" disabled>Audits per month</option>
-                <option value="1-10">1–10</option>
-                <option value="10-50">10–50</option>
-                <option value="50-100">50–100</option>
-                <option value="100+">100+</option>
-              </select>
+              <div>
+                <label style={labelStyle}>Full Name</label>
+                <input type="text" required className="contact-input" style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Email</label>
+                <input type="email" required className="contact-input" style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Firm Name</label>
+                <input type="text" className="contact-input" style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Audits per month</label>
+                <select
+                  className="contact-input"
+                  style={{ ...inputStyle, color: "#888888", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}
+                  defaultValue=""
+                >
+                  <option value="" disabled>Select...</option>
+                  <option value="1-10">1–10</option>
+                  <option value="10-50">10–50</option>
+                  <option value="50-100">50–100</option>
+                  <option value="100+">100+</option>
+                </select>
+              </div>
               <button
                 type="submit"
                 className="btn-hover-lift"
@@ -672,6 +659,15 @@ export default function Landing() {
     </div>
   );
 }
+
+const labelStyle: React.CSSProperties = {
+  fontFamily: "'Open Sans', sans-serif",
+  fontWeight: 500,
+  fontSize: "13px",
+  color: "#333333",
+  marginBottom: "6px",
+  display: "block",
+};
 
 const inputStyle: React.CSSProperties = {
   fontFamily: "'Open Sans', sans-serif",
