@@ -398,8 +398,6 @@ export default function AuditDetail() {
       toast({ title: "AI audit failed — please try again", description: err.message || "Something went wrong.", variant: "destructive" });
     }
   };
-    }
-  };
 
   const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
