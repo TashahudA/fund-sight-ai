@@ -130,6 +130,7 @@ export default function AuditDetail() {
   const [activeTab, setActiveTab] = useState("findings");
   const [rfiCount, setRfiCount] = useState(0);
   const [docCount, setDocCount] = useState(0);
+  const [downloading, setDownloading] = useState<string | null>(null);
 
   const fetchAudit = useCallback(async () => {
     if (!id) { setNotFound(true); setLoading(false); return; }
