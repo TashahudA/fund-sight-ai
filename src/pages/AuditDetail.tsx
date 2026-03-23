@@ -12,6 +12,7 @@ import { RFITab } from "@/components/RFITab";
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
+import { generateAuditPdf } from "@/lib/generateAuditPdf";
 import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -395,6 +396,29 @@ export default function AuditDetail() {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    if (!audit) return;
+    if (!audit.ai_findings) {
+      toast({ title: "No audit findings to download — run the AI audit first", variant: "destructive" });
+      return;
+    }
+    // Fetch RFIs and documents for this audit
+    const [rfiRes, docRes] = await Promise.all([
+      supabase.from("rfis").select("title, category, priority, status, description").eq("audit_id", audit.id),
+      supabase.from("documents").select("file_name, created_at").eq("audit_id", audit.id).order("created_at", { ascending: true }),
+    ]);
+    generateAuditPdf({
+      fundName: audit.fund_name,
+      fundAbn: audit.fund_abn,
+      financialYear: audit.financial_year,
+      fundType: audit.fund_type,
+      opinion: audit.opinion,
+      aiFindingsRaw: audit.ai_findings,
+      rfis: rfiRes.data || [],
+      documents: docRes.data || [],
+    });
+  };
+
   const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
@@ -508,7 +532,7 @@ export default function AuditDetail() {
                   <><Play className="h-4 w-4 mr-1.5" />Run AI Audit</>
                 )}
               </Button>
-              <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
+              <Button variant="outline" size="sm" onClick={handleDownloadPdf}><Download className="h-4 w-4 mr-1.5" />Download</Button>
 
               {/* Status dropdown */}
               <Select
