@@ -419,6 +419,7 @@ export default function AuditDetail() {
     });
   };
 
+  const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
   const handleStatusChange = async (newStatus: string) => {
