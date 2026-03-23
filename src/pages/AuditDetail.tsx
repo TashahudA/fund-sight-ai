@@ -340,8 +340,8 @@ export default function AuditDetail() {
         return;
       }
 
-      const done = (data.status === "in_progress" || data.status === "in progress" || data.status === "complete") && data.ai_findings !== null;
-      if (done) {
+      // The audit is done when status is anything other than "processing"
+      if (data.status !== "processing" && data.ai_findings !== null) {
         stopPolling();
         setShowCompleteBanner(true);
         setTimeout(async () => {
