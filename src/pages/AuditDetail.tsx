@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload } from "lucide-react";
-import { AiProcessingAnimation } from "@/components/AiProcessingAnimation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -117,7 +116,14 @@ export default function AuditDetail() {
   const [savingNote, setSavingNote] = useState(false);
   const [auditNotes, setAuditNotes] = useState<{ id: string; note_text: string; created_at: string; full_name: string | null; email: string | null }[]>([]);
   const [runningAudit, setRunningAudit] = useState(false);
-  const [showProcessing, setShowProcessing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState<string | null>(null);
+  const [processingError, setProcessingError] = useState<string | null>(null);
+  const [completionShown, setCompletionShown] = useState(false);
+  const [showCompleteBanner, setShowCompleteBanner] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingStartRef = useRef<number>(0);
+  const completionToastShownRef = useRef<string | null>(null);
   const [activeTab, setActiveTab] = useState("findings");
   const [rfiCount, setRfiCount] = useState(0);
   const [docCount, setDocCount] = useState(0);
@@ -265,16 +271,117 @@ export default function AuditDetail() {
     }
   };
 
-  const [auditDataReady, setAuditDataReady] = useState(false);
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }, []);
+
+  const handleAuditComplete = useCallback(async (auditId: string) => {
+    // Re-fetch audit data so findings are in state
+    await fetchAudit();
+
+    // Auto-resolve RFIs based on new findings
+    const { data: freshAudit } = await supabase.from("audits").select("ai_findings, opinion").eq("id", auditId).single();
+    if (freshAudit) {
+      const { findings } = parseFindings(freshAudit.ai_findings);
+      await autoResolveRfis(findings);
+    }
+    await fetchCounts();
+
+    // Auto-complete if zero open RFIs after audit
+    const { count: openAfter } = await supabase
+      .from("rfis")
+      .select("id", { count: "exact", head: true })
+      .eq("audit_id", auditId)
+      .eq("status", "open");
+
+    if (completionToastShownRef.current !== auditId) {
+      completionToastShownRef.current = auditId;
+      if ((openAfter ?? 0) === 0) {
+        await supabase.from("audits").update({ status: "complete", updated_at: new Date().toISOString() }).eq("id", auditId);
+        await fetchAudit();
+        toast({ title: "Audit marked as complete — all items resolved" });
+      } else {
+        const opinion = freshAudit?.opinion || "Pending";
+        toast({ title: "Audit complete", description: `Opinion: ${opinion}` });
+      }
+    }
+  }, [fetchAudit, fetchCounts, autoResolveRfis, parseFindings]);
+
+  const startPolling = useCallback((auditId: string) => {
+    pollingStartRef.current = Date.now();
+    setIsProcessing(true);
+    setProcessingError(null);
+    setShowCompleteBanner(false);
+
+    const poll = async () => {
+      const elapsed = Date.now() - pollingStartRef.current;
+      if (elapsed > 10 * 60 * 1000) {
+        stopPolling();
+        setProcessingError("Audit is taking longer than expected — please refresh the page");
+        setIsProcessing(false);
+        setRunningAudit(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("audits")
+        .select("status, processing_progress, ai_findings, opinion")
+        .eq("id", auditId)
+        .single();
+
+      if (!data) return;
+
+      setProcessingProgress(data.processing_progress);
+
+      if (data.status === "failed") {
+        stopPolling();
+        setIsProcessing(false);
+        setRunningAudit(false);
+        setProcessingError("Audit failed — " + (data.processing_progress || "Unknown error"));
+        return;
+      }
+
+      const done = (data.status === "in_progress" || data.status === "in progress" || data.status === "complete") && data.ai_findings !== null;
+      if (done) {
+        stopPolling();
+        setShowCompleteBanner(true);
+        setTimeout(async () => {
+          setIsProcessing(false);
+          setRunningAudit(false);
+          setShowCompleteBanner(false);
+          await handleAuditComplete(auditId);
+        }, 1500);
+      }
+    };
+
+    pollingRef.current = setInterval(poll, 3000);
+    // Also poll immediately
+    poll();
+  }, [stopPolling, handleAuditComplete]);
+
+  // Cleanup polling on unmount
+  useEffect(() => () => stopPolling(), [stopPolling]);
+
+  // Resume polling if user navigates back while processing
+  useEffect(() => {
+    if (!audit || isProcessing || runningAudit) return;
+    if (audit.status === "processing") {
+      setRunningAudit(true);
+      completionToastShownRef.current = null;
+      startPolling(audit.id);
+    }
+  }, [audit?.id, audit?.status]);
 
   const handleRunAudit = async () => {
     if (!audit) return;
     setRunningAudit(true);
-    setShowProcessing(true);
-    setAuditDataReady(false);
     setActiveTab("findings");
+    setProcessingError(null);
+    completionToastShownRef.current = null;
     try {
-      // Record when user clicked "Run AI Audit" for turnaround tracking
       await supabase.from("audits").update({ audit_started_at: new Date().toISOString() }).eq("id", audit.id);
 
       const { error } = await supabase.functions.invoke("dynamic-processor", {
@@ -282,41 +389,13 @@ export default function AuditDetail() {
       });
       if (error) throw error;
 
-      // Re-fetch audit data so findings are in state
-      await fetchAudit();
-
-      // Auto-resolve RFIs based on new findings
-      const { data: freshAudit } = await supabase.from("audits").select("ai_findings").eq("id", audit.id).single();
-      if (freshAudit) {
-        const { findings } = parseFindings(freshAudit.ai_findings);
-        await autoResolveRfis(findings);
-      }
-      await fetchCounts();
-
-      // Auto-complete if zero open RFIs after audit
-      const { count: openAfter } = await supabase
-        .from("rfis")
-        .select("id", { count: "exact", head: true })
-        .eq("audit_id", audit.id)
-        .eq("status", "open");
-      if ((openAfter ?? 0) === 0) {
-        await supabase.from("audits").update({ status: "complete", updated_at: new Date().toISOString() }).eq("id", audit.id);
-        await fetchAudit();
-        toast({ title: "Audit marked as complete — all items resolved" });
-      } else {
-        toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
-      }
-
-      // Signal animation that data is ready — animation will fade out then set showProcessing=false
-      setAuditDataReady(true);
+      // Edge function returns immediately; start polling
+      startPolling(audit.id);
     } catch (err: any) {
       console.error("AI Audit error:", err);
-      // Stop animation immediately on error
-      setShowProcessing(false);
-      setAuditDataReady(false);
-      toast({ title: "AI audit failed — please try again", description: err.message || "Something went wrong.", variant: "destructive" });
-    } finally {
+      setIsProcessing(false);
       setRunningAudit(false);
+      toast({ title: "AI audit failed — please try again", description: err.message || "Something went wrong.", variant: "destructive" });
     }
   };
 
@@ -484,15 +563,40 @@ export default function AuditDetail() {
 
         {/* Findings Tab */}
         <TabsContent value="findings" className="space-y-4">
-          {showProcessing && (
-            <AiProcessingAnimation
-              active={showProcessing}
-              dataReady={auditDataReady}
-              onComplete={() => setShowProcessing(false)}
-            />
+          {/* Processing progress card */}
+          {isProcessing && (
+            <div className="rounded-lg border border-border bg-background p-6 space-y-3">
+              {showCompleteBanner ? (
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-status-pass" />
+                  <span className="text-sm font-medium text-status-pass">Analysis complete</span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin text-foreground" />
+                    <span className="text-sm font-medium">AI audit in progress…</span>
+                  </div>
+                  {processingProgress && (
+                    <p className="text-sm text-muted-foreground pl-8">{processingProgress}</p>
+                  )}
+                </>
+              )}
+            </div>
           )}
 
-          {!showProcessing && !runningAudit && aiFindings.length === 0 ? (
+          {/* Error state */}
+          {processingError && !isProcessing && (
+            <div className="rounded-lg border border-status-fail/30 bg-status-fail/5 p-6">
+              <div className="flex items-center gap-3">
+                <XCircle className="h-5 w-5 text-status-fail" />
+                <span className="text-sm font-medium text-status-fail">{processingError}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Empty state — only when NOT processing and no findings */}
+          {!isProcessing && !processingError && !runningAudit && aiFindings.length === 0 ? (
             <div className="rounded-lg border border-border bg-background p-8 text-center">
               <Info className="h-8 w-8 text-border mx-auto mb-3" />
               <h3 className="text-base font-semibold">No AI Findings Yet</h3>
@@ -505,14 +609,10 @@ export default function AuditDetail() {
                 onClick={handleRunAudit}
                 disabled={runningAudit}
               >
-                {runningAudit ? (
-                  <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Running Audit...</>
-                ) : (
-                  <><Play className="h-4 w-4 mr-1.5" />Run AI Audit</>
-                )}
+                <Play className="h-4 w-4 mr-1.5" />Run AI Audit
               </Button>
             </div>
-          ) : !showProcessing && !runningAudit && aiFindings.length > 0 ? (
+          ) : !isProcessing && !processingError && aiFindings.length > 0 ? (
             <>
               {/* Opinion Banner */}
               <div className={`flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>

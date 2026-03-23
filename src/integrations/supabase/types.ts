@@ -51,6 +51,7 @@ export type Database = {
           ai_findings: Json | null
           audit_started_at: string | null
           created_at: string | null
+          extraction_data: Json | null
           financial_year: string | null
           findings_completed_at: string | null
           fund_abn: string | null
@@ -58,6 +59,7 @@ export type Database = {
           fund_type: string | null
           id: string
           opinion: string | null
+          processing_progress: string | null
           status: string | null
           updated_at: string | null
           user_id: string
@@ -66,6 +68,7 @@ export type Database = {
           ai_findings?: Json | null
           audit_started_at?: string | null
           created_at?: string | null
+          extraction_data?: Json | null
           financial_year?: string | null
           findings_completed_at?: string | null
           fund_abn?: string | null
@@ -73,6 +76,7 @@ export type Database = {
           fund_type?: string | null
           id?: string
           opinion?: string | null
+          processing_progress?: string | null
           status?: string | null
           updated_at?: string | null
           user_id: string
@@ -81,6 +85,7 @@ export type Database = {
           ai_findings?: Json | null
           audit_started_at?: string | null
           created_at?: string | null
+          extraction_data?: Json | null
           financial_year?: string | null
           findings_completed_at?: string | null
           fund_abn?: string | null
@@ -88,6 +93,7 @@ export type Database = {
           fund_type?: string | null
           id?: string
           opinion?: string | null
+          processing_progress?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string
@@ -193,6 +199,7 @@ export type Database = {
           description: string | null
           id: string
           priority: string | null
+          source: string | null
           status: string | null
           title: string
           updated_at: string | null
@@ -204,6 +211,7 @@ export type Database = {
           description?: string | null
           id?: string
           priority?: string | null
+          source?: string | null
           status?: string | null
           title: string
           updated_at?: string | null
@@ -215,6 +223,7 @@ export type Database = {
           description?: string | null
           id?: string
           priority?: string | null
+          source?: string | null
           status?: string | null
           title?: string
           updated_at?: string | null
