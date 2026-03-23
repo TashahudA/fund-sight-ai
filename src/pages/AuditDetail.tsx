@@ -451,7 +451,6 @@ export default function AuditDetail() {
       setDownloading(null);
     }
   };
-  };
 
   const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
