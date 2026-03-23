@@ -396,7 +396,29 @@ export default function AuditDetail() {
     }
   };
 
-  const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
+  const handleDownloadPdf = async () => {
+    if (!audit) return;
+    if (!audit.ai_findings) {
+      toast({ title: "No audit findings to download — run the AI audit first", variant: "destructive" });
+      return;
+    }
+    // Fetch RFIs and documents for this audit
+    const [rfiRes, docRes] = await Promise.all([
+      supabase.from("rfis").select("title, category, priority, status, description").eq("audit_id", audit.id),
+      supabase.from("documents").select("file_name, created_at").eq("audit_id", audit.id).order("created_at", { ascending: true }),
+    ]);
+    generateAuditPdf({
+      fundName: audit.fund_name,
+      fundAbn: audit.fund_abn,
+      financialYear: audit.financial_year,
+      fundType: audit.fund_type,
+      opinion: audit.opinion,
+      aiFindingsRaw: audit.ai_findings,
+      rfis: rfiRes.data || [],
+      documents: docRes.data || [],
+    });
+  };
+
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
   const handleStatusChange = async (newStatus: string) => {
