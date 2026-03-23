@@ -399,27 +399,58 @@ export default function AuditDetail() {
     }
   };
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadFindings = async () => {
     if (!audit) return;
     if (!audit.ai_findings) {
       toast({ title: "No audit findings to download — run the AI audit first", variant: "destructive" });
       return;
     }
-    // Fetch RFIs and documents for this audit
-    const [rfiRes, docRes] = await Promise.all([
-      supabase.from("rfis").select("title, category, priority, status, description").eq("audit_id", audit.id),
-      supabase.from("documents").select("file_name, created_at").eq("audit_id", audit.id).order("created_at", { ascending: true }),
-    ]);
-    generateAuditPdf({
-      fundName: audit.fund_name,
-      fundAbn: audit.fund_abn,
-      financialYear: audit.financial_year,
-      fundType: audit.fund_type,
-      opinion: audit.opinion,
-      aiFindingsRaw: audit.ai_findings,
-      rfis: rfiRes.data || [],
-      documents: docRes.data || [],
-    });
+    setDownloading("findings");
+    try {
+      const [rfiRes, docRes] = await Promise.all([
+        supabase.from("rfis").select("title, category, priority, status, description").eq("audit_id", audit.id),
+        supabase.from("documents").select("file_name, created_at").eq("audit_id", audit.id).order("created_at", { ascending: true }),
+      ]);
+      generateAuditPdf({
+        fundName: audit.fund_name,
+        fundAbn: audit.fund_abn,
+        financialYear: audit.financial_year,
+        fundType: audit.fund_type,
+        opinion: audit.opinion,
+        aiFindingsRaw: audit.ai_findings,
+        rfis: rfiRes.data || [],
+        documents: docRes.data || [],
+      });
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  const handleDownloadFromEdge = async (mode: "generate_audit_report" | "generate_management_letter") => {
+    if (!audit) return;
+    if (!audit.ai_findings) {
+      toast({ title: "No audit findings to download — run the AI audit first", variant: "destructive" });
+      return;
+    }
+    const docType = mode === "generate_audit_report" ? "Audit_Report" : "Management_Letter";
+    setDownloading(docType);
+    try {
+      const { data, error } = await supabase.functions.invoke("dynamic-processor", {
+        body: { audit_id: audit.id, mode },
+      });
+      if (error) throw error;
+      if (!data?.content) {
+        toast({ title: "No content returned from the server", variant: "destructive" });
+        return;
+      }
+      generateTextPdf(data.content, audit.fund_name, audit.financial_year, docType as "Audit_Report" | "Management_Letter");
+    } catch (err: any) {
+      console.error("Download error:", err);
+      toast({ title: "Failed to generate PDF", description: err.message || "Something went wrong.", variant: "destructive" });
+    } finally {
+      setDownloading(null);
+    }
+  };
   };
 
   const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
