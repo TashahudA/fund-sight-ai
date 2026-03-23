@@ -116,9 +116,14 @@ export default function AuditDetail() {
   const [savingNote, setSavingNote] = useState(false);
   const [auditNotes, setAuditNotes] = useState<{ id: string; note_text: string; created_at: string; full_name: string | null; email: string | null }[]>([]);
   const [runningAudit, setRunningAudit] = useState(false);
-  const [showProcessing, setShowProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState("findings");
-  const [rfiCount, setRfiCount] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState<string | null>(null);
+  const [processingError, setProcessingError] = useState<string | null>(null);
+  const [completionShown, setCompletionShown] = useState(false);
+  const [showCompleteBanner, setShowCompleteBanner] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingStartRef = useRef<number>(0);
+  const completionToastShownRef = useRef<string | null>(null);
   const [docCount, setDocCount] = useState(0);
 
   const fetchAudit = useCallback(async () => {
