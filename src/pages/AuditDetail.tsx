@@ -271,16 +271,117 @@ export default function AuditDetail() {
     }
   };
 
-  const [auditDataReady, setAuditDataReady] = useState(false);
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }, []);
+
+  const handleAuditComplete = useCallback(async (auditId: string) => {
+    // Re-fetch audit data so findings are in state
+    await fetchAudit();
+
+    // Auto-resolve RFIs based on new findings
+    const { data: freshAudit } = await supabase.from("audits").select("ai_findings, opinion").eq("id", auditId).single();
+    if (freshAudit) {
+      const { findings } = parseFindings(freshAudit.ai_findings);
+      await autoResolveRfis(findings);
+    }
+    await fetchCounts();
+
+    // Auto-complete if zero open RFIs after audit
+    const { count: openAfter } = await supabase
+      .from("rfis")
+      .select("id", { count: "exact", head: true })
+      .eq("audit_id", auditId)
+      .eq("status", "open");
+
+    if (completionToastShownRef.current !== auditId) {
+      completionToastShownRef.current = auditId;
+      if ((openAfter ?? 0) === 0) {
+        await supabase.from("audits").update({ status: "complete", updated_at: new Date().toISOString() }).eq("id", auditId);
+        await fetchAudit();
+        toast({ title: "Audit marked as complete — all items resolved" });
+      } else {
+        const opinion = freshAudit?.opinion || "Pending";
+        toast({ title: "Audit complete", description: `Opinion: ${opinion}` });
+      }
+    }
+  }, [fetchAudit, fetchCounts, autoResolveRfis, parseFindings]);
+
+  const startPolling = useCallback((auditId: string) => {
+    pollingStartRef.current = Date.now();
+    setIsProcessing(true);
+    setProcessingError(null);
+    setShowCompleteBanner(false);
+
+    const poll = async () => {
+      const elapsed = Date.now() - pollingStartRef.current;
+      if (elapsed > 10 * 60 * 1000) {
+        stopPolling();
+        setProcessingError("Audit is taking longer than expected — please refresh the page");
+        setIsProcessing(false);
+        setRunningAudit(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("audits")
+        .select("status, processing_progress, ai_findings, opinion")
+        .eq("id", auditId)
+        .single();
+
+      if (!data) return;
+
+      setProcessingProgress(data.processing_progress);
+
+      if (data.status === "failed") {
+        stopPolling();
+        setIsProcessing(false);
+        setRunningAudit(false);
+        setProcessingError("Audit failed — " + (data.processing_progress || "Unknown error"));
+        return;
+      }
+
+      const done = (data.status === "in_progress" || data.status === "in progress" || data.status === "complete") && data.ai_findings !== null;
+      if (done) {
+        stopPolling();
+        setShowCompleteBanner(true);
+        setTimeout(async () => {
+          setIsProcessing(false);
+          setRunningAudit(false);
+          setShowCompleteBanner(false);
+          await handleAuditComplete(auditId);
+        }, 1500);
+      }
+    };
+
+    pollingRef.current = setInterval(poll, 3000);
+    // Also poll immediately
+    poll();
+  }, [stopPolling, handleAuditComplete]);
+
+  // Cleanup polling on unmount
+  useEffect(() => () => stopPolling(), [stopPolling]);
+
+  // Resume polling if user navigates back while processing
+  useEffect(() => {
+    if (!audit || isProcessing || runningAudit) return;
+    if (audit.status === "processing") {
+      setRunningAudit(true);
+      completionToastShownRef.current = null;
+      startPolling(audit.id);
+    }
+  }, [audit?.id, audit?.status]);
 
   const handleRunAudit = async () => {
     if (!audit) return;
     setRunningAudit(true);
-    setShowProcessing(true);
-    setAuditDataReady(false);
     setActiveTab("findings");
+    setProcessingError(null);
+    completionToastShownRef.current = null;
     try {
-      // Record when user clicked "Run AI Audit" for turnaround tracking
       await supabase.from("audits").update({ audit_started_at: new Date().toISOString() }).eq("id", audit.id);
 
       const { error } = await supabase.functions.invoke("dynamic-processor", {
@@ -288,41 +389,15 @@ export default function AuditDetail() {
       });
       if (error) throw error;
 
-      // Re-fetch audit data so findings are in state
-      await fetchAudit();
-
-      // Auto-resolve RFIs based on new findings
-      const { data: freshAudit } = await supabase.from("audits").select("ai_findings").eq("id", audit.id).single();
-      if (freshAudit) {
-        const { findings } = parseFindings(freshAudit.ai_findings);
-        await autoResolveRfis(findings);
-      }
-      await fetchCounts();
-
-      // Auto-complete if zero open RFIs after audit
-      const { count: openAfter } = await supabase
-        .from("rfis")
-        .select("id", { count: "exact", head: true })
-        .eq("audit_id", audit.id)
-        .eq("status", "open");
-      if ((openAfter ?? 0) === 0) {
-        await supabase.from("audits").update({ status: "complete", updated_at: new Date().toISOString() }).eq("id", audit.id);
-        await fetchAudit();
-        toast({ title: "Audit marked as complete — all items resolved" });
-      } else {
-        toast({ title: "AI Audit Complete", description: "Findings have been generated successfully." });
-      }
-
-      // Signal animation that data is ready — animation will fade out then set showProcessing=false
-      setAuditDataReady(true);
+      // Edge function returns immediately; start polling
+      startPolling(audit.id);
     } catch (err: any) {
       console.error("AI Audit error:", err);
-      // Stop animation immediately on error
-      setShowProcessing(false);
-      setAuditDataReady(false);
-      toast({ title: "AI audit failed — please try again", description: err.message || "Something went wrong.", variant: "destructive" });
-    } finally {
+      setIsProcessing(false);
       setRunningAudit(false);
+      toast({ title: "AI audit failed — please try again", description: err.message || "Something went wrong.", variant: "destructive" });
+    }
+  };
     }
   };
 
