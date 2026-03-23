@@ -13,7 +13,9 @@ import { DocumentsTab } from "@/components/DocumentsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
 import { generateAuditPdf } from "@/lib/generateAuditPdf";
+import { generateTextPdf } from "@/lib/generateTextPdf";
 import { toast } from "@/hooks/use-toast";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Audit = Tables<"audits">;
