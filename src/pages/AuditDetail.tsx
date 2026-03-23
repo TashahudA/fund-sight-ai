@@ -563,15 +563,40 @@ export default function AuditDetail() {
 
         {/* Findings Tab */}
         <TabsContent value="findings" className="space-y-4">
-          {showProcessing && (
-            <AiProcessingAnimation
-              active={showProcessing}
-              dataReady={auditDataReady}
-              onComplete={() => setShowProcessing(false)}
-            />
+          {/* Processing progress card */}
+          {isProcessing && (
+            <div className="rounded-lg border border-border bg-background p-6 space-y-3">
+              {showCompleteBanner ? (
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-status-pass" />
+                  <span className="text-sm font-medium text-status-pass">Analysis complete</span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin text-foreground" />
+                    <span className="text-sm font-medium">AI audit in progress…</span>
+                  </div>
+                  {processingProgress && (
+                    <p className="text-sm text-muted-foreground pl-8">{processingProgress}</p>
+                  )}
+                </>
+              )}
+            </div>
           )}
 
-          {!showProcessing && !runningAudit && aiFindings.length === 0 ? (
+          {/* Error state */}
+          {processingError && !isProcessing && (
+            <div className="rounded-lg border border-status-fail/30 bg-status-fail/5 p-6">
+              <div className="flex items-center gap-3">
+                <XCircle className="h-5 w-5 text-status-fail" />
+                <span className="text-sm font-medium text-status-fail">{processingError}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Empty state — only when NOT processing and no findings */}
+          {!isProcessing && !processingError && !runningAudit && aiFindings.length === 0 ? (
             <div className="rounded-lg border border-border bg-background p-8 text-center">
               <Info className="h-8 w-8 text-border mx-auto mb-3" />
               <h3 className="text-base font-semibold">No AI Findings Yet</h3>
@@ -584,14 +609,10 @@ export default function AuditDetail() {
                 onClick={handleRunAudit}
                 disabled={runningAudit}
               >
-                {runningAudit ? (
-                  <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Running Audit...</>
-                ) : (
-                  <><Play className="h-4 w-4 mr-1.5" />Run AI Audit</>
-                )}
+                <Play className="h-4 w-4 mr-1.5" />Run AI Audit
               </Button>
             </div>
-          ) : !showProcessing && !runningAudit && aiFindings.length > 0 ? (
+          ) : !isProcessing && !processingError && aiFindings.length > 0 ? (
             <>
               {/* Opinion Banner */}
               <div className={`flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>
