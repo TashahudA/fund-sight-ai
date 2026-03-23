@@ -565,7 +565,28 @@ export default function AuditDetail() {
                   <><Play className="h-4 w-4 mr-1.5" />Run AI Audit</>
                 )}
               </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadPdf}><Download className="h-4 w-4 mr-1.5" />Download</Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={!!downloading || !audit.ai_findings}>
+                    {downloading ? (
+                      <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Generating…</>
+                    ) : (
+                      <><Download className="h-4 w-4 mr-1.5" />Download<ChevronDown className="h-3 w-3 ml-1" /></>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleDownloadFromEdge("generate_audit_report")} disabled={!!downloading}>
+                    Download Audit Report PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDownloadFromEdge("generate_management_letter")} disabled={!!downloading}>
+                    Download Management Letter PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDownloadFindings} disabled={!!downloading}>
+                    Download Findings Summary PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Status dropdown */}
               <Select
