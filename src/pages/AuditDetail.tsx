@@ -124,6 +124,8 @@ export default function AuditDetail() {
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingStartRef = useRef<number>(0);
   const completionToastShownRef = useRef<string | null>(null);
+  const [activeTab, setActiveTab] = useState("findings");
+  const [rfiCount, setRfiCount] = useState(0);
   const [docCount, setDocCount] = useState(0);
 
   const fetchAudit = useCallback(async () => {
