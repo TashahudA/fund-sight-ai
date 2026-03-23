@@ -283,29 +283,25 @@ export default function AuditDetail() {
     await fetchAudit();
 
     // Auto-resolve RFIs based on new findings
-    const { data: freshAudit } = await supabase.from("audits").select("ai_findings, opinion").eq("id", auditId).single();
+    const { data: freshAudit } = await supabase.from("audits").select("ai_findings, opinion, status").eq("id", auditId).single();
     if (freshAudit) {
       const { findings } = parseFindings(freshAudit.ai_findings);
       await autoResolveRfis(findings);
     }
     await fetchCounts();
+    // Re-fetch to pick up any RFI auto-resolve changes
+    await fetchAudit();
 
-    // Auto-complete if zero open RFIs after audit
-    const { count: openAfter } = await supabase
-      .from("rfis")
-      .select("id", { count: "exact", head: true })
-      .eq("audit_id", auditId)
-      .eq("status", "open");
-
+    // Show opinion toast — do NOT override the status from the DB.
+    // The edge function already set the correct status (complete or in_progress).
     if (completionToastShownRef.current !== auditId) {
       completionToastShownRef.current = auditId;
-      if ((openAfter ?? 0) === 0) {
-        await supabase.from("audits").update({ status: "complete", updated_at: new Date().toISOString() }).eq("id", auditId);
-        await fetchAudit();
+      const opinion = freshAudit?.opinion || "Pending";
+      const dbStatus = freshAudit?.status || "in_progress";
+      if (dbStatus === "complete") {
         toast({ title: "Audit marked as complete — all items resolved" });
       } else {
-        const opinion = freshAudit?.opinion || "Pending";
-        toast({ title: "Audit complete", description: `Opinion: ${opinion}` });
+        toast({ title: "AI analysis complete", description: `Opinion: ${opinion}` });
       }
     }
   }, [fetchAudit, fetchCounts, autoResolveRfis, parseFindings]);
@@ -344,8 +340,8 @@ export default function AuditDetail() {
         return;
       }
 
-      const done = (data.status === "in_progress" || data.status === "in progress" || data.status === "complete") && data.ai_findings !== null;
-      if (done) {
+      // The audit is done when status is anything other than "processing"
+      if (data.status !== "processing" && data.ai_findings !== null) {
         stopPolling();
         setShowCompleteBanner(true);
         setTimeout(async () => {
