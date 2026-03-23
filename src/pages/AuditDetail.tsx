@@ -509,7 +509,7 @@ export default function AuditDetail() {
                   <><Play className="h-4 w-4 mr-1.5" />Run AI Audit</>
                 )}
               </Button>
-              <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1.5" />Download</Button>
+              <Button variant="outline" size="sm" onClick={handleDownloadPdf}><Download className="h-4 w-4 mr-1.5" />Download</Button>
 
               {/* Status dropdown */}
               <Select
