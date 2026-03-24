@@ -198,23 +198,7 @@ export default function AuditDetail() {
 
   useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); }, [fetchAudit, fetchCounts, fetchNotes]);
 
-  // Auto-trigger AI audit on page load if documents exist but no findings yet
-  const [autoTriggered, setAutoTriggered] = useState(false);
-  useEffect(() => {
-    if (!audit || autoTriggered || runningAudit) return;
-    if (audit.ai_findings) return;
-    const checkAndRun = async () => {
-      const { count } = await supabase
-        .from("documents")
-        .select("id", { count: "exact", head: true })
-        .eq("audit_id", audit.id);
-      if (count && count > 0) {
-        setAutoTriggered(true);
-        handleRunAudit();
-      }
-    };
-    checkAndRun();
-  }, [audit, autoTriggered, runningAudit]);
+
 
   const parseFindings = (raw: any): { findings: AiFinding[]; envelope: AiFindingsEnvelope } => {
     if (!raw) return { findings: [], envelope: {} };
@@ -683,7 +667,7 @@ ${rfis.length > 0 ? `<ul>${rfiItems}</ul>` : "<p>No RFIs.</p>"}
                 </SelectContent>
               </Select>
             </div>
-            <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
+            <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); }} runningAudit={runningAudit} />
           </div>
         </div>
       </div>
