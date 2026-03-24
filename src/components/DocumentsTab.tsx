@@ -195,10 +195,13 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   {doc.file_url && (
-                    <Button variant="ghost" size="sm" asChild>
-                      <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                        <Download className="h-3.5 w-3.5" />
-                      </a>
+                    <Button variant="ghost" size="sm" onClick={async () => {
+                      const { data } = await supabase.storage
+                        .from("audit-documents")
+                        .createSignedUrl(doc.file_url!, 3600);
+                      if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                    }}>
+                      <Download className="h-3.5 w-3.5" />
                     </Button>
                   )}
                   <Button
