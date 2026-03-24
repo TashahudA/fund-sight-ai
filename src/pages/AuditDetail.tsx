@@ -647,11 +647,8 @@ ${rfis.length > 0 ? `<ul>${rfiItems}</ul>` : "<p>No RFIs.</p>"}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleDownloadFromEdge("generate_audit_report")} disabled={!!downloading}>
-                    Download Audit Report PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleDownloadFromEdge("generate_management_letter")} disabled={!!downloading}>
-                    Download Management Letter PDF
+                  <DropdownMenuItem onClick={handleOpenHtmlReport} disabled={!!downloading}>
+                    View Report (Print / Save as PDF)
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleDownloadFindings} disabled={!!downloading}>
                     Download Findings Summary PDF
