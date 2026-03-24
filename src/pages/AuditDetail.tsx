@@ -365,13 +365,24 @@ export default function AuditDetail() {
   // Cleanup polling on unmount
   useEffect(() => () => stopPolling(), [stopPolling]);
 
-  // Resume polling if user navigates back while processing
+  // Resume polling if user navigates back while processing, or clear stale processing state on mount
   useEffect(() => {
-    if (!audit || isProcessing || runningAudit) return;
+    if (!audit) return;
     if (audit.status === "processing") {
-      setRunningAudit(true);
-      completionToastShownRef.current = null;
-      startPolling(audit.id);
+      if (!isProcessing && !runningAudit) {
+        setRunningAudit(true);
+        completionToastShownRef.current = null;
+        startPolling(audit.id);
+      }
+    } else {
+      // Status is not "processing" — ensure we're not showing the progress indicator
+      if (isProcessing || runningAudit) {
+        stopPolling();
+        setIsProcessing(false);
+        setRunningAudit(false);
+        setProcessingProgress(null);
+        setShowCompleteBanner(false);
+      }
     }
   }, [audit?.id, audit?.status]);
 
