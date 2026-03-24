@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
     return await handleFullAudit(supabase, anthropicKey, audit_id);
   } catch (err: any) {
     console.error("dynamic-processor error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: "An internal error occurred" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
