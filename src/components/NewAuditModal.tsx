@@ -95,15 +95,11 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
             .upload(filePath, file, { upsert: true });
           if (storageError) throw storageError;
 
-          const { data: urlData } = supabase.storage
-            .from("audit-documents")
-            .getPublicUrl(filePath);
-
           const { error: dbError } = await supabase.from("documents").insert({
             audit_id: auditId,
             file_name: safeName,
             file_type: file.type || file.name.split(".").pop() || "unknown",
-            file_url: urlData.publicUrl,
+            file_url: filePath,
             file_size: file.size,
           });
           if (dbError) throw dbError;
