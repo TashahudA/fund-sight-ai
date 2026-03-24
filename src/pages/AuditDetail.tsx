@@ -345,7 +345,7 @@ export default function AuditDetail() {
       }
 
       // The audit is done when status is anything other than "processing"
-      if (data.status !== "processing" && data.ai_findings !== null) {
+      if (data.status !== "processing") {
         stopPolling();
         setShowCompleteBanner(true);
         setTimeout(async () => {
