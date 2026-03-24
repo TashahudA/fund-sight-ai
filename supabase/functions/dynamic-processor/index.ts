@@ -53,6 +53,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Verify rfi_id belongs to the audit_id for RFI modes
+    if (mode === "rfi_review" || mode === "rfi_chat") {
+      const { data: rfiCheck, error: rfiErr } = await supabase
+        .from("rfis")
+        .select("id")
+        .eq("id", rfi_id)
+        .eq("audit_id", audit_id)
+        .single();
+      if (rfiErr || !rfiCheck) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     if (mode === "rfi_review") {
       return await handleRfiReview(supabase, anthropicKey, audit_id, rfi_id, new_document_name);
     }
