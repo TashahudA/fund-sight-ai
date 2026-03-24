@@ -656,10 +656,13 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleOpenHtmlReport} disabled={!!downloading}>
-                    View Report (Print / Save as PDF)
+                  <DropdownMenuItem onClick={handleDownloadAuditReport} disabled={!!downloading}>
+                    Download Audit Report PDF
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDownloadFindings} disabled={!!downloading}>
+                  <DropdownMenuItem onClick={handleDownloadManagementLetter} disabled={!!downloading}>
+                    Download Management Letter PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDownloadFindingsSummary} disabled={!!downloading}>
                     Download Findings Summary PDF
                   </DropdownMenuItem>
                 </DropdownMenuContent>
