@@ -683,7 +683,7 @@ ${rfis.length > 0 ? `<ul>${rfiItems}</ul>` : "<p>No RFIs.</p>"}
                 </SelectContent>
               </Select>
             </div>
-            <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); await handleRunAudit(); }} runningAudit={runningAudit} />
+            <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); }} runningAudit={runningAudit} />
           </div>
         </div>
       </div>
