@@ -383,7 +383,7 @@ export default function AuditDetail() {
         .eq("id", audit.id);
 
       // Call the edge function
-      const { error } = await supabase.functions.invoke("run-audit", {
+const { error } = await supabase.functions.invoke("dynamic-processor", {
         body: { audit_id: audit.id },
       });
       if (error) throw error;
