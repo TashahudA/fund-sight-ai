@@ -388,7 +388,7 @@ export default function AuditDetail() {
       });
       if (error) throw error;
 
-      await refetch();
+      await fetchAudit();
     } catch (err) {
       console.error("Failed to start audit:", err);
       toast({
