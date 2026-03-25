@@ -388,8 +388,7 @@ export default function AuditDetail() {
       });
       if (error) throw error;
 
-      // Refresh audit data to pick up "processing" status
-      await fetchAudit();
+      await refetch();
     } catch (err) {
       console.error("Failed to start audit:", err);
       toast({
