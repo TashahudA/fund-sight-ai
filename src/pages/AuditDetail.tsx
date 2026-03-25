@@ -371,26 +371,33 @@ export default function AuditDetail() {
   }, [audit?.id, audit?.status]);
 
   const handleRunAudit = async () => {
-    if (!audit) return;
-    setRunningAudit(true);
-    setActiveTab("findings");
-    setProcessingError(null);
-    completionToastShownRef.current = null;
-    try {
-      await supabase.from("audits").update({ audit_started_at: new Date().toISOString() }).eq("id", audit.id);
+    if (!audit || runningAudit) return;
 
-      const { error } = await supabase.functions.invoke("dynamic-processor", {
+    setRunningAudit(true);
+
+    try {
+      // Set status to processing immediately in DB
+      await supabase
+        .from("audits")
+        .update({ status: "processing" })
+        .eq("id", audit.id);
+
+      // Call the edge function
+      const { error } = await supabase.functions.invoke("run-audit", {
         body: { audit_id: audit.id },
       });
       if (error) throw error;
 
-      // Edge function returns immediately; start polling
-      startPolling(audit.id);
-    } catch (err: any) {
-      console.error("AI Audit error:", err);
-      setIsProcessing(false);
+      // Refresh audit data to pick up "processing" status
+      await fetchAudit();
+    } catch (err) {
+      console.error("Failed to start audit:", err);
+      toast({
+        title: "Failed to start audit",
+        description: "Please try again",
+        variant: "destructive",
+      });
       setRunningAudit(false);
-      toast({ title: "AI audit failed — please try again", description: err.message || "Something went wrong.", variant: "destructive" });
     }
   };
 
