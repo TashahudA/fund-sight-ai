@@ -12,6 +12,7 @@ import { RFITab } from "@/components/RFITab";
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
+import { startAudit } from "@/lib/auditApi";
 
 
 import { toast } from "@/hooks/use-toast";
@@ -382,11 +383,8 @@ export default function AuditDetail() {
         .update({ status: "processing" })
         .eq("id", audit.id);
 
-      // Call the edge function
-const { error } = await supabase.functions.invoke("dynamic-processor", {
-        body: { audit_id: audit.id },
-      });
-      if (error) throw error;
+      // Call the Railway API
+      await startAudit(audit.id);
 
       await fetchAudit();
     } catch (err) {

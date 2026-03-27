@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
+import { sendRfiMessage, reviewRfiDocument } from "@/lib/auditApi";
 import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -125,15 +126,7 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
     // Trigger AI response
     setAiReviewing(true);
     try {
-      const { error: fnError } = await supabase.functions.invoke("dynamic-processor", {
-        body: {
-          audit_id: auditId,
-          mode: "rfi_chat",
-          rfi_id: selectedId,
-          message: messageText,
-        },
-      });
-      if (fnError) throw fnError;
+      await sendRfiMessage(auditId, selectedId, messageText);
       await Promise.all([fetchMessages(selectedId), fetchRfis()]);
       await checkAutoComplete();
     } catch (err: any) {
@@ -200,15 +193,7 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
       // Trigger AI review
       setAiReviewing(true);
       try {
-        const { data, error: fnError } = await supabase.functions.invoke("dynamic-processor", {
-          body: {
-            audit_id: auditId,
-            mode: "rfi_review",
-            rfi_id: selectedId,
-            new_document_name: safeNames.join(", "),
-          },
-        });
-        if (fnError) throw fnError;
+        await reviewRfiDocument(auditId, selectedId, safeNames.join(", "));
         await Promise.all([fetchMessages(selectedId), fetchRfis()]);
         await checkAutoComplete();
       } catch (err: any) {

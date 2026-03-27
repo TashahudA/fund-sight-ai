@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { sendRfiMessage } from "@/lib/auditApi";
 
 type TabFilter = "open" | "overdue" | "resolved" | "all";
 
@@ -137,15 +138,7 @@ export default function MyRFIs() {
     // Trigger AI response
     setAiReviewing(true);
     try {
-      const { error: fnError } = await supabase.functions.invoke("dynamic-processor", {
-        body: {
-          audit_id: selectedRfi.audit_id,
-          mode: "rfi_chat",
-          rfi_id: selectedId,
-          message: messageText,
-        },
-      });
-      if (fnError) throw fnError;
+      await sendRfiMessage(selectedRfi.audit_id, selectedId, messageText);
       await Promise.all([fetchMessages(selectedId), fetchRfis()]);
     } catch (err: any) {
       console.error("AI chat error:", err);
