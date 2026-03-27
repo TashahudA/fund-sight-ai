@@ -296,6 +296,7 @@ export default function AuditDetail() {
   }, [fetchAudit, fetchCounts, autoResolveRfis, parseFindings]);
 
   const startPolling = useCallback((auditId: string) => {
+    stopPolling();
     pollingStartRef.current = Date.now();
     setIsProcessing(true);
     setProcessingError(null);
@@ -386,6 +387,8 @@ export default function AuditDetail() {
       // Call the Railway API
       await startAudit(audit.id);
 
+      completionToastShownRef.current = null;
+      startPolling(audit.id);
       await fetchAudit();
     } catch (err) {
       console.error("Failed to start audit:", err);
