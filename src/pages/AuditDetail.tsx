@@ -296,6 +296,7 @@ export default function AuditDetail() {
   }, [fetchAudit, fetchCounts, autoResolveRfis, parseFindings]);
 
   const startPolling = useCallback((auditId: string) => {
+    stopPolling();
     pollingStartRef.current = Date.now();
     setIsProcessing(true);
     setProcessingError(null);
