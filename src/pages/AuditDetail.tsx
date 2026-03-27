@@ -12,6 +12,7 @@ import { RFITab } from "@/components/RFITab";
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
+import { startAudit } from "@/lib/auditApi";
 
 
 import { toast } from "@/hooks/use-toast";

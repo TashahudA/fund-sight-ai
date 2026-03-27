@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { sendRfiMessage } from "@/lib/auditApi";
 
 type TabFilter = "open" | "overdue" | "resolved" | "all";
 
