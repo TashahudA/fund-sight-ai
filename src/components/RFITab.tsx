@@ -192,15 +192,7 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
       // Trigger AI review
       setAiReviewing(true);
       try {
-        const { data, error: fnError } = await supabase.functions.invoke("dynamic-processor", {
-          body: {
-            audit_id: auditId,
-            mode: "rfi_review",
-            rfi_id: selectedId,
-            new_document_name: safeNames.join(", "),
-          },
-        });
-        if (fnError) throw fnError;
+        await reviewRfiDocument(auditId, selectedId, safeNames.join(", "));
         await Promise.all([fetchMessages(selectedId), fetchRfis()]);
         await checkAutoComplete();
       } catch (err: any) {

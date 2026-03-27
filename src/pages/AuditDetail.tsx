@@ -382,11 +382,8 @@ export default function AuditDetail() {
         .update({ status: "processing" })
         .eq("id", audit.id);
 
-      // Call the edge function
-const { error } = await supabase.functions.invoke("dynamic-processor", {
-        body: { audit_id: audit.id },
-      });
-      if (error) throw error;
+      // Call the Railway API
+      await startAudit(audit.id);
 
       await fetchAudit();
     } catch (err) {
