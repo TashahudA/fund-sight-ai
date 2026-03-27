@@ -387,6 +387,8 @@ export default function AuditDetail() {
       // Call the Railway API
       await startAudit(audit.id);
 
+      completionToastShownRef.current = null;
+      startPolling(audit.id);
       await fetchAudit();
     } catch (err) {
       console.error("Failed to start audit:", err);
