@@ -543,18 +543,12 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
   const handleConfirmComplete = async () => {
     if (!audit) return;
-    // Resolve all open RFIs
-    await supabase
-      .from("rfis")
-      .update({ status: "resolved" })
-      .eq("audit_id", audit.id)
-      .eq("status", "open");
-    // Update audit status
+    // Only update audit status — do NOT bulk-resolve RFIs from frontend
     await supabase.from("audits").update({ status: "complete" }).eq("id", audit.id);
     await Promise.all([fetchAudit(), fetchCounts()]);
     setCompleteConfirmOpen(false);
     setPendingStatus(null);
-    toast({ title: "Audit marked complete", description: "All open RFIs have been resolved." });
+    toast({ title: "Audit marked complete" });
   };
 
   const handleCancelComplete = () => {
