@@ -394,6 +394,21 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
                     </div>
                   </div>
                 )}
+                {resolutionSuggested === selectedId && selected.status !== "resolved" && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[85%] rounded-lg px-4 py-3 border border-status-flag/30 bg-status-flag/5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="h-4 w-4 text-status-flag" />
+                        <span className="text-sm font-medium">AI suggests this RFI may be resolved</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2">Review the uploaded document and click Confirm to close this RFI.</p>
+                      <Button size="sm" variant="outline" onClick={handleConfirmResolution} disabled={confirmingResolution}>
+                        {confirmingResolution ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />}
+                        Confirm Resolution
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="border-t border-border p-4 flex items-center gap-3" style={{ padding: "16px" }}>
@@ -429,7 +444,7 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
                   Send
                 </Button>
                 {selected.status !== "resolved" && (
-                  <Button variant="outline" className="h-10" onClick={handleResolve} disabled={resolving}>
+                  <Button variant="outline" className="h-10" onClick={() => handleResolve("auditor")} disabled={resolving}>
                     {resolving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle2 className="h-4 w-4 mr-1.5" />}
                     Resolve
                   </Button>

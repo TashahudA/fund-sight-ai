@@ -269,32 +269,18 @@ export default function AuditDetail() {
   }, []);
 
   const handleAuditComplete = useCallback(async (auditId: string) => {
-    // Re-fetch audit data so findings are in state
+    // Re-fetch audit and counts from DB — trust whatever the DB says
     await fetchAudit();
-
-    // Auto-resolve RFIs based on new findings
-    const { data: freshAudit } = await supabase.from("audits").select("ai_findings, opinion, status").eq("id", auditId).single();
-    if (freshAudit) {
-      const { findings } = parseFindings(freshAudit.ai_findings);
-      await autoResolveRfis(findings);
-    }
     await fetchCounts();
-    // Re-fetch to pick up any RFI auto-resolve changes
-    await fetchAudit();
 
-    // Show opinion toast — do NOT override the status from the DB.
-    // The edge function already set the correct status (complete or in_progress).
+    // Show toast only once per audit run
     if (completionToastShownRef.current !== auditId) {
       completionToastShownRef.current = auditId;
+      const { data: freshAudit } = await supabase.from("audits").select("opinion, status").eq("id", auditId).single();
       const opinion = freshAudit?.opinion || "Pending";
-      const dbStatus = freshAudit?.status || "in_progress";
-      if (dbStatus === "complete") {
-        toast({ title: "Audit marked as complete — all items resolved" });
-      } else {
-        toast({ title: "AI analysis complete", description: `Opinion: ${opinion}` });
-      }
+      toast({ title: "AI analysis complete", description: `Opinion: ${opinion}` });
     }
-  }, [fetchAudit, fetchCounts, autoResolveRfis, parseFindings]);
+  }, [fetchAudit, fetchCounts]);
 
   const startPolling = useCallback((auditId: string) => {
     stopPolling();
