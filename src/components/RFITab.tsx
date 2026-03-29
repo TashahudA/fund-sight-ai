@@ -76,18 +76,7 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
     onCountChange?.();
   };
 
-  const checkAutoComplete = async () => {
-    const { count } = await supabase
-      .from("rfis")
-      .select("id", { count: "exact", head: true })
-      .eq("audit_id", auditId)
-      .eq("status", "open");
-    if ((count ?? 0) === 0) {
-      await supabase.from("audits").update({ status: "complete", updated_at: new Date().toISOString() }).eq("id", auditId);
-      toast({ title: "Audit marked as complete — all items resolved" });
-      onAutoComplete?.();
-    }
-  };
+  // checkAutoComplete removed — audit status is DB-driven only
 
   useEffect(() => { fetchRfis(); }, [auditId]);
 
