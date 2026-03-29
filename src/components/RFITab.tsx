@@ -119,7 +119,6 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
     try {
       await sendRfiMessage(auditId, selectedId, messageText);
       await Promise.all([fetchMessages(selectedId), fetchRfis()]);
-      await checkAutoComplete();
     } catch (err: any) {
       console.error("AI chat error:", err);
       toast({ title: "AI response failed", description: err.message, variant: "destructive" });
