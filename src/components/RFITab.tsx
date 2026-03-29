@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Search, Plus, Paperclip, Send, CheckCircle2, Loader2, MessageSquare, FileText, Bot } from "lucide-react";
+import { Search, Plus, Paperclip, Send, CheckCircle2, Loader2, MessageSquare, FileText, Bot, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
