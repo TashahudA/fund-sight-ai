@@ -1,31 +1,41 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown } from "lucide-react";
+import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RFITab } from "@/components/RFITab";
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
 import { startAudit } from "@/lib/auditApi";
-
-
 import { toast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Audit = Tables<"audits">;
 
+type FindingStatus = "pass" | "pass_with_review" | "needs_info" | "fail" | "refer_to_auditor";
+
+interface JudgmentFlag {
+  reason: string;
+  suggested_action: string;
+  risk_if_missed: string;
+}
+
 interface AiFinding {
   area: string;
-  status: "pass" | "fail" | "needs_info" | "Pass" | "Fail" | "Flag";
+  status: string;
   detail: string;
   reference: string;
+  confidence?: "high" | "medium" | "low";
+  judgment_flag?: JudgmentFlag | null;
+  remediated?: boolean;
 }
 
 interface AiFindingsEnvelope {
@@ -34,34 +44,45 @@ interface AiFindingsEnvelope {
   opinion?: string;
   opinion_reasoning?: string;
   summary?: string;
+  auditor_review_summary?: string;
+  other_matters?: string[];
+  emphasis_of_matter?: string[];
 }
 
-const normalizeStatus = (s: string): "pass" | "fail" | "needs_info" => {
+const normalizeStatus = (s: string): FindingStatus => {
   const lower = s.toLowerCase();
   if (lower === "pass") return "pass";
+  if (lower === "pass_with_review") return "pass_with_review";
   if (lower === "fail") return "fail";
+  if (lower === "refer_to_auditor") return "refer_to_auditor";
   return "needs_info";
 };
 
 const findingIcon = (s: string) => {
   const n = normalizeStatus(s);
   if (n === "pass") return <CheckCircle2 className="h-4 w-4 text-status-pass" />;
+  if (n === "pass_with_review") return <Eye className="h-4 w-4 text-status-flag" />;
   if (n === "fail") return <XCircle className="h-4 w-4 text-status-fail" />;
-  return <AlertTriangle className="h-4 w-4 text-status-flag" />;
+  if (n === "refer_to_auditor") return <CircleDot className="h-4 w-4 text-status-fail" />;
+  return <Info className="h-4 w-4 text-status-new" />;
 };
 
-const findingBadgeVariant = (s: string): "pass" | "fail" | "flag" => {
+const findingBadgeVariant = (s: string): "pass" | "fail" | "flag" | "new" | "refer" => {
   const n = normalizeStatus(s);
   if (n === "pass") return "pass";
+  if (n === "pass_with_review") return "flag";
   if (n === "fail") return "fail";
-  return "flag";
+  if (n === "refer_to_auditor") return "refer";
+  return "new";
 };
 
 const findingLabel = (s: string) => {
   const n = normalizeStatus(s);
   if (n === "pass") return "Pass";
-  if (n === "fail") return "Fail";
-  return "Needs Info";
+  if (n === "pass_with_review") return "Auditor Review";
+  if (n === "fail") return "Contravention";
+  if (n === "refer_to_auditor") return "Auditor Decision Required";
+  return "Info Required";
 };
 
 const statusVariant = (s: string | null) => {
@@ -78,11 +99,20 @@ const statusLabel = (s: string | null) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
-const findingLeftBorder = (s: string) => {
+const findingLeftBorder = (s: string, remediated?: boolean) => {
+  if (remediated) return "border-l-[3px] border-l-muted-foreground/30";
   const n = normalizeStatus(s);
   if (n === "pass") return "border-l-[3px] border-l-status-pass";
-  if (n === "fail") return "border-l-[3px] border-l-status-fail";
-  return "border-l-[3px] border-l-status-flag";
+  if (n === "pass_with_review") return "border-l-[3px] border-l-status-flag";
+  if (n === "fail" || n === "refer_to_auditor") return "border-l-[3px] border-l-status-fail";
+  return "border-l-[3px] border-l-status-new";
+};
+
+const confidenceDot = (c?: "high" | "medium" | "low") => {
+  if (!c) return null;
+  const color = c === "high" ? "bg-status-pass" : c === "medium" ? "bg-status-flag" : "bg-status-fail";
+  const label = c.charAt(0).toUpperCase() + c.slice(1);
+  return <span title={`${label} confidence`} className={`inline-block h-2 w-2 rounded-full ${color}`} />;
 };
 
 const opinionLeftBorder = (opinion: string | null) => {
@@ -223,6 +253,10 @@ export default function AuditDetail() {
   const { findings: aiFindings, envelope } = parseFindings(audit?.ai_findings);
 
   const passCount = aiFindings.filter(f => normalizeStatus(f.status) === "pass").length;
+  const reviewCount = aiFindings.filter(f => {
+    const n = normalizeStatus(f.status);
+    return n === "pass_with_review" || n === "refer_to_auditor";
+  }).length;
   const flagCount = aiFindings.filter(f => normalizeStatus(f.status) !== "pass").length;
 
   const autoResolveRfis = async (newFindings: AiFinding[]) => {
@@ -775,6 +809,20 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
             </div>
           ) : !isProcessing && !processingError && aiFindings.length > 0 ? (
             <>
+              {/* Auditor Review Summary */}
+              {envelope.auditor_review_summary && (
+                <div className="rounded-lg border border-status-flag-border bg-status-flag-bg p-4 flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-status-flag shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-status-flag">Items Requiring Auditor Review</p>
+                    <p className="text-sm text-foreground mt-1">{envelope.auditor_review_summary}</p>
+                    {reviewCount > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">{reviewCount} finding{reviewCount !== 1 ? "s" : ""} require auditor attention</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Opinion Banner */}
               <div className={`flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>
                 {opinionIcon(envelope.opinion || audit.opinion)}
@@ -795,21 +843,69 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                {aiFindings.map((f, i) => (
-                  <div key={`${f.area}-${i}`} className={`rounded-lg border border-border bg-background p-4 space-y-2 ${findingLeftBorder(f.status)}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {findingIcon(f.status)}
-                        <span className="font-semibold text-sm">{f.area}</span>
-                      </div>
-                      <Badge variant={findingBadgeVariant(f.status)}>{findingLabel(f.status)}</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{f.detail}</p>
-                    <p className="text-xs text-muted-foreground">{f.reference}</p>
+              {/* Emphasis of Matter */}
+              {envelope.emphasis_of_matter && envelope.emphasis_of_matter.length > 0 && (
+                <div className="rounded-lg border border-border bg-secondary/50 p-4 space-y-2">
+                  <p className="text-sm font-semibold flex items-center gap-2">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                    Emphasis of Matter
+                  </p>
+                  <div className="space-y-1.5 pl-6">
+                    {envelope.emphasis_of_matter.map((item, i) => (
+                      <p key={i} className="text-sm text-muted-foreground leading-relaxed">{item}</p>
+                    ))}
                   </div>
-                ))}
+                </div>
+              )}
+
+              {/* Compliance Findings Grid */}
+              <div className="grid gap-4 md:grid-cols-2">
+                {aiFindings.map((f, i) => {
+                  const isRemediated = f.remediated === true && normalizeStatus(f.status) === "fail";
+                  return (
+                    <div key={`${f.area}-${i}`} className={`rounded-lg border border-border bg-background p-4 space-y-2 ${findingLeftBorder(f.status, isRemediated)} ${isRemediated ? "opacity-60" : ""}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {findingIcon(f.status)}
+                          <span className={`font-semibold text-sm ${isRemediated ? "line-through" : ""}`}>{f.area}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {confidenceDot(f.confidence)}
+                          <Badge variant={findingBadgeVariant(f.status)}>{findingLabel(f.status)}</Badge>
+                          {isRemediated && <Badge variant="secondary">Remediated</Badge>}
+                        </div>
+                      </div>
+                      <p className={`text-sm text-muted-foreground leading-relaxed ${isRemediated ? "line-through" : ""}`}>{f.detail}</p>
+                      <p className="text-xs text-muted-foreground">{f.reference}</p>
+                      {f.judgment_flag && (
+                        <Collapsible>
+                          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium text-status-flag hover:underline cursor-pointer pt-1">
+                            <ChevronRight className="h-3 w-3 transition-transform [[data-state=open]>&]:rotate-90" />
+                            Auditor Notes
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="pt-2 space-y-1.5 pl-4 border-l-2 border-status-flag-border ml-1">
+                            <p className="text-xs"><span className="font-medium text-foreground">Reason:</span> <span className="text-muted-foreground">{f.judgment_flag.reason}</span></p>
+                            <p className="text-xs"><span className="font-medium text-foreground">Suggested Action:</span> <span className="text-muted-foreground">{f.judgment_flag.suggested_action}</span></p>
+                            <p className="text-xs"><span className="font-medium text-foreground">Risk if Missed:</span> <span className="text-status-fail">{f.judgment_flag.risk_if_missed}</span></p>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
+
+              {/* Other Matters */}
+              {envelope.other_matters && envelope.other_matters.length > 0 && (
+                <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2">
+                  <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
+                  <div className="space-y-1.5">
+                    {envelope.other_matters.map((item, i) => (
+                      <p key={i} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           ) : null}
         </TabsContent>
