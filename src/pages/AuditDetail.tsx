@@ -1,31 +1,41 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown } from "lucide-react";
+import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RFITab } from "@/components/RFITab";
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
 import { startAudit } from "@/lib/auditApi";
-
-
 import { toast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Audit = Tables<"audits">;
 
+type FindingStatus = "pass" | "pass_with_review" | "needs_info" | "fail" | "refer_to_auditor";
+
+interface JudgmentFlag {
+  reason: string;
+  suggested_action: string;
+  risk_if_missed: string;
+}
+
 interface AiFinding {
   area: string;
-  status: "pass" | "fail" | "needs_info" | "Pass" | "Fail" | "Flag";
+  status: string;
   detail: string;
   reference: string;
+  confidence?: "high" | "medium" | "low";
+  judgment_flag?: JudgmentFlag | null;
+  remediated?: boolean;
 }
 
 interface AiFindingsEnvelope {
@@ -34,34 +44,45 @@ interface AiFindingsEnvelope {
   opinion?: string;
   opinion_reasoning?: string;
   summary?: string;
+  auditor_review_summary?: string;
+  other_matters?: string[];
+  emphasis_of_matter?: string[];
 }
 
-const normalizeStatus = (s: string): "pass" | "fail" | "needs_info" => {
+const normalizeStatus = (s: string): FindingStatus => {
   const lower = s.toLowerCase();
   if (lower === "pass") return "pass";
+  if (lower === "pass_with_review") return "pass_with_review";
   if (lower === "fail") return "fail";
+  if (lower === "refer_to_auditor") return "refer_to_auditor";
   return "needs_info";
 };
 
 const findingIcon = (s: string) => {
   const n = normalizeStatus(s);
   if (n === "pass") return <CheckCircle2 className="h-4 w-4 text-status-pass" />;
+  if (n === "pass_with_review") return <Eye className="h-4 w-4 text-status-flag" />;
   if (n === "fail") return <XCircle className="h-4 w-4 text-status-fail" />;
-  return <AlertTriangle className="h-4 w-4 text-status-flag" />;
+  if (n === "refer_to_auditor") return <CircleDot className="h-4 w-4 text-status-fail" />;
+  return <Info className="h-4 w-4 text-status-new" />;
 };
 
-const findingBadgeVariant = (s: string): "pass" | "fail" | "flag" => {
+const findingBadgeVariant = (s: string): "pass" | "fail" | "flag" | "new" | "refer" => {
   const n = normalizeStatus(s);
   if (n === "pass") return "pass";
+  if (n === "pass_with_review") return "flag";
   if (n === "fail") return "fail";
-  return "flag";
+  if (n === "refer_to_auditor") return "refer";
+  return "new";
 };
 
 const findingLabel = (s: string) => {
   const n = normalizeStatus(s);
   if (n === "pass") return "Pass";
-  if (n === "fail") return "Fail";
-  return "Needs Info";
+  if (n === "pass_with_review") return "Auditor Review";
+  if (n === "fail") return "Contravention";
+  if (n === "refer_to_auditor") return "Auditor Decision Required";
+  return "Info Required";
 };
 
 const statusVariant = (s: string | null) => {
@@ -78,11 +99,20 @@ const statusLabel = (s: string | null) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
-const findingLeftBorder = (s: string) => {
+const findingLeftBorder = (s: string, remediated?: boolean) => {
+  if (remediated) return "border-l-[3px] border-l-muted-foreground/30";
   const n = normalizeStatus(s);
   if (n === "pass") return "border-l-[3px] border-l-status-pass";
-  if (n === "fail") return "border-l-[3px] border-l-status-fail";
-  return "border-l-[3px] border-l-status-flag";
+  if (n === "pass_with_review") return "border-l-[3px] border-l-status-flag";
+  if (n === "fail" || n === "refer_to_auditor") return "border-l-[3px] border-l-status-fail";
+  return "border-l-[3px] border-l-status-new";
+};
+
+const confidenceDot = (c?: "high" | "medium" | "low") => {
+  if (!c) return null;
+  const color = c === "high" ? "bg-status-pass" : c === "medium" ? "bg-status-flag" : "bg-status-fail";
+  const label = c.charAt(0).toUpperCase() + c.slice(1);
+  return <span title={`${label} confidence`} className={`inline-block h-2 w-2 rounded-full ${color}`} />;
 };
 
 const opinionLeftBorder = (opinion: string | null) => {
