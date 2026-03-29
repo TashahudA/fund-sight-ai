@@ -127,21 +127,26 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
     }
   };
 
-  const handleResolve = async () => {
+  const handleResolve = async (resolvedBy: "auditor" | "trustee" = "auditor") => {
     if (!selectedId) return;
     setResolving(true);
-    const { error } = await supabase
-      .from("rfis")
-      .update({ status: "resolved" })
-      .eq("id", selectedId);
-    if (error) {
-      toast({ title: "Error resolving RFI", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await resolveRfi(auditId, selectedId, resolvedBy);
       toast({ title: "RFI resolved" });
+      setResolutionSuggested(null);
       await fetchRfis();
-      await checkAutoComplete();
+      onCountChange?.();
+    } catch (err: any) {
+      toast({ title: "Error resolving RFI", description: err.message, variant: "destructive" });
     }
     setResolving(false);
+  };
+
+  const handleConfirmResolution = async () => {
+    if (!resolutionSuggested) return;
+    setConfirmingResolution(true);
+    await handleResolve("trustee");
+    setConfirmingResolution(false);
   };
 
   const handleAttachFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
