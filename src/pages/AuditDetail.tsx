@@ -809,6 +809,20 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
             </div>
           ) : !isProcessing && !processingError && aiFindings.length > 0 ? (
             <>
+              {/* Auditor Review Summary */}
+              {envelope.auditor_review_summary && (
+                <div className="rounded-lg border border-status-flag-border bg-status-flag-bg p-4 flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-status-flag shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-status-flag">Items Requiring Auditor Review</p>
+                    <p className="text-sm text-foreground mt-1">{envelope.auditor_review_summary}</p>
+                    {reviewCount > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">{reviewCount} finding{reviewCount !== 1 ? "s" : ""} require auditor attention</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Opinion Banner */}
               <div className={`flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>
                 {opinionIcon(envelope.opinion || audit.opinion)}
@@ -829,21 +843,69 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                {aiFindings.map((f, i) => (
-                  <div key={`${f.area}-${i}`} className={`rounded-lg border border-border bg-background p-4 space-y-2 ${findingLeftBorder(f.status)}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {findingIcon(f.status)}
-                        <span className="font-semibold text-sm">{f.area}</span>
-                      </div>
-                      <Badge variant={findingBadgeVariant(f.status)}>{findingLabel(f.status)}</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{f.detail}</p>
-                    <p className="text-xs text-muted-foreground">{f.reference}</p>
+              {/* Emphasis of Matter */}
+              {envelope.emphasis_of_matter && envelope.emphasis_of_matter.length > 0 && (
+                <div className="rounded-lg border border-border bg-secondary/50 p-4 space-y-2">
+                  <p className="text-sm font-semibold flex items-center gap-2">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                    Emphasis of Matter
+                  </p>
+                  <div className="space-y-1.5 pl-6">
+                    {envelope.emphasis_of_matter.map((item, i) => (
+                      <p key={i} className="text-sm text-muted-foreground leading-relaxed">{item}</p>
+                    ))}
                   </div>
-                ))}
+                </div>
+              )}
+
+              {/* Compliance Findings Grid */}
+              <div className="grid gap-4 md:grid-cols-2">
+                {aiFindings.map((f, i) => {
+                  const isRemediated = f.remediated === true && normalizeStatus(f.status) === "fail";
+                  return (
+                    <div key={`${f.area}-${i}`} className={`rounded-lg border border-border bg-background p-4 space-y-2 ${findingLeftBorder(f.status, isRemediated)} ${isRemediated ? "opacity-60" : ""}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {findingIcon(f.status)}
+                          <span className={`font-semibold text-sm ${isRemediated ? "line-through" : ""}`}>{f.area}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {confidenceDot(f.confidence)}
+                          <Badge variant={findingBadgeVariant(f.status)}>{findingLabel(f.status)}</Badge>
+                          {isRemediated && <Badge variant="secondary">Remediated</Badge>}
+                        </div>
+                      </div>
+                      <p className={`text-sm text-muted-foreground leading-relaxed ${isRemediated ? "line-through" : ""}`}>{f.detail}</p>
+                      <p className="text-xs text-muted-foreground">{f.reference}</p>
+                      {f.judgment_flag && (
+                        <Collapsible>
+                          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium text-status-flag hover:underline cursor-pointer pt-1">
+                            <ChevronRight className="h-3 w-3 transition-transform [[data-state=open]>&]:rotate-90" />
+                            Auditor Notes
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="pt-2 space-y-1.5 pl-4 border-l-2 border-status-flag-border ml-1">
+                            <p className="text-xs"><span className="font-medium text-foreground">Reason:</span> <span className="text-muted-foreground">{f.judgment_flag.reason}</span></p>
+                            <p className="text-xs"><span className="font-medium text-foreground">Suggested Action:</span> <span className="text-muted-foreground">{f.judgment_flag.suggested_action}</span></p>
+                            <p className="text-xs"><span className="font-medium text-foreground">Risk if Missed:</span> <span className="text-status-fail">{f.judgment_flag.risk_if_missed}</span></p>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
+
+              {/* Other Matters */}
+              {envelope.other_matters && envelope.other_matters.length > 0 && (
+                <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2">
+                  <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
+                  <div className="space-y-1.5">
+                    {envelope.other_matters.map((item, i) => (
+                      <p key={i} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           ) : null}
         </TabsContent>
