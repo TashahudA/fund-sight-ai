@@ -20,6 +20,7 @@ const badgeVariants = cva(
         high: "border-status-fail-border bg-status-fail-bg text-status-fail",
         medium: "border-status-flag-border bg-status-flag-bg text-status-flag",
         low: "border-status-new-border bg-status-new-bg text-status-new",
+        refer: "border-status-fail-border bg-background text-status-fail",
       },
     },
     defaultVariants: {
