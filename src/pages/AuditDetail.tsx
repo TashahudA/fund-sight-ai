@@ -253,6 +253,10 @@ export default function AuditDetail() {
   const { findings: aiFindings, envelope } = parseFindings(audit?.ai_findings);
 
   const passCount = aiFindings.filter(f => normalizeStatus(f.status) === "pass").length;
+  const reviewCount = aiFindings.filter(f => {
+    const n = normalizeStatus(f.status);
+    return n === "pass_with_review" || n === "refer_to_auditor";
+  }).length;
   const flagCount = aiFindings.filter(f => normalizeStatus(f.status) !== "pass").length;
 
   const autoResolveRfis = async (newFindings: AiFinding[]) => {
