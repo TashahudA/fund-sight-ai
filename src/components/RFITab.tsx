@@ -94,6 +94,7 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
   useEffect(() => {
     if (selectedId) fetchMessages(selectedId);
     else setMessages([]);
+    setResolutionSuggested(null);
   }, [selectedId]);
 
   const handleSendMessage = async () => {
