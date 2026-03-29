@@ -188,9 +188,12 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
       // Trigger AI review
       setAiReviewing(true);
       try {
-        await reviewRfiDocument(auditId, selectedId, safeNames.join(", "));
+        const result = await reviewRfiDocument(auditId, selectedId, safeNames.join(", "));
         await Promise.all([fetchMessages(selectedId), fetchRfis()]);
-        await checkAutoComplete();
+        // Check if AI suggests resolution
+        if (result?.resolution_suggested && result?.requires_auditor_confirmation) {
+          setResolutionSuggested(selectedId);
+        }
       } catch (err: any) {
         console.error("AI review error:", err);
         toast({ title: "AI review failed", description: err.message, variant: "destructive" });
