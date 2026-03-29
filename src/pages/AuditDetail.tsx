@@ -259,40 +259,7 @@ export default function AuditDetail() {
   }).length;
   const flagCount = aiFindings.filter(f => normalizeStatus(f.status) !== "pass").length;
 
-  const autoResolveRfis = async (newFindings: AiFinding[]) => {
-    if (!id || newFindings.length === 0) return;
-    const { data: openRfis } = await supabase
-      .from("rfis")
-      .select("id, category, title")
-      .eq("audit_id", id)
-      .eq("status", "open");
-    if (!openRfis || openRfis.length === 0) return;
-
-    const passAreas = new Set(
-      newFindings
-        .filter(f => normalizeStatus(f.status) === "pass")
-        .map(f => f.area.toLowerCase())
-    );
-
-    const toResolve = openRfis.filter(rfi => {
-      const cat = (rfi.category || "").toLowerCase();
-      const title = (rfi.title || "").toLowerCase();
-      return [...passAreas].some(area => cat.includes(area) || title.includes(area) || area.includes(cat) || area.includes(title));
-    });
-
-    for (const rfi of toResolve) {
-      await supabase.from("rfis").update({ status: "resolved" }).eq("id", rfi.id);
-      await supabase.from("rfi_messages").insert({
-        rfi_id: rfi.id,
-        message: "This RFI has been automatically resolved — the re-audit found the related compliance area now passes.",
-        sender: "claude",
-      });
-    }
-
-    if (toResolve.length > 0) {
-      toast({ title: `${toResolve.length} RFI(s) auto-resolved`, description: "New findings show these areas now pass." });
-    }
-  };
+  // autoResolveRfis removed — re-audit must never change RFI status from the frontend
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
