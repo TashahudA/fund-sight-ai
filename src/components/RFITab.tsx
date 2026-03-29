@@ -56,6 +56,8 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
   const [resolving, setResolving] = useState(false);
   const [attachUploading, setAttachUploading] = useState(false);
   const [aiReviewing, setAiReviewing] = useState(false);
+  const [resolutionSuggested, setResolutionSuggested] = useState<string | null>(null);
+  const [confirmingResolution, setConfirmingResolution] = useState(false);
   const attachInputRef = useRef<HTMLInputElement>(null);
 
   // New RFI form
