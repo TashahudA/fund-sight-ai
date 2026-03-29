@@ -24,3 +24,7 @@ export async function reviewRfiDocument(auditId: string, rfiId: string, document
 export async function sendRfiMessage(auditId: string, rfiId: string, message: string) {
   return callAuditApi({ audit_id: auditId, mode: "rfi_chat", rfi_id: rfiId, message });
 }
+
+export async function resolveRfi(auditId: string, rfiId: string, resolvedBy: "auditor" | "trustee") {
+  return callAuditApi({ audit_id: auditId, mode: "resolve_rfi", rfi_id: rfiId, resolved_by: resolvedBy });
+}

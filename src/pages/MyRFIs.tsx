@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { sendRfiMessage } from "@/lib/auditApi";
+import { sendRfiMessage, resolveRfi } from "@/lib/auditApi";
 
 type TabFilter = "open" | "overdue" | "resolved" | "all";
 
@@ -150,16 +150,15 @@ export default function MyRFIs() {
 
   const handleResolve = async () => {
     if (!selectedId) return;
+    const selectedRfi = rfis.find(r => r.id === selectedId);
+    if (!selectedRfi) return;
     setResolving(true);
-    const { error } = await supabase
-      .from("rfis")
-      .update({ status: "resolved" })
-      .eq("id", selectedId);
-    if (error) {
-      toast({ title: "Error resolving RFI", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await resolveRfi(selectedRfi.audit_id, selectedId, "auditor");
       toast({ title: "RFI resolved" });
       await fetchRfis();
+    } catch (err: any) {
+      toast({ title: "Error resolving RFI", description: err.message, variant: "destructive" });
     }
     setResolving(false);
   };

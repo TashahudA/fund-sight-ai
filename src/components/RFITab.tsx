@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Search, Plus, Paperclip, Send, CheckCircle2, Loader2, MessageSquare, FileText, Bot } from "lucide-react";
+import { Search, Plus, Paperclip, Send, CheckCircle2, Loader2, MessageSquare, FileText, Bot, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
-import { sendRfiMessage, reviewRfiDocument } from "@/lib/auditApi";
+import { sendRfiMessage, reviewRfiDocument, resolveRfi } from "@/lib/auditApi";
 import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -56,6 +56,8 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
   const [resolving, setResolving] = useState(false);
   const [attachUploading, setAttachUploading] = useState(false);
   const [aiReviewing, setAiReviewing] = useState(false);
+  const [resolutionSuggested, setResolutionSuggested] = useState<string | null>(null);
+  const [confirmingResolution, setConfirmingResolution] = useState(false);
   const attachInputRef = useRef<HTMLInputElement>(null);
 
   // New RFI form
@@ -74,18 +76,7 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
     onCountChange?.();
   };
 
-  const checkAutoComplete = async () => {
-    const { count } = await supabase
-      .from("rfis")
-      .select("id", { count: "exact", head: true })
-      .eq("audit_id", auditId)
-      .eq("status", "open");
-    if ((count ?? 0) === 0) {
-      await supabase.from("audits").update({ status: "complete", updated_at: new Date().toISOString() }).eq("id", auditId);
-      toast({ title: "Audit marked as complete — all items resolved" });
-      onAutoComplete?.();
-    }
-  };
+  // checkAutoComplete removed — audit status is DB-driven only
 
   useEffect(() => { fetchRfis(); }, [auditId]);
 
@@ -103,6 +94,7 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
   useEffect(() => {
     if (selectedId) fetchMessages(selectedId);
     else setMessages([]);
+    setResolutionSuggested(null);
   }, [selectedId]);
 
   const handleSendMessage = async () => {
@@ -128,7 +120,6 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
     try {
       await sendRfiMessage(auditId, selectedId, messageText);
       await Promise.all([fetchMessages(selectedId), fetchRfis()]);
-      await checkAutoComplete();
     } catch (err: any) {
       console.error("AI chat error:", err);
       toast({ title: "AI response failed", description: err.message, variant: "destructive" });
@@ -137,21 +128,26 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
     }
   };
 
-  const handleResolve = async () => {
+  const handleResolve = async (resolvedBy: "auditor" | "trustee" = "auditor") => {
     if (!selectedId) return;
     setResolving(true);
-    const { error } = await supabase
-      .from("rfis")
-      .update({ status: "resolved" })
-      .eq("id", selectedId);
-    if (error) {
-      toast({ title: "Error resolving RFI", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await resolveRfi(auditId, selectedId, resolvedBy);
       toast({ title: "RFI resolved" });
+      setResolutionSuggested(null);
       await fetchRfis();
-      await checkAutoComplete();
+      onCountChange?.();
+    } catch (err: any) {
+      toast({ title: "Error resolving RFI", description: err.message, variant: "destructive" });
     }
     setResolving(false);
+  };
+
+  const handleConfirmResolution = async () => {
+    if (!resolutionSuggested) return;
+    setConfirmingResolution(true);
+    await handleResolve("trustee");
+    setConfirmingResolution(false);
   };
 
   const handleAttachFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,9 +189,12 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
       // Trigger AI review
       setAiReviewing(true);
       try {
-        await reviewRfiDocument(auditId, selectedId, safeNames.join(", "));
+        const result = await reviewRfiDocument(auditId, selectedId, safeNames.join(", "));
         await Promise.all([fetchMessages(selectedId), fetchRfis()]);
-        await checkAutoComplete();
+        // Check if AI suggests resolution
+        if (result?.resolution_suggested && result?.requires_auditor_confirmation) {
+          setResolutionSuggested(selectedId);
+        }
       } catch (err: any) {
         console.error("AI review error:", err);
         toast({ title: "AI review failed", description: err.message, variant: "destructive" });
@@ -396,6 +395,21 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
                     </div>
                   </div>
                 )}
+                {resolutionSuggested === selectedId && selected.status !== "resolved" && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[85%] rounded-lg px-4 py-3 border border-status-flag/30 bg-status-flag/5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="h-4 w-4 text-status-flag" />
+                        <span className="text-sm font-medium">AI suggests this RFI may be resolved</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2">Review the uploaded document and click Confirm to close this RFI.</p>
+                      <Button size="sm" variant="outline" onClick={handleConfirmResolution} disabled={confirmingResolution}>
+                        {confirmingResolution ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />}
+                        Confirm Resolution
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="border-t border-border p-4 flex items-center gap-3" style={{ padding: "16px" }}>
@@ -431,7 +445,7 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
                   Send
                 </Button>
                 {selected.status !== "resolved" && (
-                  <Button variant="outline" className="h-10" onClick={handleResolve} disabled={resolving}>
+                  <Button variant="outline" className="h-10" onClick={() => handleResolve("auditor")} disabled={resolving}>
                     {resolving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle2 className="h-4 w-4 mr-1.5" />}
                     Resolve
                   </Button>

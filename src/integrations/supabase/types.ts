@@ -193,36 +193,48 @@ export type Database = {
       }
       rfis: {
         Row: {
+          ai_resolution_note: string | null
+          ai_resolution_suggested: boolean | null
           audit_id: string
           category: string | null
           created_at: string | null
           description: string | null
           id: string
           priority: string | null
+          resolved_at: string | null
+          resolved_by: string | null
           source: string | null
           status: string | null
           title: string
           updated_at: string | null
         }
         Insert: {
+          ai_resolution_note?: string | null
+          ai_resolution_suggested?: boolean | null
           audit_id: string
           category?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           priority?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           source?: string | null
           status?: string | null
           title: string
           updated_at?: string | null
         }
         Update: {
+          ai_resolution_note?: string | null
+          ai_resolution_suggested?: boolean | null
           audit_id?: string
           category?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           priority?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           source?: string | null
           status?: string | null
           title?: string

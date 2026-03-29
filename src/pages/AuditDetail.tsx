@@ -259,40 +259,7 @@ export default function AuditDetail() {
   }).length;
   const flagCount = aiFindings.filter(f => normalizeStatus(f.status) !== "pass").length;
 
-  const autoResolveRfis = async (newFindings: AiFinding[]) => {
-    if (!id || newFindings.length === 0) return;
-    const { data: openRfis } = await supabase
-      .from("rfis")
-      .select("id, category, title")
-      .eq("audit_id", id)
-      .eq("status", "open");
-    if (!openRfis || openRfis.length === 0) return;
-
-    const passAreas = new Set(
-      newFindings
-        .filter(f => normalizeStatus(f.status) === "pass")
-        .map(f => f.area.toLowerCase())
-    );
-
-    const toResolve = openRfis.filter(rfi => {
-      const cat = (rfi.category || "").toLowerCase();
-      const title = (rfi.title || "").toLowerCase();
-      return [...passAreas].some(area => cat.includes(area) || title.includes(area) || area.includes(cat) || area.includes(title));
-    });
-
-    for (const rfi of toResolve) {
-      await supabase.from("rfis").update({ status: "resolved" }).eq("id", rfi.id);
-      await supabase.from("rfi_messages").insert({
-        rfi_id: rfi.id,
-        message: "This RFI has been automatically resolved — the re-audit found the related compliance area now passes.",
-        sender: "claude",
-      });
-    }
-
-    if (toResolve.length > 0) {
-      toast({ title: `${toResolve.length} RFI(s) auto-resolved`, description: "New findings show these areas now pass." });
-    }
-  };
+  // autoResolveRfis removed — re-audit must never change RFI status from the frontend
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
@@ -302,32 +269,18 @@ export default function AuditDetail() {
   }, []);
 
   const handleAuditComplete = useCallback(async (auditId: string) => {
-    // Re-fetch audit data so findings are in state
+    // Re-fetch audit and counts from DB — trust whatever the DB says
     await fetchAudit();
-
-    // Auto-resolve RFIs based on new findings
-    const { data: freshAudit } = await supabase.from("audits").select("ai_findings, opinion, status").eq("id", auditId).single();
-    if (freshAudit) {
-      const { findings } = parseFindings(freshAudit.ai_findings);
-      await autoResolveRfis(findings);
-    }
     await fetchCounts();
-    // Re-fetch to pick up any RFI auto-resolve changes
-    await fetchAudit();
 
-    // Show opinion toast — do NOT override the status from the DB.
-    // The edge function already set the correct status (complete or in_progress).
+    // Show toast only once per audit run
     if (completionToastShownRef.current !== auditId) {
       completionToastShownRef.current = auditId;
+      const { data: freshAudit } = await supabase.from("audits").select("opinion, status").eq("id", auditId).single();
       const opinion = freshAudit?.opinion || "Pending";
-      const dbStatus = freshAudit?.status || "in_progress";
-      if (dbStatus === "complete") {
-        toast({ title: "Audit marked as complete — all items resolved" });
-      } else {
-        toast({ title: "AI analysis complete", description: `Opinion: ${opinion}` });
-      }
+      toast({ title: "AI analysis complete", description: `Opinion: ${opinion}` });
     }
-  }, [fetchAudit, fetchCounts, autoResolveRfis, parseFindings]);
+  }, [fetchAudit, fetchCounts]);
 
   const startPolling = useCallback((auditId: string) => {
     stopPolling();
@@ -590,18 +543,12 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
   const handleConfirmComplete = async () => {
     if (!audit) return;
-    // Resolve all open RFIs
-    await supabase
-      .from("rfis")
-      .update({ status: "resolved" })
-      .eq("audit_id", audit.id)
-      .eq("status", "open");
-    // Update audit status
+    // Only update audit status — do NOT bulk-resolve RFIs from frontend
     await supabase.from("audits").update({ status: "complete" }).eq("id", audit.id);
     await Promise.all([fetchAudit(), fetchCounts()]);
     setCompleteConfirmOpen(false);
     setPendingStatus(null);
-    toast({ title: "Audit marked complete", description: "All open RFIs have been resolved." });
+    toast({ title: "Audit marked complete" });
   };
 
   const handleCancelComplete = () => {
