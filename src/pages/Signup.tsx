@@ -25,6 +25,9 @@ export default function Signup() {
     const inviteToken = searchParams.get("invite");
     if (inviteToken) {
       localStorage.setItem(INVITE_TOKEN_KEY, inviteToken);
+      setHasInvite(true);
+    } else if (localStorage.getItem(INVITE_TOKEN_KEY)) {
+      setHasInvite(true);
     }
   }, [searchParams]);
 
