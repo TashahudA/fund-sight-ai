@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Copy, Check } from "lucide-react";
+import { Loader2, Copy, Check, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -60,6 +61,10 @@ export default function Admin() {
   const [priceOption, setPriceOption] = useState("standard");
   const [customPrice, setCustomPrice] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Delete account modal
+  const [deletingProfile, setDeletingProfile] = useState<ProfileRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Invite form
   const [inviteEmail, setInviteEmail] = useState("");
@@ -137,6 +142,28 @@ export default function Admin() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!deletingProfile) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { user_id: deletingProfile.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Account deleted" });
+      setDeletingProfile(null);
+      fetchData();
+    } catch (err: any) {
+      toast({
+        title: "Failed to delete account",
+        description: err?.message || "Please try again",
+        variant: "destructive",
+      });
+    }
+    setDeleting(false);
+  };
+
   const handleGenerateInvite = async () => {
     const cents = getPriceCents(invitePriceOption, inviteCustomPrice);
     if (cents === null) {
@@ -157,7 +184,9 @@ export default function Admin() {
       });
       const data = await res.json();
       if (data.link) {
-        setGeneratedLink(data.link);
+        // Strip any double slashes from the path (caused by trailing slash in FRONTEND_URL)
+        const cleanLink = data.link.replace(/([^:])\/\//g, "$1/");
+        setGeneratedLink(cleanLink);
         fetchData();
       } else {
         toast({ title: "Failed to generate invite", variant: "destructive" });
@@ -215,9 +244,20 @@ export default function Admin() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Button variant="outline" size="sm" onClick={() => handleOpenEdit(p)}>
-                          Edit Price
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleOpenEdit(p)}>
+                            Edit Price
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                            onClick={() => setDeletingProfile(p)}
+                            disabled={p.id === user?.id}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -337,6 +377,26 @@ export default function Admin() {
             <Button variant="outline" onClick={() => setEditingProfile(null)}>Cancel</Button>
             <Button onClick={handleSavePrice} disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Account Confirmation Modal */}
+      <Dialog open={!!deletingProfile} onOpenChange={(open) => !open && setDeletingProfile(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Account</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <strong>{deletingProfile?.full_name || "this user"}</strong>'s account? This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setDeletingProfile(null)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleting}>
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete Account"}
             </Button>
           </div>
         </DialogContent>
