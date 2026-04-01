@@ -18,12 +18,16 @@ export default function Signup() {
   const [firmName, setFirmName] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [hasInvite, setHasInvite] = useState(false);
 
   // Store invite token from URL into localStorage
   useEffect(() => {
     const inviteToken = searchParams.get("invite");
     if (inviteToken) {
       localStorage.setItem(INVITE_TOKEN_KEY, inviteToken);
+      setHasInvite(true);
+    } else if (localStorage.getItem(INVITE_TOKEN_KEY)) {
+      setHasInvite(true);
     }
   }, [searchParams]);
 
@@ -110,6 +114,13 @@ export default function Signup() {
           <span className="text-xl font-bold tracking-tight text-foreground">Auditron</span>
           <p className="text-sm text-muted-foreground">Create your account</p>
         </div>
+
+        {hasInvite && (
+          <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30 px-4 py-3 text-sm text-green-700 dark:text-green-300">
+            <CheckCircle className="h-4 w-4 shrink-0" />
+            You've been invited to Auditron ✓
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSignup} className="space-y-4">
