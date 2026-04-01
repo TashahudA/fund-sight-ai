@@ -88,6 +88,16 @@ Deno.serve(async (req) => {
   }
 });
 
+/** Truncate and strip prompt-control sequences from user data */
+function sanitizeForPrompt(input: string, maxLen: number): string {
+  return input
+    .slice(0, maxLen)
+    .replace(/###/g, "")
+    .replace(/IGNORE PREVIOUS/gi, "")
+    .replace(/SYSTEM:/gi, "")
+    .replace(/\n{3,}/g, "\n\n");
+}
+
 async function callClaude(anthropicKey: string, systemPrompt: string, userPrompt: string) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
