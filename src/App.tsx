@@ -11,6 +11,7 @@ import Dashboard from "@/pages/Dashboard";
 import MyAudits from "@/pages/MyAudits";
 import AuditDetail from "@/pages/AuditDetail";
 import MyRFIs from "@/pages/MyRFIs";
+import Admin from "@/pages/Admin";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import NotFound from "@/pages/NotFound";
