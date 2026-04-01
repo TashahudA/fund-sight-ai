@@ -346,23 +346,30 @@ async function handleRfiChat(
     .limit(20);
 
   const history = (messages || [])
-    .map((m: any) => `[${m.sender}]: ${m.message}`)
+    .map((m: any) => `[${sanitizeForPrompt(m.sender, 20)}]: ${sanitizeForPrompt(m.message, 1000)}`)
     .join("\n");
+
+  const safeFundName = sanitizeForPrompt(audit?.fund_name || "Unknown", 255);
+  const safeFinYear = sanitizeForPrompt(audit?.financial_year || "Unknown", 20);
+  const safeRfiTitle = sanitizeForPrompt(rfi?.title || "Unknown", 255);
+  const safeCategory = sanitizeForPrompt(rfi?.category || "N/A", 100);
+  const safeDescription = sanitizeForPrompt(rfi?.description || "N/A", 1000);
+  const safeUserMessage = sanitizeForPrompt(userMessage, 4000);
 
   const systemPrompt = `You are an SMSF audit compliance AI assistant. You are responding to auditor questions about a specific RFI (Request for Information). Be helpful, concise, and reference relevant compliance standards. Return valid JSON only (no markdown fences).`;
 
-  const userPrompt = `Fund: ${audit?.fund_name || "Unknown"}
-Financial Year: ${audit?.financial_year || "Unknown"}
+  const userPrompt = `Fund: ${safeFundName}
+Financial Year: ${safeFinYear}
 
-RFI: ${rfi?.title || "Unknown"}
-Category: ${rfi?.category || "N/A"}
-Description: ${rfi?.description || "N/A"}
+RFI: ${safeRfiTitle}
+Category: ${safeCategory}
+Description: ${safeDescription}
 Status: ${rfi?.status || "open"}
 
 Conversation history:
 ${history}
 
-The auditor's latest message: "${userMessage}"
+The auditor's latest message: "${safeUserMessage}"
 
 Respond as the AI auditor. Return JSON:
 {
