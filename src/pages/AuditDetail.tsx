@@ -233,6 +233,51 @@ export default function AuditDetail() {
 
   useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); }, [fetchAudit, fetchCounts, fetchNotes]);
 
+  // Payment return detection
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("payment") === "success" && id) {
+      toast({ title: "Payment confirmed — loading your full audit..." });
+      window.history.replaceState({}, "", location.pathname);
+      const pollPayment = setInterval(async () => {
+        const { data } = await supabase.from("audits").select("payment_status").eq("id", id).single();
+        if (data?.payment_status === "paid") {
+          clearInterval(pollPayment);
+          paymentPollingRef.current = null;
+          await fetchAudit();
+        }
+      }, 2000);
+      paymentPollingRef.current = pollPayment;
+    } else if (params.get("payment") === "cancelled") {
+      window.history.replaceState({}, "", location.pathname);
+    }
+    return () => { if (paymentPollingRef.current) clearInterval(paymentPollingRef.current); };
+  }, [id, location.search]);
+
+  const handleUnlockAudit = async () => {
+    if (!audit || !user) return;
+    setUnlocking(true);
+    try {
+      const res = await fetch("https://auditron-server-production.up.railway.app/stripe/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ audit_id: audit.id, user_id: user.id }),
+      });
+      const data = await res.json();
+      if (data.free) {
+        await fetchAudit();
+      } else if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast({ title: "Failed to start checkout", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Failed to start checkout", variant: "destructive" });
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
 
 
   const parseFindings = (raw: any): { findings: AiFinding[]; envelope: AiFindingsEnvelope } => {
