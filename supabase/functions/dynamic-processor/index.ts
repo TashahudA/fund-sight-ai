@@ -125,14 +125,21 @@ async function handleFullAudit(supabase: any, anthropicKey: string, auditId: str
 
   const docList = (docs || []).map((d: any) => d.file_name).join(", ");
 
+  // Sanitize inputs before injecting into prompts
+  const safeFundName = sanitizeForPrompt(audit.fund_name, 255);
+  const safeFundType = sanitizeForPrompt(audit.fund_type || "Unknown", 100);
+  const safeFinancialYear = sanitizeForPrompt(audit.financial_year || "Unknown", 20);
+  const safeAbn = sanitizeForPrompt(audit.fund_abn || "Unknown", 20);
+  const safeDocList = sanitizeForPrompt(docList || "None", 2000);
+
   const systemPrompt = `You are an SMSF audit compliance AI. Analyse the provided fund information and documents to produce compliance findings. Return valid JSON only (no markdown fences).`;
 
   const userPrompt = `Audit details:
-Fund Name: ${audit.fund_name}
-Fund Type: ${audit.fund_type || "Unknown"}
-Financial Year: ${audit.financial_year || "Unknown"}
-ABN: ${audit.fund_abn || "Unknown"}
-Documents uploaded: ${docList || "None"}
+Fund Name: ${safeFundName}
+Fund Type: ${safeFundType}
+Financial Year: ${safeFinancialYear}
+ABN: ${safeAbn}
+Documents uploaded: ${safeDocList}
 
 Produce a JSON object with this structure:
 {
