@@ -18,6 +18,7 @@ export default function Signup() {
   const [firmName, setFirmName] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [hasInvite, setHasInvite] = useState(false);
 
   // Store invite token from URL into localStorage
   useEffect(() => {
