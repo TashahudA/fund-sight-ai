@@ -854,11 +854,9 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 </div>
               )}
 
-              {/* Compliance Findings — first 1 visible, rest gated */}
+              {/* Compliance Findings — gated behind payment */}
               {(() => {
-                const visibleFindings = aiFindings.slice(0, 1);
-                const gatedFindings = aiFindings.slice(1);
-                const showGate = !isPaid && aiFindings.length > 1;
+                const showGate = !isPaid && aiFindings.length > 0;
 
                 const renderFinding = (f: AiFinding, i: number) => {
                   const isRemediated = f.remediated === true && normalizeStatus(f.status) === "fail";
@@ -896,61 +894,38 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
                 return (
                   <>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {visibleFindings.map((f, i) => renderFinding(f, i))}
+                    <div style={showGate ? { filter: "blur(6px)", pointerEvents: "none", userSelect: "none" } as React.CSSProperties : undefined}>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {aiFindings.map((f, i) => renderFinding(f, i))}
+                      </div>
+                      {envelope.other_matters && envelope.other_matters.length > 0 && (
+                        <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2 mt-4">
+                          <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
+                          <div className="space-y-1.5">
+                            {envelope.other_matters.map((item, idx) => (
+                              <p key={idx} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {showGate && (
-                      <div className="relative" style={{ minHeight: "70vh" }}>
-                        <div style={{ filter: "blur(5px)", pointerEvents: "none", userSelect: "none" } as React.CSSProperties}>
-                          <div className="grid gap-4 md:grid-cols-2">
-                            {gatedFindings.map((f, i) => renderFinding(f, i + 1))}
-                          </div>
-                          {envelope.other_matters && envelope.other_matters.length > 0 && (
-                            <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2 mt-4">
-                              <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
-                              <div className="space-y-1.5">
-                                {envelope.other_matters.map((item, idx) => (
-                                  <p key={idx} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="absolute inset-0 flex items-start justify-center rounded-lg" style={{ backdropFilter: "blur(8px)", background: "rgba(255,255,255,0.85)" }}>
-                          <div className="rounded-xl border border-border bg-background p-8 text-center max-w-sm shadow-lg sticky top-1/3 mt-[20vh]">
-                            <Lock className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-                            <h3 className="text-lg font-bold">Your audit is ready</h3>
-                            <p className="text-sm text-muted-foreground mt-1">Unlock the full compliance analysis for this fund</p>
-                            <Button
-                              className="mt-5 w-full bg-[hsl(142,72%,36%)] hover:bg-[hsl(142,72%,30%)] text-white font-semibold"
-                              size="lg"
-                              onClick={handleUnlockAudit}
-                              disabled={unlocking}
-                            >
-                              {unlocking ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                              Unlock Full Audit — $29 AUD
-                            </Button>
-                            <p className="text-xs text-muted-foreground mt-2">Secure payment via Stripe · One-time fee</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {!showGate && gatedFindings.length > 0 && (
-                      <div className="grid gap-4 md:grid-cols-2">
-                        {gatedFindings.map((f, i) => renderFinding(f, i + 1))}
-                      </div>
-                    )}
-
-                    {isPaid && envelope.other_matters && envelope.other_matters.length > 0 && (
-                      <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2">
-                        <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
-                        <div className="space-y-1.5">
-                          {envelope.other_matters.map((item, idx) => (
-                            <p key={idx} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
-                          ))}
+                      <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(4px)" }}>
+                        <div className="rounded-xl border border-border bg-background p-8 text-center max-w-sm shadow-xl">
+                          <Lock className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                          <h3 className="text-lg font-bold">Your audit is ready</h3>
+                          <p className="text-sm text-muted-foreground mt-1">Unlock the full compliance analysis for this fund</p>
+                          <Button
+                            className="mt-5 w-full bg-[hsl(142,72%,36%)] hover:bg-[hsl(142,72%,30%)] text-white font-semibold"
+                            size="lg"
+                            onClick={handleUnlockAudit}
+                            disabled={unlocking}
+                          >
+                            {unlocking ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                            Unlock Full Audit — $29 AUD
+                          </Button>
+                          <p className="text-xs text-muted-foreground mt-2">Secure payment via Stripe · One-time fee</p>
                         </div>
                       </div>
                     )}
