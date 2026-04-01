@@ -255,13 +255,16 @@ Return JSON:
     };
   }
 
-  // Resolve matching RFIs
+  // Resolve matching RFIs — whitelist against known open RFIs for this audit
   const resolvedIds: string[] = parsed.resolved_rfi_ids || [];
-  for (const id of resolvedIds) {
+  const openRfiIds = new Set((openRfis || []).map((r: any) => r.id));
+  const safeResolvedIds = resolvedIds.filter(id => openRfiIds.has(id));
+  for (const id of safeResolvedIds) {
     await supabase
       .from("rfis")
       .update({ status: "resolved", updated_at: new Date().toISOString() })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("audit_id", auditId);
   }
 
   // Post AI's message into the RFI thread
