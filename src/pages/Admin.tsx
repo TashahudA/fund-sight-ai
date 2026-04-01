@@ -183,8 +183,9 @@ export default function Admin() {
         }),
       });
       const data = await res.json();
-      if (data.link) {
-        // Strip any double slashes from the path (caused by trailing slash in FRONTEND_URL)
+      if (!res.ok) {
+        toast({ title: data.error || "Failed to generate invite", variant: "destructive" });
+      } else if (data.link) {
         const cleanLink = data.link.replace(/([^:])\/\//g, "$1/");
         setGeneratedLink(cleanLink);
         fetchData();
