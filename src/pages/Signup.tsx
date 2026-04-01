@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 
+const INVITE_TOKEN_KEY = "auditron_invite_token";
+
 export default function Signup() {
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -15,6 +18,14 @@ export default function Signup() {
   const [firmName, setFirmName] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Store invite token from URL into localStorage
+  useEffect(() => {
+    const inviteToken = searchParams.get("invite");
+    if (inviteToken) {
+      localStorage.setItem(INVITE_TOKEN_KEY, inviteToken);
+    }
+  }, [searchParams]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +42,7 @@ export default function Signup() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -47,6 +58,21 @@ export default function Signup() {
       toast.error(error.message);
       setLoading(false);
       return;
+    }
+
+    // If signup succeeded and we have an invite token, redeem it
+    const inviteToken = localStorage.getItem(INVITE_TOKEN_KEY);
+    if (inviteToken && data?.user?.id) {
+      try {
+        await fetch("https://auditron-server-production.up.railway.app/admin/use-invite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: inviteToken, user_id: data.user.id }),
+        });
+        localStorage.removeItem(INVITE_TOKEN_KEY);
+      } catch (err) {
+        console.error("Failed to redeem invite:", err);
+      }
     }
 
     setSuccess(true);
