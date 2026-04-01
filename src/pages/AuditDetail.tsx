@@ -192,7 +192,9 @@ export default function AuditDetail() {
     setDocCount(docRes.count ?? 0);
   }, [id]);
 
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isAdminBypass = user?.email === "tashahudahmed5@gmail.com" || profile?.is_admin === true;
+  const isPaid = isPaidRaw || isAdminBypass;
 
   const fetchNotes = useCallback(async () => {
     if (!id) return;
