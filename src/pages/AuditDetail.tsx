@@ -162,6 +162,10 @@ export default function AuditDetail() {
   const [rfiCount, setRfiCount] = useState(0);
   const [docCount, setDocCount] = useState(0);
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [unlocking, setUnlocking] = useState(false);
+  const paymentPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const isPaid = audit?.payment_status === "paid";
 
   const fetchAudit = useCallback(async () => {
     if (!id) { setNotFound(true); setLoading(false); return; }
