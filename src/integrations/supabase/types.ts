@@ -59,8 +59,12 @@ export type Database = {
           fund_type: string | null
           id: string
           opinion: string | null
+          paid_at: string | null
+          payment_status: string | null
           processing_progress: string | null
           status: string | null
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
           updated_at: string | null
           user_id: string
         }
@@ -76,8 +80,12 @@ export type Database = {
           fund_type?: string | null
           id?: string
           opinion?: string | null
+          paid_at?: string | null
+          payment_status?: string | null
           processing_progress?: string | null
           status?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -93,8 +101,12 @@ export type Database = {
           fund_type?: string | null
           id?: string
           opinion?: string | null
+          paid_at?: string | null
+          payment_status?: string | null
           processing_progress?: string | null
           status?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -138,24 +150,63 @@ export type Database = {
           },
         ]
       }
+      invite_links: {
+        Row: {
+          audit_price_cents: number | null
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          id: string
+          token: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          audit_price_cents?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          audit_price_cents?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          audit_price_cents: number | null
           created_at: string
           firm_name: string | null
           full_name: string | null
           id: string
+          is_admin: boolean | null
         }
         Insert: {
+          audit_price_cents?: number | null
           created_at?: string
           firm_name?: string | null
           full_name?: string | null
           id: string
+          is_admin?: boolean | null
         }
         Update: {
+          audit_price_cents?: number | null
           created_at?: string
           firm_name?: string | null
           full_name?: string | null
           id?: string
+          is_admin?: boolean | null
         }
         Relationships: []
       }
