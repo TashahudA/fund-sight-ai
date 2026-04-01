@@ -165,7 +165,8 @@ export default function AuditDetail() {
   const [unlocking, setUnlocking] = useState(false);
   const paymentPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const isPaid = audit?.payment_status === "paid";
+  const isAdminBypass = user?.email === "tashahudahmed5@gmail.com" || profile?.is_admin === true;
+  const isPaid = audit?.payment_status === "paid" || isAdminBypass;
 
   const fetchAudit = useCallback(async () => {
     if (!id) { setNotFound(true); setLoading(false); return; }
