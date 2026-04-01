@@ -269,9 +269,13 @@ export default function AuditDetail() {
       console.log("Checkout request:", { audit_id, user_id });
       const res = await fetch("https://auditron-server-production.up.railway.app/stripe/create-checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
         body: JSON.stringify({ audit_id, user_id }),
       });
+      console.log("Checkout response status:", res.status);
       const data = await res.json();
       if (!res.ok) {
         toast({ title: "Checkout failed", description: data.error || data.message || JSON.stringify(data), variant: "destructive" });
