@@ -88,16 +88,6 @@ Deno.serve(async (req) => {
   }
 });
 
-/** Truncate and strip prompt-control sequences from user data */
-function sanitizeForPrompt(input: string, maxLen: number): string {
-  return input
-    .slice(0, maxLen)
-    .replace(/###/g, "")
-    .replace(/IGNORE PREVIOUS/gi, "")
-    .replace(/SYSTEM:/gi, "")
-    .replace(/\n{3,}/g, "\n\n");
-}
-
 async function callClaude(anthropicKey: string, systemPrompt: string, userPrompt: string) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -135,21 +125,14 @@ async function handleFullAudit(supabase: any, anthropicKey: string, auditId: str
 
   const docList = (docs || []).map((d: any) => d.file_name).join(", ");
 
-  // Sanitize inputs before injecting into prompts
-  const safeFundName = sanitizeForPrompt(audit.fund_name, 255);
-  const safeFundType = sanitizeForPrompt(audit.fund_type || "Unknown", 100);
-  const safeFinancialYear = sanitizeForPrompt(audit.financial_year || "Unknown", 20);
-  const safeAbn = sanitizeForPrompt(audit.fund_abn || "Unknown", 20);
-  const safeDocList = sanitizeForPrompt(docList || "None", 2000);
-
   const systemPrompt = `You are an SMSF audit compliance AI. Analyse the provided fund information and documents to produce compliance findings. Return valid JSON only (no markdown fences).`;
 
   const userPrompt = `Audit details:
-Fund Name: ${safeFundName}
-Fund Type: ${safeFundType}
-Financial Year: ${safeFinancialYear}
-ABN: ${safeAbn}
-Documents uploaded: ${safeDocList}
+Fund Name: ${audit.fund_name}
+Fund Type: ${audit.fund_type || "Unknown"}
+Financial Year: ${audit.financial_year || "Unknown"}
+ABN: ${audit.fund_abn || "Unknown"}
+Documents uploaded: ${docList || "None"}
 
 Produce a JSON object with this structure:
 {
@@ -233,22 +216,18 @@ async function handleRfiReview(
 
   // Fetch the triggering RFI
   const triggeringRfi = (openRfis || []).find((r: any) => r.id === rfiId);
-  const rfiTitle = sanitizeForPrompt(triggeringRfi?.title || "Unknown RFI", 255);
+  const rfiTitle = triggeringRfi?.title || "Unknown RFI";
 
   const rfiList = (openRfis || [])
-    .map((r: any) => `- ID: ${r.id} | Title: ${sanitizeForPrompt(r.title, 255)} | Category: ${sanitizeForPrompt(r.category || "N/A", 100)} | Description: ${sanitizeForPrompt(r.description || "N/A", 500)}`)
+    .map((r: any) => `- ID: ${r.id} | Title: ${r.title} | Category: ${r.category || "N/A"} | Description: ${r.description || "N/A"}`)
     .join("\n");
-
-  const safeDocName = sanitizeForPrompt(newDocumentName, 255);
-  const safeFundName = sanitizeForPrompt(audit?.fund_name || "Unknown", 255);
-  const safeFinYear = sanitizeForPrompt(audit?.financial_year || "Unknown", 20);
 
   const systemPrompt = `You are an SMSF audit compliance AI reviewing documents submitted in response to RFIs. Return valid JSON only (no markdown fences).`;
 
-  const userPrompt = `A new document "${safeDocName}" has been uploaded in response to RFI: "${rfiTitle}".
+  const userPrompt = `A new document "${newDocumentName}" has been uploaded in response to RFI: "${rfiTitle}".
 
-Fund: ${safeFundName}
-Financial Year: ${safeFinYear}
+Fund: ${audit?.fund_name || "Unknown"}
+Financial Year: ${audit?.financial_year || "Unknown"}
 
 Review this document and all open RFIs for this audit. For each open RFI, determine if this document resolves it.
 
@@ -276,16 +255,13 @@ Return JSON:
     };
   }
 
-  // Resolve matching RFIs — whitelist against known open RFIs for this audit
+  // Resolve matching RFIs
   const resolvedIds: string[] = parsed.resolved_rfi_ids || [];
-  const openRfiIds = new Set((openRfis || []).map((r: any) => r.id));
-  const safeResolvedIds = resolvedIds.filter(id => openRfiIds.has(id));
-  for (const id of safeResolvedIds) {
+  for (const id of resolvedIds) {
     await supabase
       .from("rfis")
       .update({ status: "resolved", updated_at: new Date().toISOString() })
-      .eq("id", id)
-      .eq("audit_id", auditId);
+      .eq("id", id);
   }
 
   // Post AI's message into the RFI thread
@@ -346,30 +322,23 @@ async function handleRfiChat(
     .limit(20);
 
   const history = (messages || [])
-    .map((m: any) => `[${sanitizeForPrompt(m.sender, 20)}]: ${sanitizeForPrompt(m.message, 1000)}`)
+    .map((m: any) => `[${m.sender}]: ${m.message}`)
     .join("\n");
-
-  const safeFundName = sanitizeForPrompt(audit?.fund_name || "Unknown", 255);
-  const safeFinYear = sanitizeForPrompt(audit?.financial_year || "Unknown", 20);
-  const safeRfiTitle = sanitizeForPrompt(rfi?.title || "Unknown", 255);
-  const safeCategory = sanitizeForPrompt(rfi?.category || "N/A", 100);
-  const safeDescription = sanitizeForPrompt(rfi?.description || "N/A", 1000);
-  const safeUserMessage = sanitizeForPrompt(userMessage, 4000);
 
   const systemPrompt = `You are an SMSF audit compliance AI assistant. You are responding to auditor questions about a specific RFI (Request for Information). Be helpful, concise, and reference relevant compliance standards. Return valid JSON only (no markdown fences).`;
 
-  const userPrompt = `Fund: ${safeFundName}
-Financial Year: ${safeFinYear}
+  const userPrompt = `Fund: ${audit?.fund_name || "Unknown"}
+Financial Year: ${audit?.financial_year || "Unknown"}
 
-RFI: ${safeRfiTitle}
-Category: ${safeCategory}
-Description: ${safeDescription}
+RFI: ${rfi?.title || "Unknown"}
+Category: ${rfi?.category || "N/A"}
+Description: ${rfi?.description || "N/A"}
 Status: ${rfi?.status || "open"}
 
 Conversation history:
 ${history}
 
-The auditor's latest message: "${safeUserMessage}"
+The auditor's latest message: "${userMessage}"
 
 Respond as the AI auditor. Return JSON:
 {
