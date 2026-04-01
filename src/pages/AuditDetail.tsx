@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot } from "lucide-react";
+import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -162,6 +162,10 @@ export default function AuditDetail() {
   const [rfiCount, setRfiCount] = useState(0);
   const [docCount, setDocCount] = useState(0);
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [unlocking, setUnlocking] = useState(false);
+  const paymentPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const isPaid = audit?.payment_status === "paid";
 
   const fetchAudit = useCallback(async () => {
     if (!id) { setNotFound(true); setLoading(false); return; }
@@ -228,6 +232,51 @@ export default function AuditDetail() {
   };
 
   useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); }, [fetchAudit, fetchCounts, fetchNotes]);
+
+  // Payment return detection
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("payment") === "success" && id) {
+      toast({ title: "Payment confirmed — loading your full audit..." });
+      window.history.replaceState({}, "", location.pathname);
+      const pollPayment = setInterval(async () => {
+        const { data } = await supabase.from("audits").select("payment_status").eq("id", id).single();
+        if (data?.payment_status === "paid") {
+          clearInterval(pollPayment);
+          paymentPollingRef.current = null;
+          await fetchAudit();
+        }
+      }, 2000);
+      paymentPollingRef.current = pollPayment;
+    } else if (params.get("payment") === "cancelled") {
+      window.history.replaceState({}, "", location.pathname);
+    }
+    return () => { if (paymentPollingRef.current) clearInterval(paymentPollingRef.current); };
+  }, [id, location.search]);
+
+  const handleUnlockAudit = async () => {
+    if (!audit || !user) return;
+    setUnlocking(true);
+    try {
+      const res = await fetch("https://auditron-server-production.up.railway.app/stripe/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ audit_id: audit.id, user_id: user.id }),
+      });
+      const data = await res.json();
+      if (data.free) {
+        await fetchAudit();
+      } else if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast({ title: "Failed to start checkout", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Failed to start checkout", variant: "destructive" });
+    } finally {
+      setUnlocking(false);
+    }
+  };
 
 
 
@@ -805,9 +854,13 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 </div>
               )}
 
-              {/* Compliance Findings Grid */}
-              <div className="grid gap-4 md:grid-cols-2">
-                {aiFindings.map((f, i) => {
+              {/* Compliance Findings — first 2 visible, rest gated */}
+              {(() => {
+                const visibleFindings = aiFindings.slice(0, 2);
+                const gatedFindings = aiFindings.slice(2);
+                const showGate = !isPaid && gatedFindings.length > 0;
+
+                const renderFinding = (f: AiFinding, i: number) => {
                   const isRemediated = f.remediated === true && normalizeStatus(f.status) === "fail";
                   return (
                     <div key={`${f.area}-${i}`} className={`rounded-lg border border-border bg-background p-4 space-y-2 ${findingLeftBorder(f.status, isRemediated)} ${isRemediated ? "opacity-60" : ""}`}>
@@ -839,20 +892,69 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                       )}
                     </div>
                   );
-                })}
-              </div>
+                };
 
-              {/* Other Matters */}
-              {envelope.other_matters && envelope.other_matters.length > 0 && (
-                <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2">
-                  <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
-                  <div className="space-y-1.5">
-                    {envelope.other_matters.map((item, i) => (
-                      <p key={i} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
-                    ))}
-                  </div>
-                </div>
-              )}
+                return (
+                  <>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {visibleFindings.map((f, i) => renderFinding(f, i))}
+                    </div>
+
+                    {(gatedFindings.length > 0 || (envelope.other_matters && envelope.other_matters.length > 0)) && (
+                      <div className="relative">
+                        <div style={showGate ? { filter: "blur(5px)", pointerEvents: "none", userSelect: "none" } : undefined}>
+                          {gatedFindings.length > 0 && (
+                            <div className="grid gap-4 md:grid-cols-2">
+                              {gatedFindings.map((f, i) => renderFinding(f, i + 2))}
+                            </div>
+                          )}
+                          {envelope.other_matters && envelope.other_matters.length > 0 && (
+                            <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2 mt-4">
+                              <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
+                              <div className="space-y-1.5">
+                                {envelope.other_matters.map((item, idx) => (
+                                  <p key={idx} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {showGate && (
+                          <div className="absolute inset-0 flex items-center justify-center rounded-lg" style={{ backdropFilter: "blur(8px)", background: "rgba(255,255,255,0.85)" }}>
+                            <div className="rounded-xl border border-border bg-background p-8 text-center max-w-sm shadow-lg">
+                              <Lock className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                              <h3 className="text-lg font-bold">Your audit is ready</h3>
+                              <p className="text-sm text-muted-foreground mt-1">Unlock the full compliance analysis for this fund</p>
+                              <Button
+                                className="mt-5 w-full bg-[hsl(142,72%,36%)] hover:bg-[hsl(142,72%,30%)] text-white font-semibold"
+                                size="lg"
+                                onClick={handleUnlockAudit}
+                                disabled={unlocking}
+                              >
+                                {unlocking ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                                Unlock Full Audit — $29 AUD
+                              </Button>
+                              <p className="text-xs text-muted-foreground mt-2">Secure payment via Stripe · One-time fee</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {isPaid && gatedFindings.length === 0 && envelope.other_matters && envelope.other_matters.length > 0 && (
+                      <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2">
+                        <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
+                        <div className="space-y-1.5">
+                          {envelope.other_matters.map((item, idx) => (
+                            <p key={idx} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </>
           ) : null}
         </TabsContent>
