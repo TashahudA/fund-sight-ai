@@ -233,18 +233,22 @@ async function handleRfiReview(
 
   // Fetch the triggering RFI
   const triggeringRfi = (openRfis || []).find((r: any) => r.id === rfiId);
-  const rfiTitle = triggeringRfi?.title || "Unknown RFI";
+  const rfiTitle = sanitizeForPrompt(triggeringRfi?.title || "Unknown RFI", 255);
 
   const rfiList = (openRfis || [])
-    .map((r: any) => `- ID: ${r.id} | Title: ${r.title} | Category: ${r.category || "N/A"} | Description: ${r.description || "N/A"}`)
+    .map((r: any) => `- ID: ${r.id} | Title: ${sanitizeForPrompt(r.title, 255)} | Category: ${sanitizeForPrompt(r.category || "N/A", 100)} | Description: ${sanitizeForPrompt(r.description || "N/A", 500)}`)
     .join("\n");
+
+  const safeDocName = sanitizeForPrompt(newDocumentName, 255);
+  const safeFundName = sanitizeForPrompt(audit?.fund_name || "Unknown", 255);
+  const safeFinYear = sanitizeForPrompt(audit?.financial_year || "Unknown", 20);
 
   const systemPrompt = `You are an SMSF audit compliance AI reviewing documents submitted in response to RFIs. Return valid JSON only (no markdown fences).`;
 
-  const userPrompt = `A new document "${newDocumentName}" has been uploaded in response to RFI: "${rfiTitle}".
+  const userPrompt = `A new document "${safeDocName}" has been uploaded in response to RFI: "${rfiTitle}".
 
-Fund: ${audit?.fund_name || "Unknown"}
-Financial Year: ${audit?.financial_year || "Unknown"}
+Fund: ${safeFundName}
+Financial Year: ${safeFinYear}
 
 Review this document and all open RFIs for this audit. For each open RFI, determine if this document resolves it.
 
