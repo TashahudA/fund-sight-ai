@@ -205,6 +205,12 @@ export function TopNav() {
               {openRfiCount > 0 && <Badge variant="flag" className="ml-1.5 text-[10px] px-1.5 py-0">{openRfiCount}</Badge>}
               {isActive("/rfis") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
             </Link>
+            {profile?.is_admin && (
+              <Link to="/admin" className={navLinkClass("/admin")}>
+                Admin
+                {isActive("/admin") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
+              </Link>
+            )}
           </div>
 
           {/* Right Side */}
