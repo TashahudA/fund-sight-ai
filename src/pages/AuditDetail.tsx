@@ -255,24 +255,38 @@ export default function AuditDetail() {
   }, [id, location.search]);
 
   const handleUnlockAudit = async () => {
-    if (!audit || !user) return;
+    if (!audit) return;
     setUnlocking(true);
     try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        toast({ title: "You must be logged in", variant: "destructive" });
+        setUnlocking(false);
+        return;
+      }
+      const audit_id = id;
+      const user_id = authUser.id;
+      console.log("Checkout request:", { audit_id, user_id });
       const res = await fetch("https://auditron-server-production.up.railway.app/stripe/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ audit_id: audit.id, user_id: user.id }),
+        body: JSON.stringify({ audit_id, user_id }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "Checkout failed", description: data.error || data.message || JSON.stringify(data), variant: "destructive" });
+        return;
+      }
       if (data.free) {
         await fetchAudit();
       } else if (data.url) {
         window.location.href = data.url;
       } else {
-        toast({ title: "Failed to start checkout", variant: "destructive" });
+        toast({ title: "Unexpected response", description: JSON.stringify(data), variant: "destructive" });
       }
-    } catch {
-      toast({ title: "Failed to start checkout", variant: "destructive" });
+    } catch (err: any) {
+      console.error("Checkout error:", err);
+      toast({ title: "Failed to start checkout", description: err.message || "Network error", variant: "destructive" });
     } finally {
       setUnlocking(false);
     }
