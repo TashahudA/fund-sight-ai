@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, Lock, X } from "lucide-react";
+import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -280,47 +280,8 @@ export default function AuditDetail() {
     return () => { if (paymentPollingRef.current) clearInterval(paymentPollingRef.current); };
   }, [id, location.search]);
 
-  const handleUnlockAudit = async () => {
-    if (!audit) return;
-    setUnlocking(true);
-    try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) {
-        toast({ title: "You must be logged in", variant: "destructive" });
-        setUnlocking(false);
-        return;
-      }
-      const audit_id = id;
-      const user_id = authUser.id;
-      console.log("Checkout request:", { audit_id, user_id });
-      const res = await fetch("https://auditron-server-production.up.railway.app/stripe/create-checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({ audit_id, user_id }),
-      });
-      console.log("Checkout response status:", res.status);
-      const data = await res.json();
-      if (!res.ok) {
-        toast({ title: "Checkout failed", description: data.error || data.message || JSON.stringify(data), variant: "destructive" });
-        return;
-      }
-      if (data.free) {
-        await fetchAudit();
-      } else if (data.url) {
-        window.location.href = data.url;
-      } else {
-        toast({ title: "Unexpected response", description: JSON.stringify(data), variant: "destructive" });
-      }
-    } catch (err: any) {
-      console.error("Checkout error:", err);
-      toast({ title: "Failed to start checkout", description: err.message || "Network error", variant: "destructive" });
-    } finally {
-      setUnlocking(false);
-    }
-  };
+
+
 
 
 
