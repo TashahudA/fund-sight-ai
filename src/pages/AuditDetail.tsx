@@ -234,6 +234,18 @@ export default function AuditDetail() {
     setSavingNote(false);
   };
 
+  const handleSaveAuditorNotes = async () => {
+    if (!id) return;
+    setSavingAuditorNotes(true);
+    const { error } = await supabase.from("audits").update({ auditor_notes: auditorNotes }).eq("id", id);
+    if (error) {
+      toast({ title: "Failed to save notes", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Auditor notes saved — will be used on next audit run." });
+    }
+    setSavingAuditorNotes(false);
+  };
+
   useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); }, [fetchAudit, fetchCounts, fetchNotes]);
 
   // Payment return detection
