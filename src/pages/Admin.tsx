@@ -438,6 +438,34 @@ export default function Admin() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add Credits Modal */}
+      <Dialog open={!!addCreditsProfile} onOpenChange={(open) => !open && setAddCreditsProfile(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Add Credits</DialogTitle>
+            <DialogDescription>
+              Add audit credits to <strong>{addCreditsProfile?.full_name || "this user"}</strong>'s account.
+              Current balance: {addCreditsProfile?.credit_balance ?? 0}
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            type="number"
+            min="1"
+            placeholder="Number of credits"
+            value={creditsToAdd}
+            onChange={(e) => setCreditsToAdd(e.target.value)}
+          />
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setAddCreditsProfile(null)} disabled={addingCredits}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddCredits} disabled={addingCredits || !creditsToAdd}>
+              {addingCredits ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add Credits"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
