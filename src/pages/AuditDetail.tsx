@@ -180,6 +180,7 @@ export default function AuditDetail() {
       setNotFound(true);
     } else {
       setAudit(data);
+      setAuditorNotes(data.auditor_notes || "");
     }
     setLoading(false);
   }, [id]);
