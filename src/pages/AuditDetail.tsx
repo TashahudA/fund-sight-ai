@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RFITab } from "@/components/RFITab";
+import { FindingReviewCard, type ReviewAction } from "@/components/FindingReviewCard";
+import { Progress } from "@/components/ui/progress";
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
