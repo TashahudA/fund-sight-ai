@@ -987,6 +987,16 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
           <RFITab auditId={audit.id} className="min-h-[600px] h-[calc(100vh-14rem)]" onCountChange={fetchCounts} onAutoComplete={async () => { await fetchAudit(); await fetchCounts(); }} />
         </TabsContent>
 
+        {/* Reports Tab */}
+        <TabsContent value="reports">
+          <ReportsTab
+            auditId={audit.id}
+            fundName={audit.fund_name}
+            financialYear={audit.financial_year}
+            aiFindings={audit.ai_findings}
+          />
+        </TabsContent>
+
         {/* Audit Notes Tab */}
         <TabsContent value="notes" className="space-y-4">
           <div className="rounded-lg border border-border bg-background p-5 space-y-3">
