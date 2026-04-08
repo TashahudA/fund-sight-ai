@@ -196,7 +196,7 @@ export default function Admin() {
     setAddingCredits(false);
   };
 
-
+  const handleGenerateInvite = async () => {
     const cents = getPriceCents(invitePriceOption, inviteCustomPrice);
     if (cents === null) {
       toast({ title: "Enter a valid positive dollar amount", variant: "destructive" });
