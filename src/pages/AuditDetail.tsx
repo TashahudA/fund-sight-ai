@@ -422,7 +422,7 @@ export default function AuditDetail() {
       }
     };
 
-    pollingRef.current = setInterval(poll, 3000);
+    pollingRef.current = setInterval(poll, 5000);
     // Also poll immediately
     poll();
   }, [stopPolling, handleAuditComplete]);
