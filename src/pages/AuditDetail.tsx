@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, Lock, X } from "lucide-react";
+import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -168,6 +168,7 @@ export default function AuditDetail() {
   const [unlocking, setUnlocking] = useState(false);
   const paymentPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [reviews, setReviews] = useState<ReviewAction[]>([]);
+  const [showNoCreditModal, setShowNoCreditModal] = useState(false);
 
   const isPaid = audit?.payment_status === "paid";
 
@@ -279,47 +280,8 @@ export default function AuditDetail() {
     return () => { if (paymentPollingRef.current) clearInterval(paymentPollingRef.current); };
   }, [id, location.search]);
 
-  const handleUnlockAudit = async () => {
-    if (!audit) return;
-    setUnlocking(true);
-    try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) {
-        toast({ title: "You must be logged in", variant: "destructive" });
-        setUnlocking(false);
-        return;
-      }
-      const audit_id = id;
-      const user_id = authUser.id;
-      console.log("Checkout request:", { audit_id, user_id });
-      const res = await fetch("https://auditron-server-production.up.railway.app/stripe/create-checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({ audit_id, user_id }),
-      });
-      console.log("Checkout response status:", res.status);
-      const data = await res.json();
-      if (!res.ok) {
-        toast({ title: "Checkout failed", description: data.error || data.message || JSON.stringify(data), variant: "destructive" });
-        return;
-      }
-      if (data.free) {
-        await fetchAudit();
-      } else if (data.url) {
-        window.location.href = data.url;
-      } else {
-        toast({ title: "Unexpected response", description: JSON.stringify(data), variant: "destructive" });
-      }
-    } catch (err: any) {
-      console.error("Checkout error:", err);
-      toast({ title: "Failed to start checkout", description: err.message || "Network error", variant: "destructive" });
-    } finally {
-      setUnlocking(false);
-    }
-  };
+
+
 
 
 
@@ -454,28 +416,57 @@ export default function AuditDetail() {
   const handleRunAudit = async () => {
     if (!audit || runningAudit) return;
 
+    // If audit is already paid, just run it (free re-run)
+    if (isPaid) {
+      setRunningAudit(true);
+      try {
+        await supabase.from("audits").update({ status: "processing" }).eq("id", audit.id);
+        await startAudit(audit.id);
+        completionToastShownRef.current = null;
+        startPolling(audit.id);
+        await fetchAudit();
+      } catch (err) {
+        console.error("Failed to start audit:", err);
+        toast({ title: "Failed to start audit", description: "Please try again", variant: "destructive" });
+        setRunningAudit(false);
+      }
+      return;
+    }
+
+    // Audit not paid — try to deduct a credit
     setRunningAudit(true);
-
     try {
-      // Set status to processing immediately in DB
-      await supabase
-        .from("audits")
-        .update({ status: "processing" })
-        .eq("id", audit.id);
-
-      // Call the Railway API
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        toast({ title: "You must be logged in", variant: "destructive" });
+        setRunningAudit(false);
+        return;
+      }
+      const res = await fetch("https://auditron-server-production.up.railway.app/stripe/deduct-credit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ user_id: authUser.id, audit_id: audit.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error === "insufficient_credits") {
+        setRunningAudit(false);
+        setShowNoCreditModal(true);
+        return;
+      }
+      if (!data.success) {
+        toast({ title: "Failed to deduct credit", description: data.error || "Unknown error", variant: "destructive" });
+        setRunningAudit(false);
+        return;
+      }
+      // Credit deducted — now run the audit
+      await supabase.from("audits").update({ status: "processing", payment_status: "paid" }).eq("id", audit.id);
       await startAudit(audit.id);
-
       completionToastShownRef.current = null;
       startPolling(audit.id);
       await fetchAudit();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to start audit:", err);
-      toast({
-        title: "Failed to start audit",
-        description: "Please try again",
-        variant: "destructive",
-      });
+      toast({ title: "Failed to start audit", description: err.message || "Please try again", variant: "destructive" });
       setRunningAudit(false);
     }
   };
@@ -721,8 +712,10 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
               >
                 {runningAudit ? (
                   <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Running Audit...</>
+                ) : isPaid ? (
+                  <><Play className="h-4 w-4 mr-1.5" />Re-run AI Audit (free)</>
                 ) : (
-                  <><Play className="h-4 w-4 mr-1.5" />Run AI Audit</>
+                  <><Play className="h-4 w-4 mr-1.5" />Run AI Audit (1 credit)</>
                 )}
               </Button>
               <DropdownMenu>
@@ -844,7 +837,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 onClick={handleRunAudit}
                 disabled={runningAudit}
               >
-                <Play className="h-4 w-4 mr-1.5" />Run AI Audit
+                <Play className="h-4 w-4 mr-1.5" />{isPaid ? "Re-run AI Audit (free)" : "Run AI Audit (1 credit)"}
               </Button>
             </div>
           ) : !isProcessing && !processingError && aiFindings.length > 0 ? (
@@ -914,9 +907,8 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 );
               })()}
 
-              {/* Compliance Findings — gated behind payment */}
+              {/* Compliance Findings */}
               {(() => {
-                const showGate = !isPaid && aiFindings.length > 0;
                 const reviewerName = profile?.full_name || user?.email || "Auditor";
 
                 const handleReviewSaved = (review: ReviewAction) => {
@@ -925,48 +917,26 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
                 return (
                   <>
-                    <div style={showGate ? { filter: "blur(6px)", pointerEvents: "none", userSelect: "none" } as React.CSSProperties : undefined}>
-                      <div className="grid gap-4 md:grid-cols-2">
-                        {aiFindings.map((f, i) => (
-                          <FindingReviewCard
-                            key={`${f.area}-${i}`}
-                            finding={f}
-                            index={i}
-                            auditId={audit.id}
-                            reviewerName={reviewerName}
-                            existingReviews={reviews.filter(r => r.finding_area === f.area)}
-                            onReviewSaved={handleReviewSaved}
-                          />
-                        ))}
-                      </div>
-                      {envelope.other_matters && envelope.other_matters.length > 0 && (
-                        <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2 mt-4">
-                          <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
-                          <div className="space-y-1.5">
-                            {envelope.other_matters.map((item, idx) => (
-                              <p key={idx} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {aiFindings.map((f, i) => (
+                        <FindingReviewCard
+                          key={`${f.area}-${i}`}
+                          finding={f}
+                          index={i}
+                          auditId={audit.id}
+                          reviewerName={reviewerName}
+                          existingReviews={reviews.filter(r => r.finding_area === f.area)}
+                          onReviewSaved={handleReviewSaved}
+                        />
+                      ))}
                     </div>
-
-                    {showGate && (
-                      <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(4px)" }}>
-                        <div className="rounded-xl border border-border bg-background p-8 text-center max-w-sm shadow-xl">
-                          <Lock className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-                          <h3 className="text-lg font-bold">Your audit is ready</h3>
-                          <p className="text-sm text-muted-foreground mt-1">Unlock the full compliance analysis for this fund</p>
-                          <Button
-                            className="mt-5 w-full bg-[hsl(142,72%,36%)] hover:bg-[hsl(142,72%,30%)] text-white font-semibold"
-                            size="lg"
-                            onClick={handleUnlockAudit}
-                            disabled={unlocking}
-                          >
-                            {unlocking ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                            Unlock Full Audit — $29 AUD
-                          </Button>
-                          <p className="text-xs text-muted-foreground mt-2">Secure payment via Stripe · One-time fee</p>
+                    {envelope.other_matters && envelope.other_matters.length > 0 && (
+                      <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2 mt-4">
+                        <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
+                        <div className="space-y-1.5">
+                          {envelope.other_matters.map((item, idx) => (
+                            <p key={idx} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -1059,6 +1029,24 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancelComplete}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmComplete}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* No Credits Modal */}
+      <AlertDialog open={showNoCreditModal} onOpenChange={setShowNoCreditModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>No credits remaining</AlertDialogTitle>
+            <AlertDialogDescription>
+              Purchase credits to run this audit. Each audit costs 1 credit. Once paid, you can re-run unlimited times.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { setShowNoCreditModal(false); navigate("/buy-credits"); }}>
+              Buy Credits
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
