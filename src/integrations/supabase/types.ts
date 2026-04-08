@@ -50,6 +50,7 @@ export type Database = {
         Row: {
           ai_findings: Json | null
           audit_started_at: string | null
+          auditor_notes: string | null
           created_at: string | null
           extraction_data: Json | null
           financial_year: string | null
@@ -71,6 +72,7 @@ export type Database = {
         Insert: {
           ai_findings?: Json | null
           audit_started_at?: string | null
+          auditor_notes?: string | null
           created_at?: string | null
           extraction_data?: Json | null
           financial_year?: string | null
@@ -92,6 +94,7 @@ export type Database = {
         Update: {
           ai_findings?: Json | null
           audit_started_at?: string | null
+          auditor_notes?: string | null
           created_at?: string | null
           extraction_data?: Json | null
           financial_year?: string | null
@@ -143,6 +146,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "documents_audit_id_fkey"
+            columns: ["audit_id"]
+            isOneToOne: false
+            referencedRelation: "audits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finding_reviews: {
+        Row: {
+          action: string
+          audit_id: string
+          created_at: string | null
+          finding_area: string
+          id: string
+          note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+        }
+        Insert: {
+          action: string
+          audit_id: string
+          created_at?: string | null
+          finding_area: string
+          id?: string
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Update: {
+          action?: string
+          audit_id?: string
+          created_at?: string | null
+          finding_area?: string
+          id?: string
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finding_reviews_audit_id_fkey"
             columns: ["audit_id"]
             isOneToOne: false
             referencedRelation: "audits"
