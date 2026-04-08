@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, Lock } from "lucide-react";
+import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, Lock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -148,10 +148,8 @@ export default function AuditDetail() {
   const [audit, setAudit] = useState<Audit | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [noteText, setNoteText] = useState("");
-  const [savingNote, setSavingNote] = useState(false);
-  const [auditNotes, setAuditNotes] = useState<{ id: string; note_text: string; created_at: string; full_name: string | null; email: string | null }[]>([]);
-  const [auditorNotes, setAuditorNotes] = useState("");
+  const [auditorNoteInput, setAuditorNoteInput] = useState("");
+  const [auditorNotesList, setAuditorNotesList] = useState<{ text: string; author: string; created_at: string }[]>([]);
   const [savingAuditorNotes, setSavingAuditorNotes] = useState(false);
   const [runningAudit, setRunningAudit] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -183,7 +181,18 @@ export default function AuditDetail() {
       setNotFound(true);
     } else {
       setAudit(data);
-      setAuditorNotes(data.auditor_notes || "");
+      // Parse auditor_notes — could be JSON array or legacy string
+      try {
+        const parsed = typeof data.auditor_notes === "string" ? JSON.parse(data.auditor_notes) : data.auditor_notes;
+        if (Array.isArray(parsed)) setAuditorNotesList(parsed);
+        else if (typeof data.auditor_notes === "string" && data.auditor_notes.trim()) {
+          setAuditorNotesList([{ text: data.auditor_notes, author: "Legacy", created_at: new Date().toISOString() }]);
+        } else setAuditorNotesList([]);
+      } catch {
+        if (typeof data.auditor_notes === "string" && data.auditor_notes.trim()) {
+          setAuditorNotesList([{ text: data.auditor_notes, author: "Legacy", created_at: new Date().toISOString() }]);
+        } else setAuditorNotesList([]);
+      }
     }
     setLoading(false);
   }, [id]);
