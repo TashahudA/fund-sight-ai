@@ -217,7 +217,6 @@ export function TopNav() {
             </Link>
             <Link to="/rfis" className={navLinkClass("/rfis")}>
               My RFIs
-              {openRfiCount > 0 && <Badge variant="flag" className="ml-1.5 text-[10px] px-1.5 py-0">{openRfiCount}</Badge>}
               {isActive("/rfis") && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />}
             </Link>
             {profile?.is_admin && (
@@ -237,8 +236,10 @@ export function TopNav() {
                 <span className={`text-sm font-medium ${creditBalance === 0 ? 'text-red-500' : creditBalance <= 2 ? 'text-amber-500' : 'text-green-500'}`}>
                   Credits: {creditBalance}
                 </span>
-                <Link to="/buy-credits" className="text-xs text-primary hover:underline ml-1">
-                  Buy Credits
+                <Link to="/buy-credits">
+                  <Button size="sm" variant="default" className="ml-1 h-7 text-xs px-3">
+                    Buy Credits
+                  </Button>
                 </Link>
               </div>
             )}
