@@ -255,42 +255,47 @@ export default function Admin() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Full Name</TableHead>
-                    <TableHead>Firm</TableHead>
-                    <TableHead>Audit Price</TableHead>
-                    <TableHead>Admin</TableHead>
-                    <TableHead>Actions</TableHead>
+                     <TableHead>Full Name</TableHead>
+                     <TableHead>Firm</TableHead>
+                     <TableHead>Audit Price</TableHead>
+                     <TableHead>Credits</TableHead>
+                     <TableHead>Admin</TableHead>
+                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {profiles.map((p) => (
                     <TableRow key={p.id}>
-                      <TableCell className="font-medium">{p.full_name || "—"}</TableCell>
-                      <TableCell>{p.firm_name || "—"}</TableCell>
-                      <TableCell>${((p.audit_price_cents ?? 2900) / 100).toFixed(0)}</TableCell>
-                      <TableCell>
-                        {p.is_admin ? (
-                          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">Yes</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-muted-foreground">No</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleOpenEdit(p)}>
-                            Edit Price
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
-                            onClick={() => setDeletingProfile(p)}
-                            disabled={p.id === user?.id}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                     <TableCell className="font-medium">{p.full_name || "—"}</TableCell>
+                     <TableCell>{p.firm_name || "—"}</TableCell>
+                     <TableCell>${((p.audit_price_cents ?? 2900) / 100).toFixed(0)}</TableCell>
+                     <TableCell>{p.credit_balance ?? 0}</TableCell>
+                     <TableCell>
+                       {p.is_admin ? (
+                         <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">Yes</Badge>
+                       ) : (
+                         <Badge variant="outline" className="text-muted-foreground">No</Badge>
+                       )}
+                     </TableCell>
+                     <TableCell>
+                       <div className="flex items-center gap-2">
+                         <Button variant="outline" size="sm" onClick={() => handleOpenEdit(p)}>
+                           Edit Price
+                         </Button>
+                         <Button variant="outline" size="sm" onClick={() => { setAddCreditsProfile(p); setCreditsToAdd(""); }}>
+                           Add Credits
+                         </Button>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                           onClick={() => setDeletingProfile(p)}
+                           disabled={p.id === user?.id}
+                         >
+                           <Trash2 className="h-3.5 w-3.5" />
+                         </Button>
+                       </div>
+                     </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
