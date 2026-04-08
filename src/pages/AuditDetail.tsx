@@ -13,6 +13,7 @@ import { RFITab } from "@/components/RFITab";
 import { FindingReviewCard, type ReviewAction } from "@/components/FindingReviewCard";
 import { Progress } from "@/components/ui/progress";
 import { DocumentsTab } from "@/components/DocumentsTab";
+import { ReportsTab } from "@/components/ReportsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
 import { startAudit } from "@/lib/auditApi";
@@ -791,6 +792,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
             RFIs
             {rfiCount > 0 && <Badge variant="new" className="ml-1 text-[10px] px-1.5 py-0">{rfiCount}</Badge>}
           </TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="notes">Audit Notes</TabsTrigger>
         </TabsList>
 
@@ -983,6 +985,16 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
         {/* RFIs Tab */}
         <TabsContent value="rfis">
           <RFITab auditId={audit.id} className="min-h-[600px] h-[calc(100vh-14rem)]" onCountChange={fetchCounts} onAutoComplete={async () => { await fetchAudit(); await fetchCounts(); }} />
+        </TabsContent>
+
+        {/* Reports Tab */}
+        <TabsContent value="reports">
+          <ReportsTab
+            auditId={audit.id}
+            fundName={audit.fund_name}
+            financialYear={audit.financial_year}
+            aiFindings={audit.ai_findings}
+          />
         </TabsContent>
 
         {/* Audit Notes Tab */}
