@@ -876,7 +876,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 onClick={handleRunAudit}
                 disabled={runningAudit}
               >
-                <Play className="h-4 w-4 mr-1.5" />Run AI Audit
+                <Play className="h-4 w-4 mr-1.5" />{isPaid ? "Re-run AI Audit (free)" : "Run AI Audit (1 credit)"}
               </Button>
             </div>
           ) : !isProcessing && !processingError && aiFindings.length > 0 ? (
