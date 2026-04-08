@@ -209,53 +209,36 @@ export default function AuditDetail() {
 
   const { user, profile } = useAuth();
 
-  const fetchNotes = useCallback(async () => {
-    if (!id) return;
-    const { data } = await supabase
-      .from("audit_notes")
-      .select("id, note_text, created_at, user_id")
-      .eq("audit_id", id)
-      .order("created_at", { ascending: false });
-    if (!data) { setAuditNotes([]); return; }
-    const userIds = [...new Set(data.map(n => n.user_id))];
-    const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", userIds);
-    const profileMap = new Map((profiles || []).map(p => [p.id, p.full_name]));
-    setAuditNotes(data.map(n => ({
-      id: n.id,
-      note_text: n.note_text,
-      created_at: n.created_at || "",
-      full_name: profileMap.get(n.user_id) || null,
-      email: user?.email || null,
-    })));
-  }, [id, user]);
-
-  const handleAddNote = async () => {
-    if (!id || !user || !noteText.trim()) return;
-    setSavingNote(true);
-    const { error } = await supabase.from("audit_notes").insert({
-      audit_id: id,
-      user_id: user.id,
-      note_text: noteText.trim(),
-    });
+  const handleSaveAuditorNote = async () => {
+    if (!id || !auditorNoteInput.trim()) return;
+    setSavingAuditorNotes(true);
+    const newNote = {
+      text: auditorNoteInput.trim(),
+      author: profile?.full_name || user?.email || "Auditor",
+      created_at: new Date().toISOString(),
+    };
+    const updated = [...auditorNotesList, newNote];
+    const { error } = await supabase.from("audits").update({ auditor_notes: JSON.stringify(updated) }).eq("id", id);
     if (error) {
       toast({ title: "Failed to save note", description: error.message, variant: "destructive" });
     } else {
-      setNoteText("");
-      await fetchNotes();
-    }
-    setSavingNote(false);
-  };
-
-  const handleSaveAuditorNotes = async () => {
-    if (!id) return;
-    setSavingAuditorNotes(true);
-    const { error } = await supabase.from("audits").update({ auditor_notes: auditorNotes }).eq("id", id);
-    if (error) {
-      toast({ title: "Failed to save notes", description: error.message, variant: "destructive" });
-    } else {
+      setAuditorNotesList(updated);
+      setAuditorNoteInput("");
       toast({ title: "Auditor notes saved — will be used on next audit run." });
     }
     setSavingAuditorNotes(false);
+  };
+
+  const handleDeleteAuditorNote = async (index: number) => {
+    if (!id) return;
+    const updated = auditorNotesList.filter((_, i) => i !== index);
+    const { error } = await supabase.from("audits").update({ auditor_notes: JSON.stringify(updated) }).eq("id", id);
+    if (error) {
+      toast({ title: "Failed to delete note", description: error.message, variant: "destructive" });
+    } else {
+      setAuditorNotesList(updated);
+      toast({ title: "Note deleted" });
+    }
   };
 
   const fetchReviews = useCallback(async () => {
@@ -272,7 +255,7 @@ export default function AuditDetail() {
     } catch { /* silently ignore */ }
   }, [id]);
 
-  useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); fetchReviews(); }, [fetchAudit, fetchCounts, fetchNotes, fetchReviews]);
+  useEffect(() => { fetchAudit(); fetchCounts(); fetchReviews(); }, [fetchAudit, fetchCounts, fetchReviews]);
 
   // Payment return detection
   useEffect(() => {
