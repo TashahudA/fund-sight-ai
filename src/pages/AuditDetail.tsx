@@ -946,9 +946,8 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 );
               })()}
 
-              {/* Compliance Findings — gated behind payment */}
+              {/* Compliance Findings */}
               {(() => {
-                const showGate = !isPaid && aiFindings.length > 0;
                 const reviewerName = profile?.full_name || user?.email || "Auditor";
 
                 const handleReviewSaved = (review: ReviewAction) => {
@@ -957,48 +956,26 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
                 return (
                   <>
-                    <div style={showGate ? { filter: "blur(6px)", pointerEvents: "none", userSelect: "none" } as React.CSSProperties : undefined}>
-                      <div className="grid gap-4 md:grid-cols-2">
-                        {aiFindings.map((f, i) => (
-                          <FindingReviewCard
-                            key={`${f.area}-${i}`}
-                            finding={f}
-                            index={i}
-                            auditId={audit.id}
-                            reviewerName={reviewerName}
-                            existingReviews={reviews.filter(r => r.finding_area === f.area)}
-                            onReviewSaved={handleReviewSaved}
-                          />
-                        ))}
-                      </div>
-                      {envelope.other_matters && envelope.other_matters.length > 0 && (
-                        <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2 mt-4">
-                          <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
-                          <div className="space-y-1.5">
-                            {envelope.other_matters.map((item, idx) => (
-                              <p key={idx} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {aiFindings.map((f, i) => (
+                        <FindingReviewCard
+                          key={`${f.area}-${i}`}
+                          finding={f}
+                          index={i}
+                          auditId={audit.id}
+                          reviewerName={reviewerName}
+                          existingReviews={reviews.filter(r => r.finding_area === f.area)}
+                          onReviewSaved={handleReviewSaved}
+                        />
+                      ))}
                     </div>
-
-                    {showGate && (
-                      <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(4px)" }}>
-                        <div className="rounded-xl border border-border bg-background p-8 text-center max-w-sm shadow-xl">
-                          <Lock className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-                          <h3 className="text-lg font-bold">Your audit is ready</h3>
-                          <p className="text-sm text-muted-foreground mt-1">Unlock the full compliance analysis for this fund</p>
-                          <Button
-                            className="mt-5 w-full bg-[hsl(142,72%,36%)] hover:bg-[hsl(142,72%,30%)] text-white font-semibold"
-                            size="lg"
-                            onClick={handleUnlockAudit}
-                            disabled={unlocking}
-                          >
-                            {unlocking ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                            Unlock Full Audit — $29 AUD
-                          </Button>
-                          <p className="text-xs text-muted-foreground mt-2">Secure payment via Stripe · One-time fee</p>
+                    {envelope.other_matters && envelope.other_matters.length > 0 && (
+                      <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2 mt-4">
+                        <p className="text-sm font-semibold text-muted-foreground">Other Matters</p>
+                        <div className="space-y-1.5">
+                          {envelope.other_matters.map((item, idx) => (
+                            <p key={idx} className="text-sm text-muted-foreground leading-relaxed">• {item}</p>
+                          ))}
                         </div>
                       </div>
                     )}
