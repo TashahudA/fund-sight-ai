@@ -170,7 +170,33 @@ export default function Admin() {
     setDeleting(false);
   };
 
-  const handleGenerateInvite = async () => {
+  const handleAddCredits = async () => {
+    if (!addCreditsProfile || !user) return;
+    const num = parseInt(creditsToAdd);
+    if (isNaN(num) || num < 1) {
+      toast({ title: "Enter a valid number of credits", variant: "destructive" });
+      return;
+    }
+    setAddingCredits(true);
+    try {
+      const res = await fetch("https://auditron-server-production.up.railway.app/stripe/admin/add-credits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admin_user_id: user.id, target_user_id: addCreditsProfile.id, credits: num }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || "Failed");
+      toast({ title: `Added ${num} credits to ${addCreditsProfile.full_name || "user"}` });
+      setAddCreditsProfile(null);
+      setCreditsToAdd("");
+      fetchData();
+    } catch (err: any) {
+      toast({ title: "Failed to add credits", description: err.message, variant: "destructive" });
+    }
+    setAddingCredits(false);
+  };
+
+
     const cents = getPriceCents(invitePriceOption, inviteCustomPrice);
     if (cents === null) {
       toast({ title: "Enter a valid positive dollar amount", variant: "destructive" });
