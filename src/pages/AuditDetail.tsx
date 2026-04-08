@@ -981,6 +981,29 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
         {/* Audit Notes Tab */}
         <TabsContent value="notes" className="space-y-4">
+          {/* Auditor Instructions for AI */}
+          <div className="rounded-lg border border-border bg-background p-5 space-y-3">
+            <h3 className="font-semibold text-base flex items-center gap-2">
+              <StickyNote className="h-4 w-4 text-muted-foreground" />
+              Auditor Notes for AI
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              These notes will be included as instructions for the AI audit analysis. Use this to provide context the AI should consider, e.g. &lsquo;Trustee confirmed Starboard investment resolved&rsquo; or &lsquo;Property was sold in July — do not flag valuation.&rsquo;
+            </p>
+            <Textarea
+              placeholder="Enter notes or instructions for the AI…"
+              value={auditorNotes}
+              onChange={(e) => setAuditorNotes(e.target.value)}
+              className="min-h-[120px] resize-y"
+            />
+            <div className="flex justify-end">
+              <Button size="sm" disabled={savingAuditorNotes} onClick={handleSaveAuditorNotes}>
+                {savingAuditorNotes ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+                Save Notes
+              </Button>
+            </div>
+          </div>
+
           <div className="rounded-lg border border-border bg-background p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-base flex items-center gap-2">
