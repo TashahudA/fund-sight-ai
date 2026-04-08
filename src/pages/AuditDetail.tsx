@@ -904,49 +904,46 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 </div>
               )}
 
+              {/* Review Progress */}
+              {(() => {
+                const reviewedAreas = new Set(reviews.map(r => r.finding_area));
+                const reviewedCount = aiFindings.filter(f => reviewedAreas.has(f.area)).length;
+                const total = aiFindings.length;
+                const pct = total > 0 ? Math.round((reviewedCount / total) * 100) : 0;
+                return (
+                  <div className="rounded-lg border border-border bg-background p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">{reviewedCount} of {total} findings reviewed ({pct}%)</p>
+                    </div>
+                    <Progress value={pct} className="h-2" />
+                  </div>
+                );
+              })()}
+
               {/* Compliance Findings — gated behind payment */}
               {(() => {
                 const showGate = !isPaid && aiFindings.length > 0;
+                const reviewerName = profile?.full_name || user?.email || "Auditor";
 
-                const renderFinding = (f: AiFinding, i: number) => {
-                  const isRemediated = f.remediated === true && normalizeStatus(f.status) === "fail";
-                  return (
-                    <div key={`${f.area}-${i}`} className={`rounded-lg border border-border bg-background p-4 space-y-2 ${findingLeftBorder(f.status, isRemediated)} ${isRemediated ? "opacity-60" : ""}`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {findingIcon(f.status)}
-                          <span className={`font-semibold text-sm ${isRemediated ? "line-through" : ""}`}>{f.area}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          {confidenceDot(f.confidence)}
-                          <Badge variant={findingBadgeVariant(f.status)}>{findingLabel(f.status)}</Badge>
-                          {isRemediated && <Badge variant="secondary">Remediated</Badge>}
-                        </div>
-                      </div>
-                      <p className={`text-sm text-muted-foreground leading-relaxed ${isRemediated ? "line-through" : ""}`}>{f.detail}</p>
-                      <p className="text-xs text-muted-foreground">{f.reference}</p>
-                      {f.judgment_flag && (
-                        <Collapsible>
-                          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs font-medium text-status-flag hover:underline cursor-pointer pt-1">
-                            <ChevronRight className="h-3 w-3 transition-transform [[data-state=open]>&]:rotate-90" />
-                            Auditor Notes
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="pt-2 space-y-1.5 pl-4 border-l-2 border-status-flag-border ml-1">
-                            <p className="text-xs"><span className="font-medium text-foreground">Reason:</span> <span className="text-muted-foreground">{f.judgment_flag.reason}</span></p>
-                            <p className="text-xs"><span className="font-medium text-foreground">Suggested Action:</span> <span className="text-muted-foreground">{f.judgment_flag.suggested_action}</span></p>
-                            <p className="text-xs"><span className="font-medium text-foreground">Risk if Missed:</span> <span className="text-status-fail">{f.judgment_flag.risk_if_missed}</span></p>
-                          </CollapsibleContent>
-                        </Collapsible>
-                      )}
-                    </div>
-                  );
+                const handleReviewSaved = (review: ReviewAction) => {
+                  setReviews(prev => [...prev, review]);
                 };
 
                 return (
                   <>
                     <div style={showGate ? { filter: "blur(6px)", pointerEvents: "none", userSelect: "none" } as React.CSSProperties : undefined}>
                       <div className="grid gap-4 md:grid-cols-2">
-                        {aiFindings.map((f, i) => renderFinding(f, i))}
+                        {aiFindings.map((f, i) => (
+                          <FindingReviewCard
+                            key={`${f.area}-${i}`}
+                            finding={f}
+                            index={i}
+                            auditId={audit.id}
+                            reviewerName={reviewerName}
+                            existingReviews={reviews.filter(r => r.finding_area === f.area)}
+                            onReviewSaved={handleReviewSaved}
+                          />
+                        ))}
                       </div>
                       {envelope.other_matters && envelope.other_matters.length > 0 && (
                         <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-2 mt-4">
