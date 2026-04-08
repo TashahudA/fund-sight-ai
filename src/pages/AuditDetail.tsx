@@ -1071,6 +1071,24 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* No Credits Modal */}
+      <AlertDialog open={showNoCreditModal} onOpenChange={setShowNoCreditModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>No credits remaining</AlertDialogTitle>
+            <AlertDialogDescription>
+              Purchase credits to run this audit. Each audit costs 1 credit. Once paid, you can re-run unlimited times.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { setShowNoCreditModal(false); navigate("/buy-credits"); }}>
+              Buy Credits
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
