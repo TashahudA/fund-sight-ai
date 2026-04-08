@@ -168,6 +168,7 @@ export default function AuditDetail() {
   const [downloading, setDownloading] = useState<string | null>(null);
   const [unlocking, setUnlocking] = useState(false);
   const paymentPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [reviews, setReviews] = useState<ReviewAction[]>([]);
 
   const isPaid = audit?.payment_status === "paid";
 
