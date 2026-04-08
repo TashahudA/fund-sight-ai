@@ -168,6 +168,7 @@ export default function AuditDetail() {
   const [unlocking, setUnlocking] = useState(false);
   const paymentPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [reviews, setReviews] = useState<ReviewAction[]>([]);
+  const [showNoCreditModal, setShowNoCreditModal] = useState(false);
 
   const isPaid = audit?.payment_status === "paid";
 
@@ -454,28 +455,57 @@ export default function AuditDetail() {
   const handleRunAudit = async () => {
     if (!audit || runningAudit) return;
 
+    // If audit is already paid, just run it (free re-run)
+    if (isPaid) {
+      setRunningAudit(true);
+      try {
+        await supabase.from("audits").update({ status: "processing" }).eq("id", audit.id);
+        await startAudit(audit.id);
+        completionToastShownRef.current = null;
+        startPolling(audit.id);
+        await fetchAudit();
+      } catch (err) {
+        console.error("Failed to start audit:", err);
+        toast({ title: "Failed to start audit", description: "Please try again", variant: "destructive" });
+        setRunningAudit(false);
+      }
+      return;
+    }
+
+    // Audit not paid — try to deduct a credit
     setRunningAudit(true);
-
     try {
-      // Set status to processing immediately in DB
-      await supabase
-        .from("audits")
-        .update({ status: "processing" })
-        .eq("id", audit.id);
-
-      // Call the Railway API
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        toast({ title: "You must be logged in", variant: "destructive" });
+        setRunningAudit(false);
+        return;
+      }
+      const res = await fetch("https://auditron-server-production.up.railway.app/stripe/deduct-credit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ user_id: authUser.id, audit_id: audit.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error === "insufficient_credits") {
+        setRunningAudit(false);
+        setShowNoCreditModal(true);
+        return;
+      }
+      if (!data.success) {
+        toast({ title: "Failed to deduct credit", description: data.error || "Unknown error", variant: "destructive" });
+        setRunningAudit(false);
+        return;
+      }
+      // Credit deducted — now run the audit
+      await supabase.from("audits").update({ status: "processing", payment_status: "paid" }).eq("id", audit.id);
       await startAudit(audit.id);
-
       completionToastShownRef.current = null;
       startPolling(audit.id);
       await fetchAudit();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to start audit:", err);
-      toast({
-        title: "Failed to start audit",
-        description: "Please try again",
-        variant: "destructive",
-      });
+      toast({ title: "Failed to start audit", description: err.message || "Please try again", variant: "destructive" });
       setRunningAudit(false);
     }
   };
