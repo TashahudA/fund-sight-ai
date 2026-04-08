@@ -36,6 +36,7 @@ interface ProfileRow {
   firm_name: string | null;
   is_admin: boolean | null;
   audit_price_cents: number | null;
+  credit_balance: number | null;
   created_at: string;
 }
 
@@ -65,6 +66,11 @@ export default function Admin() {
   // Delete account modal
   const [deletingProfile, setDeletingProfile] = useState<ProfileRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Add credits modal
+  const [addCreditsProfile, setAddCreditsProfile] = useState<ProfileRow | null>(null);
+  const [creditsToAdd, setCreditsToAdd] = useState("");
+  const [addingCredits, setAddingCredits] = useState(false);
 
   // Invite form
   const [inviteEmail, setInviteEmail] = useState("");
