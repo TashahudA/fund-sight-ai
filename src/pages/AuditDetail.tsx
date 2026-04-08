@@ -987,7 +987,6 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
         {/* Audit Notes Tab */}
         <TabsContent value="notes" className="space-y-4">
-          {/* Auditor Instructions for AI */}
           <div className="rounded-lg border border-border bg-background p-5 space-y-3">
             <h3 className="font-semibold text-base flex items-center gap-2">
               <StickyNote className="h-4 w-4 text-muted-foreground" />
@@ -997,55 +996,37 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
               These notes will be included as instructions for the AI audit analysis. Use this to provide context the AI should consider, e.g. &lsquo;Trustee confirmed Starboard investment resolved&rsquo; or &lsquo;Property was sold in July — do not flag valuation.&rsquo;
             </p>
             <Textarea
-              placeholder="Enter notes or instructions for the AI…"
-              value={auditorNotes}
-              onChange={(e) => setAuditorNotes(e.target.value)}
-              className="min-h-[120px] resize-y"
+              placeholder="Enter a note or instruction for the AI…"
+              value={auditorNoteInput}
+              onChange={(e) => setAuditorNoteInput(e.target.value)}
+              className="min-h-[80px] resize-y"
             />
             <div className="flex justify-end">
-              <Button size="sm" disabled={savingAuditorNotes} onClick={handleSaveAuditorNotes}>
-                {savingAuditorNotes ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+              <Button size="sm" disabled={!auditorNoteInput.trim() || savingAuditorNotes} onClick={handleSaveAuditorNote}>
+                {savingAuditorNotes ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
                 Save Notes
               </Button>
             </div>
-          </div>
 
-          <div className="rounded-lg border border-border bg-background p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base flex items-center gap-2">
-                <StickyNote className="h-4 w-4 text-muted-foreground" />
-                Internal Notes
-              </h3>
-              <span className="text-xs text-muted-foreground">Not shared with accountant</span>
-            </div>
-
-            <div className="space-y-2">
-              <Textarea
-                placeholder="Add an internal note…"
-                value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
-                className="min-h-[80px] resize-none"
-              />
-              <div className="flex justify-end">
-                <Button size="sm" disabled={!noteText.trim() || savingNote} onClick={handleAddNote}>
-                  {savingNote ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
-                  Add Note
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-3 pt-2 border-t border-border">
-              {auditNotes.length === 0 ? (
-                <p style={{ fontSize: "14px", color: "#888888", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }}>No notes yet</p>
+            <div className="space-y-2 pt-2 border-t border-border">
+              {auditorNotesList.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No notes yet</p>
               ) : (
-                auditNotes.map(note => (
-                  <div key={note.id} className="rounded-lg border border-border p-3 space-y-1">
-                    <p style={{ fontSize: "14px", color: "#111111", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }} className="leading-relaxed">{note.note_text}</p>
-                    <div style={{ fontSize: "11px", color: "#888888", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }} className="flex items-center gap-2">
-                      <span>{note.full_name || note.email || "Unknown"}</span>
-                      <span>·</span>
-                      <span>{new Date(note.created_at).toLocaleString()}</span>
+                auditorNotesList.map((note, idx) => (
+                  <div key={idx} className="rounded-lg border border-border p-3 flex items-start justify-between gap-2">
+                    <div className="min-w-0 space-y-0.5">
+                      <p className="text-sm text-foreground leading-relaxed">{note.text}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {note.author} · {new Date(note.created_at).toLocaleString()}
+                      </p>
                     </div>
+                    <button
+                      onClick={() => handleDeleteAuditorNote(idx)}
+                      className="shrink-0 p-1 rounded hover:bg-muted text-muted-foreground hover:text-status-fail transition-colors"
+                      title="Delete note"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 ))
               )}
