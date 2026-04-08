@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, Lock } from "lucide-react";
+import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, Lock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -148,10 +148,8 @@ export default function AuditDetail() {
   const [audit, setAudit] = useState<Audit | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [noteText, setNoteText] = useState("");
-  const [savingNote, setSavingNote] = useState(false);
-  const [auditNotes, setAuditNotes] = useState<{ id: string; note_text: string; created_at: string; full_name: string | null; email: string | null }[]>([]);
-  const [auditorNotes, setAuditorNotes] = useState("");
+  const [auditorNoteInput, setAuditorNoteInput] = useState("");
+  const [auditorNotesList, setAuditorNotesList] = useState<{ text: string; author: string; created_at: string }[]>([]);
   const [savingAuditorNotes, setSavingAuditorNotes] = useState(false);
   const [runningAudit, setRunningAudit] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -183,7 +181,18 @@ export default function AuditDetail() {
       setNotFound(true);
     } else {
       setAudit(data);
-      setAuditorNotes(data.auditor_notes || "");
+      // Parse auditor_notes — could be JSON array or legacy string
+      try {
+        const parsed = typeof data.auditor_notes === "string" ? JSON.parse(data.auditor_notes) : data.auditor_notes;
+        if (Array.isArray(parsed)) setAuditorNotesList(parsed);
+        else if (typeof data.auditor_notes === "string" && data.auditor_notes.trim()) {
+          setAuditorNotesList([{ text: data.auditor_notes, author: "Legacy", created_at: new Date().toISOString() }]);
+        } else setAuditorNotesList([]);
+      } catch {
+        if (typeof data.auditor_notes === "string" && data.auditor_notes.trim()) {
+          setAuditorNotesList([{ text: data.auditor_notes, author: "Legacy", created_at: new Date().toISOString() }]);
+        } else setAuditorNotesList([]);
+      }
     }
     setLoading(false);
   }, [id]);
@@ -200,53 +209,36 @@ export default function AuditDetail() {
 
   const { user, profile } = useAuth();
 
-  const fetchNotes = useCallback(async () => {
-    if (!id) return;
-    const { data } = await supabase
-      .from("audit_notes")
-      .select("id, note_text, created_at, user_id")
-      .eq("audit_id", id)
-      .order("created_at", { ascending: false });
-    if (!data) { setAuditNotes([]); return; }
-    const userIds = [...new Set(data.map(n => n.user_id))];
-    const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", userIds);
-    const profileMap = new Map((profiles || []).map(p => [p.id, p.full_name]));
-    setAuditNotes(data.map(n => ({
-      id: n.id,
-      note_text: n.note_text,
-      created_at: n.created_at || "",
-      full_name: profileMap.get(n.user_id) || null,
-      email: user?.email || null,
-    })));
-  }, [id, user]);
-
-  const handleAddNote = async () => {
-    if (!id || !user || !noteText.trim()) return;
-    setSavingNote(true);
-    const { error } = await supabase.from("audit_notes").insert({
-      audit_id: id,
-      user_id: user.id,
-      note_text: noteText.trim(),
-    });
+  const handleSaveAuditorNote = async () => {
+    if (!id || !auditorNoteInput.trim()) return;
+    setSavingAuditorNotes(true);
+    const newNote = {
+      text: auditorNoteInput.trim(),
+      author: profile?.full_name || user?.email || "Auditor",
+      created_at: new Date().toISOString(),
+    };
+    const updated = [...auditorNotesList, newNote];
+    const { error } = await supabase.from("audits").update({ auditor_notes: JSON.stringify(updated) }).eq("id", id);
     if (error) {
       toast({ title: "Failed to save note", description: error.message, variant: "destructive" });
     } else {
-      setNoteText("");
-      await fetchNotes();
-    }
-    setSavingNote(false);
-  };
-
-  const handleSaveAuditorNotes = async () => {
-    if (!id) return;
-    setSavingAuditorNotes(true);
-    const { error } = await supabase.from("audits").update({ auditor_notes: auditorNotes }).eq("id", id);
-    if (error) {
-      toast({ title: "Failed to save notes", description: error.message, variant: "destructive" });
-    } else {
+      setAuditorNotesList(updated);
+      setAuditorNoteInput("");
       toast({ title: "Auditor notes saved — will be used on next audit run." });
     }
     setSavingAuditorNotes(false);
+  };
+
+  const handleDeleteAuditorNote = async (index: number) => {
+    if (!id) return;
+    const updated = auditorNotesList.filter((_, i) => i !== index);
+    const { error } = await supabase.from("audits").update({ auditor_notes: JSON.stringify(updated) }).eq("id", id);
+    if (error) {
+      toast({ title: "Failed to delete note", description: error.message, variant: "destructive" });
+    } else {
+      setAuditorNotesList(updated);
+      toast({ title: "Note deleted" });
+    }
   };
 
   const fetchReviews = useCallback(async () => {
@@ -263,7 +255,7 @@ export default function AuditDetail() {
     } catch { /* silently ignore */ }
   }, [id]);
 
-  useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); fetchReviews(); }, [fetchAudit, fetchCounts, fetchNotes, fetchReviews]);
+  useEffect(() => { fetchAudit(); fetchCounts(); fetchReviews(); }, [fetchAudit, fetchCounts, fetchReviews]);
 
   // Payment return detection
   useEffect(() => {
@@ -995,7 +987,6 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
         {/* Audit Notes Tab */}
         <TabsContent value="notes" className="space-y-4">
-          {/* Auditor Instructions for AI */}
           <div className="rounded-lg border border-border bg-background p-5 space-y-3">
             <h3 className="font-semibold text-base flex items-center gap-2">
               <StickyNote className="h-4 w-4 text-muted-foreground" />
@@ -1005,55 +996,37 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
               These notes will be included as instructions for the AI audit analysis. Use this to provide context the AI should consider, e.g. &lsquo;Trustee confirmed Starboard investment resolved&rsquo; or &lsquo;Property was sold in July — do not flag valuation.&rsquo;
             </p>
             <Textarea
-              placeholder="Enter notes or instructions for the AI…"
-              value={auditorNotes}
-              onChange={(e) => setAuditorNotes(e.target.value)}
-              className="min-h-[120px] resize-y"
+              placeholder="Enter a note or instruction for the AI…"
+              value={auditorNoteInput}
+              onChange={(e) => setAuditorNoteInput(e.target.value)}
+              className="min-h-[80px] resize-y"
             />
             <div className="flex justify-end">
-              <Button size="sm" disabled={savingAuditorNotes} onClick={handleSaveAuditorNotes}>
-                {savingAuditorNotes ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+              <Button size="sm" disabled={!auditorNoteInput.trim() || savingAuditorNotes} onClick={handleSaveAuditorNote}>
+                {savingAuditorNotes ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
                 Save Notes
               </Button>
             </div>
-          </div>
 
-          <div className="rounded-lg border border-border bg-background p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base flex items-center gap-2">
-                <StickyNote className="h-4 w-4 text-muted-foreground" />
-                Internal Notes
-              </h3>
-              <span className="text-xs text-muted-foreground">Not shared with accountant</span>
-            </div>
-
-            <div className="space-y-2">
-              <Textarea
-                placeholder="Add an internal note…"
-                value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
-                className="min-h-[80px] resize-none"
-              />
-              <div className="flex justify-end">
-                <Button size="sm" disabled={!noteText.trim() || savingNote} onClick={handleAddNote}>
-                  {savingNote ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
-                  Add Note
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-3 pt-2 border-t border-border">
-              {auditNotes.length === 0 ? (
-                <p style={{ fontSize: "14px", color: "#888888", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }}>No notes yet</p>
+            <div className="space-y-2 pt-2 border-t border-border">
+              {auditorNotesList.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No notes yet</p>
               ) : (
-                auditNotes.map(note => (
-                  <div key={note.id} className="rounded-lg border border-border p-3 space-y-1">
-                    <p style={{ fontSize: "14px", color: "#111111", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }} className="leading-relaxed">{note.note_text}</p>
-                    <div style={{ fontSize: "11px", color: "#888888", fontFamily: "'Open Sans', sans-serif", fontWeight: 400 }} className="flex items-center gap-2">
-                      <span>{note.full_name || note.email || "Unknown"}</span>
-                      <span>·</span>
-                      <span>{new Date(note.created_at).toLocaleString()}</span>
+                auditorNotesList.map((note, idx) => (
+                  <div key={idx} className="rounded-lg border border-border p-3 flex items-start justify-between gap-2">
+                    <div className="min-w-0 space-y-0.5">
+                      <p className="text-sm text-foreground leading-relaxed">{note.text}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {note.author} · {new Date(note.created_at).toLocaleString()}
+                      </p>
                     </div>
+                    <button
+                      onClick={() => handleDeleteAuditorNote(idx)}
+                      className="shrink-0 p-1 rounded hover:bg-muted text-muted-foreground hover:text-status-fail transition-colors"
+                      title="Delete note"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 ))
               )}
