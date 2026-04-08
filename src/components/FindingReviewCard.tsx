@@ -101,12 +101,16 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [resolveText, setResolveText] = useState("");
   const [noteText, setNoteText] = useState("");
+  const [editingOverrideIndex, setEditingOverrideIndex] = useState<number | null>(null);
+  const [editOverrideText, setEditOverrideText] = useState("");
 
   const isRemediated = f.remediated === true && normalizeStatus(f.status) === "fail";
   const hasAgreed = existingReviews.some(r => r.action === "agree");
   const overrides = existingReviews.filter(r => r.action === "override");
+  const hasResolved = overrides.length > 0;
   const notes = existingReviews.filter(r => r.action === "note");
   const isReviewed = existingReviews.length > 0;
+  const isDecisionMade = hasAgreed || hasResolved;
 
   const saveReview = async (action: "agree" | "override" | "note", note?: string) => {
     setSaving(action);
@@ -144,11 +148,53 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
     }
   };
 
+  const handleEditOverride = (idx: number) => {
+    setEditingOverrideIndex(idx);
+    setEditOverrideText(overrides[idx]?.note || "");
+  };
+
+  const handleSaveEditOverride = async () => {
+    if (editingOverrideIndex === null) return;
+    setSaving("override");
+    try {
+      const body = {
+        audit_id: auditId,
+        finding_area: f.area,
+        action: "override",
+        reviewed_by: reviewerName,
+        note: editOverrideText.trim(),
+      };
+      const res = await fetch(`${API_BASE}/reviews/save`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || data.message || "Failed to update resolution");
+      }
+      onReviewSaved({
+        finding_area: f.area,
+        action: "override",
+        note: editOverrideText.trim(),
+        reviewed_by: reviewerName,
+        reviewed_at: new Date().toISOString(),
+      });
+      toast({ title: "Resolution updated" });
+      setEditingOverrideIndex(null);
+      setEditOverrideText("");
+    } catch (err: any) {
+      toast({ title: "Failed to update resolution", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(null);
+    }
+  };
+
   return (
     <div className={`rounded-lg border border-border bg-background p-4 space-y-2 ${findingLeftBorder(f.status, isRemediated)} ${isRemediated ? "opacity-60" : ""}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {isReviewed && hasAgreed ? (
+          {hasAgreed ? (
             <CheckCircle2 className="h-4 w-4 text-status-pass" />
           ) : (
             findingIcon(f.status)
@@ -182,13 +228,42 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
         </Collapsible>
       )}
 
+      {/* Resolution notes with edit */}
       {overrides.map((r, i) => (
-        <div key={`override-${i}`} className="rounded border border-status-flag-border bg-status-flag-bg p-3 text-xs space-y-0.5">
-          <p className="font-medium text-status-flag">Resolved by {r.reviewed_by} on {r.reviewed_at ? new Date(r.reviewed_at).toLocaleDateString() : "—"}</p>
-          {r.note && <p className="text-muted-foreground">{r.note}</p>}
+        <div key={`override-${i}`} className="rounded border border-status-flag-border bg-status-flag-bg p-3 text-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <p className="font-medium text-status-flag">Resolved by {r.reviewed_by} on {r.reviewed_at ? new Date(r.reviewed_at).toLocaleDateString() : "—"}</p>
+            {editingOverrideIndex !== i && (
+              <button
+                onClick={() => handleEditOverride(i)}
+                className="text-xs text-muted-foreground hover:text-foreground underline"
+              >
+                Edit
+              </button>
+            )}
+          </div>
+          {editingOverrideIndex === i ? (
+            <div className="space-y-2 pt-1">
+              <Textarea
+                value={editOverrideText}
+                onChange={(e) => setEditOverrideText(e.target.value)}
+                className="min-h-[50px] resize-none text-sm"
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setEditingOverrideIndex(null)}>Cancel</Button>
+                <Button size="sm" disabled={!editOverrideText.trim() || !!saving} onClick={handleSaveEditOverride}>
+                  {saving === "override" ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                  Update
+                </Button>
+              </div>
+            </div>
+          ) : (
+            r.note && <p className="text-muted-foreground">{r.note}</p>
+          )}
         </div>
       ))}
 
+      {/* Working paper notes */}
       {notes.map((r, i) => (
         <div key={`note-${i}`} className="rounded border border-border bg-muted/50 p-3 text-xs space-y-0.5">
           <p className="font-medium text-muted-foreground">{r.reviewed_by} · {r.reviewed_at ? new Date(r.reviewed_at).toLocaleDateString() : ""}</p>
@@ -196,13 +271,14 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
         </div>
       ))}
 
+      {/* Action buttons */}
       <div className="flex items-center gap-2 pt-1">
         <Button
           variant="outline"
           size="sm"
-          disabled={hasAgreed || !!saving}
+          disabled={isDecisionMade || !!saving}
           onClick={() => saveReview("agree")}
-          className={hasAgreed ? "opacity-50" : ""}
+          className={isDecisionMade ? "opacity-50" : ""}
         >
           {saving === "agree" ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Check className="h-3 w-3 mr-1" />}
           Agree
@@ -210,8 +286,9 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
         <Button
           variant="outline"
           size="sm"
-          disabled={!!saving}
+          disabled={isDecisionMade || !!saving}
           onClick={() => setShowResolveInput(!showResolveInput)}
+          className={isDecisionMade ? "opacity-50" : ""}
         >
           <FileText className="h-3 w-3 mr-1" />
           Resolve
@@ -227,7 +304,8 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
         </Button>
       </div>
 
-      {showResolveInput && (
+      {/* Resolve input — only when no decision made yet */}
+      {showResolveInput && !isDecisionMade && (
         <div className="space-y-2 pt-1">
           <Textarea
             placeholder="Explain why this finding is resolved..."
@@ -245,6 +323,7 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
         </div>
       )}
 
+      {/* Note input — always available */}
       {showNoteInput && (
         <div className="space-y-2 pt-1">
           <Textarea
