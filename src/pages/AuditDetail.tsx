@@ -198,7 +198,7 @@ export default function AuditDetail() {
     setDocCount(docRes.count ?? 0);
   }, [id]);
 
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const fetchNotes = useCallback(async () => {
     if (!id) return;
