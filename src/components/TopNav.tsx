@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bell, Plus, User, LogOut } from "lucide-react";
+import { Bell, Plus, User, LogOut, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NewAuditModal } from "@/components/NewAuditModal";
@@ -28,6 +28,7 @@ export function TopNav() {
   const { user, profile, signOut } = useAuth();
   const [openRfiCount, setOpenRfiCount] = useState(0);
   const [auditCount, setAuditCount] = useState(0);
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
 
   // Notification state
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -138,10 +139,24 @@ export function TopNav() {
     if (items.length > 0) setHasUnread(true);
   }, [user]);
 
+  const fetchCredits = useCallback(async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`https://auditron-server-production.up.railway.app/stripe/balance/${user.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setCreditBalance(data.credits ?? data.balance ?? 0);
+      }
+    } catch (e) {
+      console.error("Failed to fetch credit balance", e);
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchCounts();
     fetchNotifications();
-  }, [user, location.key, fetchNotifications]);
+    fetchCredits();
+  }, [user, location.key, fetchNotifications, fetchCredits]);
 
   // Close bell dropdown on outside click
   useEffect(() => {
@@ -215,6 +230,19 @@ export function TopNav() {
 
           {/* Right Side */}
           <div className="flex items-center gap-2">
+            {/* Credit Balance */}
+            {creditBalance !== null && (
+              <div className="flex items-center gap-1.5 mr-1">
+                <Coins className={`h-4 w-4 ${creditBalance === 0 ? 'text-red-500' : creditBalance <= 2 ? 'text-amber-500' : 'text-green-500'}`} />
+                <span className={`text-sm font-medium ${creditBalance === 0 ? 'text-red-500' : creditBalance <= 2 ? 'text-amber-500' : 'text-green-500'}`}>
+                  Credits: {creditBalance}
+                </span>
+                <Link to="/buy-credits" className="text-xs text-primary hover:underline ml-1">
+                  Buy Credits
+                </Link>
+              </div>
+            )}
+
             <Button size="sm" onClick={() => setModalOpen(true)}>
               <Plus className="h-4 w-4" />
               New Audit
