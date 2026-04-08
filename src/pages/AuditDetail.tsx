@@ -249,7 +249,21 @@ export default function AuditDetail() {
     setSavingAuditorNotes(false);
   };
 
-  useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); }, [fetchAudit, fetchCounts, fetchNotes]);
+  const fetchReviews = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await fetch(`https://auditron-server-production.up.railway.app/reviews/${id}`, {
+        headers: { Accept: "application/json" },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : data.reviews || [];
+        setReviews(list as ReviewAction[]);
+      }
+    } catch { /* silently ignore */ }
+  }, [id]);
+
+  useEffect(() => { fetchAudit(); fetchCounts(); fetchNotes(); fetchReviews(); }, [fetchAudit, fetchCounts, fetchNotes, fetchReviews]);
 
   // Payment return detection
   useEffect(() => {
