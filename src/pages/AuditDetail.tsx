@@ -149,6 +149,8 @@ export default function AuditDetail() {
   const [noteText, setNoteText] = useState("");
   const [savingNote, setSavingNote] = useState(false);
   const [auditNotes, setAuditNotes] = useState<{ id: string; note_text: string; created_at: string; full_name: string | null; email: string | null }[]>([]);
+  const [auditorNotes, setAuditorNotes] = useState("");
+  const [savingAuditorNotes, setSavingAuditorNotes] = useState(false);
   const [runningAudit, setRunningAudit] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState<string | null>(null);
