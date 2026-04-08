@@ -231,6 +231,7 @@ export type Database = {
         Row: {
           audit_price_cents: number | null
           created_at: string
+          credit_balance: number | null
           firm_name: string | null
           full_name: string | null
           id: string
@@ -239,6 +240,7 @@ export type Database = {
         Insert: {
           audit_price_cents?: number | null
           created_at?: string
+          credit_balance?: number | null
           firm_name?: string | null
           full_name?: string | null
           id: string
@@ -247,6 +249,7 @@ export type Database = {
         Update: {
           audit_price_cents?: number | null
           created_at?: string
+          credit_balance?: number | null
           firm_name?: string | null
           full_name?: string | null
           id?: string

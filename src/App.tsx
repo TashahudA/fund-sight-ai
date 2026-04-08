@@ -12,6 +12,7 @@ import MyAudits from "@/pages/MyAudits";
 import AuditDetail from "@/pages/AuditDetail";
 import MyRFIs from "@/pages/MyRFIs";
 import Admin from "@/pages/Admin";
+import BuyCredits from "@/pages/BuyCredits";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import NotFound from "@/pages/NotFound";
@@ -66,6 +67,14 @@ function AppRoutes() {
           <ProtectedRoute>
             <TopNav />
             <Admin />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/buy-credits"
+        element={
+          <ProtectedRoute>
+            <BuyCredits />
           </ProtectedRoute>
         }
       />
