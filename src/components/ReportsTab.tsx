@@ -153,8 +153,8 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
           {visibleReports.map((report) => (
             <Button
               key={report.type}
-              variant="outline"
-              className="justify-start h-auto py-3 px-4"
+              variant={report.type === "workpapers" ? "default" : "outline"}
+              className={`justify-start h-auto py-3 px-4 ${report.type === "workpapers" ? "sm:col-span-2" : ""}`}
               disabled={!!loading}
               onClick={() => handleGenerate(report)}
             >
@@ -167,6 +167,12 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
             </Button>
           ))}
         </div>
+
+        {isCompleted && (
+          <p className="text-xs text-muted-foreground">
+            Working papers are retained on the platform for 7 years in accordance with ASIC requirements.
+          </p>
+        )}
 
         {hasContraventions && (
           <div className="flex items-center gap-2 text-xs text-status-fail">
