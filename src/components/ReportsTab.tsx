@@ -32,6 +32,7 @@ interface Props {
   fundName: string;
   financialYear: string | null;
   aiFindings: any;
+  auditStatus?: string | null;
 }
 
 export function ReportsTab({ auditId, fundName, financialYear, aiFindings }: Props) {
