@@ -19,7 +19,7 @@ import {
 
 type Document = Tables<"documents">;
 
-const ACCEPTED_TYPES = ".pdf,.jpg,.jpeg,.png,.xlsx,.docx";
+const ACCEPTED_TYPES = ".pdf,.xlsx,.xls,.docx,.doc,.csv,.txt,.jpg,.jpeg,.png";
 
 interface DocumentsTabProps {
   auditId: string;
@@ -167,7 +167,7 @@ export function DocumentsTab({ auditId }: DocumentsTabProps) {
             <FileX className="h-8 w-8 text-border mb-2" />
             <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Upload PDF, JPG, PNG, XLSX, or DOCX files
+              Supported formats: PDF, Excel, Word, CSV, TXT, JPG, PNG
             </p>
           </div>
         ) : (
