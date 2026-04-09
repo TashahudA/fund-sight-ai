@@ -15,6 +15,7 @@ import Admin from "@/pages/Admin";
 import BuyCredits from "@/pages/BuyCredits";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
+import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ function AppRoutes() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/dashboard"
         element={
