@@ -145,7 +145,11 @@ export function TopNav() {
       const res = await fetch(`https://auditron-server-production.up.railway.app/stripe/balance/${user.id}`);
       if (res.ok) {
         const data = await res.json();
-        setCreditBalance(data.credits ?? data.balance ?? 0);
+        if (data.audit_price_cents === 0) {
+          setCreditBalance(-1); // sentinel for free account
+        } else {
+          setCreditBalance(data.credits ?? data.balance ?? 0);
+        }
       }
     } catch (e) {
       console.error("Failed to fetch credit balance", e);
@@ -230,7 +234,12 @@ export function TopNav() {
           {/* Right Side */}
           <div className="flex items-center gap-2">
             {/* Credit Balance */}
-            {creditBalance !== null && (
+            {creditBalance !== null && creditBalance === -1 ? (
+              <div className="flex items-center gap-1.5 mr-1">
+                <Coins className="h-4 w-4 text-green-500" />
+                <span className="text-sm font-medium text-green-500">Free Account</span>
+              </div>
+            ) : creditBalance !== null ? (
               <div className="flex items-center gap-1.5 mr-1">
                 <Coins className={`h-4 w-4 ${creditBalance === 0 ? 'text-red-500' : creditBalance <= 2 ? 'text-amber-500' : 'text-green-500'}`} />
                 <span className={`text-sm font-medium ${creditBalance === 0 ? 'text-red-500' : creditBalance <= 2 ? 'text-amber-500' : 'text-green-500'}`}>
@@ -242,7 +251,7 @@ export function TopNav() {
                   </Button>
                 </Link>
               </div>
-            )}
+            ) : null}
 
             <Button size="sm" onClick={() => setModalOpen(true)}>
               <Plus className="h-4 w-4" />

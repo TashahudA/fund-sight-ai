@@ -10,29 +10,13 @@ import { toast } from "@/hooks/use-toast";
 
 const API = "https://auditron-server-production.up.railway.app";
 
-interface CreditPack {
-  id: string;
-  credits: number;
-  price: number;
-  originalPrice?: number;
-  perAudit: string;
-  label: string;
-  badge?: string;
-  highlighted?: boolean;
-}
-
-const PACKS: CreditPack[] = [
-  { id: "single", credits: 1, price: 29, perAudit: "Pay per fund", label: "1 Audit Credit" },
-  { id: "pack_5", credits: 5, price: 145, perAudit: "$29 per audit", label: "5 Audit Credits" },
-  { id: "pack_10", credits: 10, price: 290, perAudit: "$29 per audit", label: "10 Audit Credits" },
-  { id: "pack_50", credits: 50, price: 1160, originalPrice: 1450, perAudit: "$23.20 per audit · Save 20%", label: "50 Audit Credits", badge: "Best Value", highlighted: true },
-];
-
 export default function BuyCredits() {
   const { user } = useAuth();
   const location = useLocation();
   const [loading, setLoading] = useState<string | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
+  const [priceCents, setPriceCents] = useState<number | null>(null);
+  const [isFreeAccount, setIsFreeAccount] = useState(false);
   const [customCredits, setCustomCredits] = useState("");
 
   const fetchBalance = useCallback(async () => {
@@ -42,6 +26,12 @@ export default function BuyCredits() {
       if (res.ok) {
         const data = await res.json();
         setBalance(data.credits ?? data.balance ?? 0);
+        const price = data.audit_price_cents;
+        if (price === 0) {
+          setIsFreeAccount(true);
+        } else {
+          setPriceCents(price ?? 2900);
+        }
       }
     } catch {}
   }, [user]);
@@ -82,12 +72,51 @@ export default function BuyCredits() {
   };
 
   const customNum = parseInt(customCredits) || 0;
+  const unitPrice = (priceCents ?? 2900) / 100;
+
+  const packs = [
+    { id: "single", credits: 1, price: unitPrice, perAudit: "Pay per fund", label: "1 Audit Credit" },
+    { id: "pack_5", credits: 5, price: unitPrice * 5, perAudit: `$${unitPrice.toFixed(2)} per audit`, label: "5 Audit Credits" },
+    { id: "pack_10", credits: 10, price: unitPrice * 10, perAudit: `$${unitPrice.toFixed(2)} per audit`, label: "10 Audit Credits" },
+    {
+      id: "pack_50", credits: 50,
+      price: +(unitPrice * 50 * 0.8).toFixed(2),
+      originalPrice: +(unitPrice * 50).toFixed(2),
+      perAudit: `$${(unitPrice * 0.8).toFixed(2)} per audit · Save 20%`,
+      label: "50 Audit Credits", badge: "Best Value", highlighted: true,
+    },
+  ];
+
+  // Free account view
+  if (isFreeAccount) {
+    return (
+      <>
+        <TopNav />
+        <div className="mx-auto max-w-5xl px-6 py-24 text-center">
+          <Coins className="h-10 w-10 mx-auto mb-4 text-green-500" />
+          <h1 className="text-2xl font-bold text-foreground mb-2">Free Account</h1>
+          <p className="text-muted-foreground">Your account has unlimited audits — no credits required.</p>
+        </div>
+      </>
+    );
+  }
+
+  // Wait for price to load
+  if (priceCents === null) {
+    return (
+      <>
+        <TopNav />
+        <div className="mx-auto max-w-5xl px-6 py-24 flex justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <TopNav />
       <div className="mx-auto max-w-5xl px-6 py-12">
-        {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <Coins className="h-6 w-6 text-foreground" />
@@ -103,9 +132,8 @@ export default function BuyCredits() {
           1 credit = 1 fund. Once a fund is paid for, you can re-run the audit unlimited times.
         </p>
 
-        {/* Package Cards */}
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-          {PACKS.map((pack) => (
+          {packs.map((pack) => (
             <div
               key={pack.id}
               onClick={() => !loading && handleBuy(pack.id)}
@@ -120,11 +148,9 @@ export default function BuyCredits() {
                   {pack.badge}
                 </span>
               )}
-
               <p className={`text-sm font-medium text-center mb-4 ${pack.highlighted ? "text-background/70" : "text-muted-foreground"}`}>
                 {pack.label}
               </p>
-
               <div className="text-center mb-1">
                 {pack.originalPrice && (
                   <span className={`text-lg line-through mr-2 ${pack.highlighted ? "text-background/40" : "text-muted-foreground/50"}`}>
@@ -133,17 +159,11 @@ export default function BuyCredits() {
                 )}
                 <span className="text-4xl font-bold">${pack.price.toLocaleString()}</span>
               </div>
-
               <p className={`text-xs text-center mb-6 ${pack.highlighted ? "text-background/60" : "text-muted-foreground"}`}>
                 {pack.perAudit}
               </p>
-
               <Button
-                className={`w-full mt-auto ${
-                  pack.highlighted
-                    ? "bg-background text-foreground hover:bg-background/90"
-                    : ""
-                }`}
+                className={`w-full mt-auto ${pack.highlighted ? "bg-background text-foreground hover:bg-background/90" : ""}`}
                 variant={pack.highlighted ? "outline" : "default"}
                 disabled={loading !== null}
               >
@@ -157,7 +177,6 @@ export default function BuyCredits() {
           ))}
         </div>
 
-        {/* Custom amount — inline row */}
         <div className="flex items-center gap-3 rounded-lg border border-border bg-background px-5 py-4 mb-10">
           <span className="text-sm text-muted-foreground whitespace-nowrap">Need a different amount?</span>
           <Input
@@ -170,7 +189,7 @@ export default function BuyCredits() {
           />
           {customNum > 0 && (
             <span className="text-sm font-medium text-foreground whitespace-nowrap">
-              = ${(customNum * 29).toLocaleString()}
+              = ${(customNum * unitPrice).toLocaleString()}
             </span>
           )}
           <Button
@@ -186,7 +205,6 @@ export default function BuyCredits() {
           </Button>
         </div>
 
-        {/* Trust bar */}
         <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" />Secure payment via Stripe</span>
           <span>·</span>
