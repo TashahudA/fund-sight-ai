@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { FileText, Download, Loader2, X, AlertTriangle } from "lucide-react";
+import { FileText, Download, Loader2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
-import jsPDF from "jspdf";
-import { Document, Packer, Paragraph, TextRun } from "docx";
-import { saveAs } from "file-saver";
+import { generateReportPdf } from "@/lib/reportDownloads";
+import { generateReportDocx } from "@/lib/reportDownloads";
 
 const API_BASE = "https://auditron-server-production.up.railway.app";
 
@@ -33,6 +32,71 @@ interface Props {
   financialYear: string | null;
   aiFindings: any;
   auditStatus?: string | null;
+}
+
+/** Parse content into structured sections for display */
+function parseReportSections(content: string) {
+  const lines = content.split("\n");
+  const sections: { type: "major-header" | "sub-header" | "divider" | "text"; text: string }[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      sections.push({ type: "text", text: "" });
+    } else if (/^[═]{3,}$/.test(trimmed)) {
+      sections.push({ type: "divider", text: "major" });
+    } else if (/^[─]{3,}/.test(trimmed) || /^──/.test(trimmed)) {
+      // Sub-header: text after the ── chars
+      const headerText = trimmed.replace(/^[─]+\s*/, "").replace(/\s*[─]+$/, "");
+      sections.push({ type: "sub-header", text: headerText || trimmed });
+    } else if (
+      lines[lines.indexOf(line) + 1]?.trim().match(/^[═]{3,}$/) ||
+      (trimmed.length >= 4 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed) && !trimmed.includes("|"))
+    ) {
+      sections.push({ type: "major-header", text: trimmed });
+    } else {
+      sections.push({ type: "text", text: line });
+    }
+  }
+  return sections;
+}
+
+function ReportContentDisplay({ content }: { content: string }) {
+  const sections = parseReportSections(content);
+
+  return (
+    <div className="space-y-1">
+      {sections.map((section, i) => {
+        switch (section.type) {
+          case "major-header":
+            return (
+              <div key={i} className="pt-4 pb-1">
+                <h3 className="text-sm font-bold text-foreground tracking-wide uppercase">
+                  {section.text}
+                </h3>
+              </div>
+            );
+          case "divider":
+            return <hr key={i} className="border-t-2 border-border my-2" />;
+          case "sub-header":
+            return (
+              <div key={i} className="mt-3 mb-1 pt-2 border-t border-border/50">
+                <h4 className="text-sm font-semibold text-foreground">{section.text}</h4>
+              </div>
+            );
+          case "text":
+            if (!section.text.trim()) return <div key={i} className="h-2" />;
+            return (
+              <p key={i} className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">
+                {section.text}
+              </p>
+            );
+          default:
+            return null;
+        }
+      })}
+    </div>
+  );
 }
 
 export function ReportsTab({ auditId, fundName, financialYear, aiFindings, auditStatus }: Props) {
@@ -82,7 +146,7 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
       }
       const data = await res.json();
       setReportContent(data.content || "No content returned.");
-      setReportTitle(`${report.label}`);
+      setReportTitle(report.label);
       setReportMeta({
         fund_name: data.fund_name || fundName,
         report_type: report.type,
@@ -97,42 +161,6 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
   };
 
   const fileBaseName = `${reportMeta.fund_name} - ${reportTitle} - FY${reportMeta.financial_year}`;
-
-  const handleDownloadPdf = () => {
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
-    const margin = 20;
-    const pageWidth = doc.internal.pageSize.getWidth() - margin * 2;
-    const pageHeight = doc.internal.pageSize.getHeight() - margin * 2;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-
-    const lines = doc.splitTextToSize(reportContent, pageWidth);
-    let y = margin;
-    for (const line of lines) {
-      if (y > pageHeight + margin) {
-        doc.addPage();
-        y = margin;
-      }
-      doc.text(line, margin, y);
-      y += 5;
-    }
-    doc.save(`${fileBaseName}.pdf`);
-  };
-
-  const handleDownloadDocx = async () => {
-    const paragraphs = reportContent.split("\n").map(
-      (line) =>
-        new Paragraph({
-          children: [new TextRun({ text: line || " ", font: "Calibri", size: 22 })],
-          spacing: { after: 100 },
-        })
-    );
-    const docxDoc = new Document({
-      sections: [{ children: paragraphs }],
-    });
-    const buffer = await Packer.toBlob(docxDoc);
-    saveAs(buffer, `${fileBaseName}.docx`);
-  };
 
   const isNoContent =
     !reportContent.trim() ||
@@ -182,7 +210,6 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
         )}
       </div>
 
-      {/* Report Content Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col">
           <DialogHeader>
@@ -195,18 +222,16 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
           </DialogHeader>
 
           <ScrollArea className="flex-1 min-h-0 rounded-lg border border-border bg-muted/30 p-4">
-            <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed">
-              {reportContent}
-            </pre>
+            <ReportContentDisplay content={reportContent} />
           </ScrollArea>
 
           {!isNoContent ? (
             <div className="flex items-center gap-3 pt-2 border-t border-border">
-              <Button size="sm" onClick={handleDownloadPdf}>
+              <Button size="sm" onClick={() => generateReportPdf(reportContent, reportMeta.fund_name, reportMeta.financial_year, fileBaseName)}>
                 <Download className="h-4 w-4 mr-1.5" />
                 Download as PDF
               </Button>
-              <Button size="sm" variant="outline" onClick={handleDownloadDocx}>
+              <Button size="sm" variant="outline" onClick={() => generateReportDocx(reportContent, fileBaseName)}>
                 <Download className="h-4 w-4 mr-1.5" />
                 Download as Word
               </Button>
