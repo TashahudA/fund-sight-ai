@@ -964,6 +964,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
             fundName={audit.fund_name}
             financialYear={audit.financial_year}
             aiFindings={audit.ai_findings}
+            auditStatus={audit.status}
           />
         </TabsContent>
 
