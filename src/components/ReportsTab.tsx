@@ -13,14 +13,16 @@ const API_BASE = "https://auditron-server-production.up.railway.app";
 interface ReportDef {
   label: string;
   type: string;
-  conditionKey?: "contraventions";
+  conditionKey?: "contraventions" | "completed";
 }
 
 const ALL_REPORTS: ReportDef[] = [
+  { label: "Audit Planning Memorandum", type: "audit_planning" },
   { label: "Independent Auditor's Report (IAR)", type: "iar" },
   { label: "Management Letter", type: "management_letter" },
   { label: "Engagement Letter", type: "engagement_letter" },
   { label: "Trustee Representation Letter", type: "rep_letter" },
+  { label: "Audit Working Papers", type: "workpapers", conditionKey: "completed" },
   { label: "s129 Contravention Notice", type: "s129_notice", conditionKey: "contraventions" },
   { label: "ACR Assessment", type: "acr_assessment", conditionKey: "contraventions" },
 ];
