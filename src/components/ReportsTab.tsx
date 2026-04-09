@@ -35,7 +35,7 @@ interface Props {
   auditStatus?: string | null;
 }
 
-export function ReportsTab({ auditId, fundName, financialYear, aiFindings }: Props) {
+export function ReportsTab({ auditId, fundName, financialYear, aiFindings, auditStatus }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [reportContent, setReportContent] = useState("");
@@ -46,13 +46,11 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings }: Pro
     financial_year: "",
   });
 
-  // Check if contraventions exist
   const hasContraventions = (() => {
     if (!aiFindings) return false;
     try {
       const obj = typeof aiFindings === "string" ? JSON.parse(aiFindings) : aiFindings;
       if (Array.isArray(obj?.contraventions) && obj.contraventions.length > 0) return true;
-      // Also check compliance_findings for fail status
       if (Array.isArray(obj?.compliance_findings)) {
         return obj.compliance_findings.some((f: any) => f.status?.toLowerCase() === "fail");
       }
@@ -62,9 +60,13 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings }: Pro
     }
   })();
 
-  const visibleReports = ALL_REPORTS.filter(
-    (r) => !r.conditionKey || (r.conditionKey === "contraventions" && hasContraventions)
-  );
+  const isCompleted = auditStatus === "complete" || auditStatus === "in_progress";
+
+  const visibleReports = ALL_REPORTS.filter((r) => {
+    if (r.conditionKey === "contraventions") return hasContraventions;
+    if (r.conditionKey === "completed") return isCompleted;
+    return true;
+  });
 
   const handleGenerate = async (report: ReportDef) => {
     setLoading(report.type);
