@@ -13,14 +13,16 @@ const API_BASE = "https://auditron-server-production.up.railway.app";
 interface ReportDef {
   label: string;
   type: string;
-  conditionKey?: "contraventions";
+  conditionKey?: "contraventions" | "completed";
 }
 
 const ALL_REPORTS: ReportDef[] = [
+  { label: "Audit Planning Memorandum", type: "audit_planning" },
   { label: "Independent Auditor's Report (IAR)", type: "iar" },
   { label: "Management Letter", type: "management_letter" },
   { label: "Engagement Letter", type: "engagement_letter" },
   { label: "Trustee Representation Letter", type: "rep_letter" },
+  { label: "Audit Working Papers", type: "workpapers", conditionKey: "completed" },
   { label: "s129 Contravention Notice", type: "s129_notice", conditionKey: "contraventions" },
   { label: "ACR Assessment", type: "acr_assessment", conditionKey: "contraventions" },
 ];
@@ -30,9 +32,10 @@ interface Props {
   fundName: string;
   financialYear: string | null;
   aiFindings: any;
+  auditStatus?: string | null;
 }
 
-export function ReportsTab({ auditId, fundName, financialYear, aiFindings }: Props) {
+export function ReportsTab({ auditId, fundName, financialYear, aiFindings, auditStatus }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [reportContent, setReportContent] = useState("");
@@ -43,13 +46,11 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings }: Pro
     financial_year: "",
   });
 
-  // Check if contraventions exist
   const hasContraventions = (() => {
     if (!aiFindings) return false;
     try {
       const obj = typeof aiFindings === "string" ? JSON.parse(aiFindings) : aiFindings;
       if (Array.isArray(obj?.contraventions) && obj.contraventions.length > 0) return true;
-      // Also check compliance_findings for fail status
       if (Array.isArray(obj?.compliance_findings)) {
         return obj.compliance_findings.some((f: any) => f.status?.toLowerCase() === "fail");
       }
@@ -59,9 +60,13 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings }: Pro
     }
   })();
 
-  const visibleReports = ALL_REPORTS.filter(
-    (r) => !r.conditionKey || (r.conditionKey === "contraventions" && hasContraventions)
-  );
+  const isCompleted = auditStatus === "complete" || auditStatus === "in_progress";
+
+  const visibleReports = ALL_REPORTS.filter((r) => {
+    if (r.conditionKey === "contraventions") return hasContraventions;
+    if (r.conditionKey === "completed") return isCompleted;
+    return true;
+  });
 
   const handleGenerate = async (report: ReportDef) => {
     setLoading(report.type);
@@ -148,8 +153,8 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings }: Pro
           {visibleReports.map((report) => (
             <Button
               key={report.type}
-              variant="outline"
-              className="justify-start h-auto py-3 px-4"
+              variant={report.type === "workpapers" ? "default" : "outline"}
+              className={`justify-start h-auto py-3 px-4 ${report.type === "workpapers" ? "sm:col-span-2" : ""}`}
               disabled={!!loading}
               onClick={() => handleGenerate(report)}
             >
@@ -162,6 +167,12 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings }: Pro
             </Button>
           ))}
         </div>
+
+        {isCompleted && (
+          <p className="text-xs text-muted-foreground">
+            Working papers are retained on the platform for 7 years in accordance with ASIC requirements.
+          </p>
+        )}
 
         {hasContraventions && (
           <div className="flex items-center gap-2 text-xs text-status-fail">
