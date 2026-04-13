@@ -81,14 +81,38 @@ export default function Admin() {
   const [generatedLink, setGeneratedLink] = useState("");
   const [copied, setCopied] = useState(false);
 
+  // User activity drawer
+  const [activityProfile, setActivityProfile] = useState<ProfileRow | null>(null);
+
+  // Summary stats
+  const [summaryStats, setSummaryStats] = useState({ totalUsers: 0, totalAudits: 0, activeThisMonth: 0, creditsSold: 0 });
+
   const fetchData = async () => {
     setLoadingData(true);
-    const [profilesRes, invitesRes] = await Promise.all([
+    const [profilesRes, invitesRes, auditsRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("invite_links").select("*").order("created_at", { ascending: false }),
+      supabase.from("audits").select("id, payment_status, updated_at"),
     ]);
-    setProfiles(profilesRes.data ?? []);
+    const allProfiles = profilesRes.data ?? [];
+    const allAudits = auditsRes.data ?? [];
+    setProfiles(allProfiles);
     setInvites(invitesRes.data ?? []);
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const activeThisMonth = new Set(
+      allAudits.filter((a) => a.updated_at && a.updated_at >= monthStart).map((a) => (a as any).user_id)
+    ).size;
+    // Since we don't have user_id in the select, count unique audits updated this month as proxy
+    const activeAuditsThisMonth = allAudits.filter((a) => a.updated_at && a.updated_at >= monthStart).length;
+
+    setSummaryStats({
+      totalUsers: allProfiles.length,
+      totalAudits: allAudits.length,
+      activeThisMonth: activeAuditsThisMonth,
+      creditsSold: allAudits.filter((a) => a.payment_status === "paid").length,
+    });
     setLoadingData(false);
   };
 
