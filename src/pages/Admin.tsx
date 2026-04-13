@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Copy, Check, Trash2 } from "lucide-react";
+import { Loader2, Copy, Check, Trash2, Users, FileText, Activity, Coins } from "lucide-react";
+import { UserActivityDrawer } from "@/components/UserActivityDrawer";
 import {
   Dialog,
   DialogContent,
@@ -80,14 +81,36 @@ export default function Admin() {
   const [generatedLink, setGeneratedLink] = useState("");
   const [copied, setCopied] = useState(false);
 
+  // User activity drawer
+  const [activityProfile, setActivityProfile] = useState<ProfileRow | null>(null);
+
+  // Summary stats
+  const [summaryStats, setSummaryStats] = useState({ totalUsers: 0, totalAudits: 0, activeThisMonth: 0, creditsSold: 0 });
+
   const fetchData = async () => {
     setLoadingData(true);
-    const [profilesRes, invitesRes] = await Promise.all([
+    const [profilesRes, invitesRes, auditsRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("invite_links").select("*").order("created_at", { ascending: false }),
+      supabase.from("audits").select("id, user_id, payment_status, updated_at"),
     ]);
-    setProfiles(profilesRes.data ?? []);
+    const allProfiles = profilesRes.data ?? [];
+    const allAudits = auditsRes.data ?? [];
+    setProfiles(allProfiles);
     setInvites(invitesRes.data ?? []);
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const activeThisMonth = new Set(
+      allAudits.filter((a) => a.updated_at && a.updated_at >= monthStart).map((a) => (a as any).user_id)
+    ).size;
+
+    setSummaryStats({
+      totalUsers: allProfiles.length,
+      totalAudits: allAudits.length,
+      activeThisMonth,
+      creditsSold: allAudits.filter((a) => a.payment_status === "paid").length,
+    });
     setLoadingData(false);
   };
 
@@ -243,7 +266,41 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-background">
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px" }}>
-        <h1 className="text-2xl font-bold text-foreground mb-8">Admin Panel</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-6">Admin Panel</h1>
+
+        {/* Summary Stats Bar */}
+        {!loadingData && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="rounded-lg border border-border p-4 flex items-center gap-3">
+              <Users className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Total Users</p>
+                <p className="text-xl font-semibold text-foreground">{summaryStats.totalUsers}</p>
+              </div>
+            </div>
+            <div className="rounded-lg border border-border p-4 flex items-center gap-3">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Total Audits</p>
+                <p className="text-xl font-semibold text-foreground">{summaryStats.totalAudits}</p>
+              </div>
+            </div>
+            <div className="rounded-lg border border-border p-4 flex items-center gap-3">
+              <Activity className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Active This Month</p>
+                <p className="text-xl font-semibold text-foreground">{summaryStats.activeThisMonth}</p>
+              </div>
+            </div>
+            <div className="rounded-lg border border-border p-4 flex items-center gap-3">
+              <Coins className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Credits Sold</p>
+                <p className="text-xl font-semibold text-foreground">{summaryStats.creditsSold}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* SECTION 1 — Accounts */}
         <section className="mb-12">
@@ -266,7 +323,14 @@ export default function Admin() {
                 <TableBody>
                   {profiles.map((p) => (
                     <TableRow key={p.id}>
-                     <TableCell className="font-medium">{p.full_name || "—"}</TableCell>
+                     <TableCell>
+                       <button
+                         className="font-medium text-primary hover:underline text-left"
+                         onClick={() => setActivityProfile(p)}
+                       >
+                         {p.full_name || "—"}
+                       </button>
+                     </TableCell>
                      <TableCell>{p.firm_name || "—"}</TableCell>
                      <TableCell>${((p.audit_price_cents ?? 2900) / 100).toFixed(0)}</TableCell>
                      <TableCell>{p.credit_balance ?? 0}</TableCell>
@@ -466,6 +530,12 @@ export default function Admin() {
           </div>
         </DialogContent>
       </Dialog>
+      {/* User Activity Drawer */}
+      <UserActivityDrawer
+        profile={activityProfile}
+        open={!!activityProfile}
+        onOpenChange={(open) => !open && setActivityProfile(null)}
+      />
     </div>
   );
 }
