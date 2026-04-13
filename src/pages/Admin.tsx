@@ -104,13 +104,11 @@ export default function Admin() {
     const activeThisMonth = new Set(
       allAudits.filter((a) => a.updated_at && a.updated_at >= monthStart).map((a) => (a as any).user_id)
     ).size;
-    // Since we don't have user_id in the select, count unique audits updated this month as proxy
-    const activeAuditsThisMonth = allAudits.filter((a) => a.updated_at && a.updated_at >= monthStart).length;
 
     setSummaryStats({
       totalUsers: allProfiles.length,
       totalAudits: allAudits.length,
-      activeThisMonth: activeAuditsThisMonth,
+      activeThisMonth,
       creditsSold: allAudits.filter((a) => a.payment_status === "paid").length,
     });
     setLoadingData(false);
