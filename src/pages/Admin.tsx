@@ -92,7 +92,7 @@ export default function Admin() {
     const [profilesRes, invitesRes, auditsRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("invite_links").select("*").order("created_at", { ascending: false }),
-      supabase.from("audits").select("id, payment_status, updated_at"),
+      supabase.from("audits").select("id, user_id, payment_status, updated_at"),
     ]);
     const allProfiles = profilesRes.data ?? [];
     const allAudits = auditsRes.data ?? [];
