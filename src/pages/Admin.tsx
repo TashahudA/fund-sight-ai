@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Copy, Check, Trash2 } from "lucide-react";
+import { Loader2, Copy, Check, Trash2, Users, FileText, Activity, Coins } from "lucide-react";
+import { UserActivityDrawer } from "@/components/UserActivityDrawer";
 import {
   Dialog,
   DialogContent,
