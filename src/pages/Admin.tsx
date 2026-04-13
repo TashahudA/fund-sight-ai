@@ -532,6 +532,12 @@ export default function Admin() {
           </div>
         </DialogContent>
       </Dialog>
+      {/* User Activity Drawer */}
+      <UserActivityDrawer
+        profile={activityProfile}
+        open={!!activityProfile}
+        onOpenChange={(open) => !open && setActivityProfile(null)}
+      />
     </div>
   );
 }
