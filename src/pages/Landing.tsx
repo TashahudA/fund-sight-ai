@@ -652,18 +652,25 @@ export default function Landing() {
               </div>
               <button
                 type="submit"
+                disabled={formSending}
                 className="btn-hover-lift"
                 style={{
                   fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "16px",
                   background: "#111111", color: "#ffffff", border: "none", borderRadius: "8px",
-                  height: "52px", cursor: "pointer", transition: "all 0.2s ease", width: "100%",
+                  height: "52px", cursor: formSending ? "not-allowed" : "pointer", transition: "all 0.2s ease", width: "100%",
+                  opacity: formSending ? 0.6 : 1,
                 }}
               >
-                Send Request
+                {formSending ? "Sending..." : "Send Request"}
               </button>
               {formSubmitted && (
                 <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "15px", color: "#22c55e", textAlign: "center", marginTop: "8px" }}>
                   Thanks — we'll be in touch within 24 hours.
+                </p>
+              )}
+              {formError && (
+                <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "15px", color: "#ef4444", textAlign: "center", marginTop: "8px" }}>
+                  Something went wrong — please email tash@auditron.com.au directly.
                 </p>
               )}
             </form>
