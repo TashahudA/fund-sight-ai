@@ -178,9 +178,42 @@ export default function Landing() {
     }, 150);
   }, [activeTab, startTabTimer]);
 
-  const handleFormSubmit = useCallback((e: React.FormEvent) => {
+  const handleFormSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setFormSubmitted(true);
+    setFormError(false);
+    setFormSending(true);
+    const form = e.currentTarget;
+    const inputs = form.querySelectorAll<HTMLInputElement | HTMLSelectElement>(".contact-input");
+    const fullName = (inputs[0] as HTMLInputElement)?.value || "";
+    const email = (inputs[1] as HTMLInputElement)?.value || "";
+    const firmName = (inputs[2] as HTMLInputElement)?.value || "";
+    const auditsPerMonth = (inputs[3] as HTMLSelectElement)?.value || "";
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          access_key: "616e2253-630e-45a1-82c3-bcacde0de2d8",
+          subject: "New Auditron Demo Request",
+          from_name: "Auditron Website",
+          name: fullName,
+          email,
+          firm: firmName,
+          audits_per_month: auditsPerMonth,
+          redirect: "",
+        }),
+      });
+      if (res.ok) {
+        setFormSubmitted(true);
+        form.reset();
+      } else {
+        setFormError(true);
+      }
+    } catch {
+      setFormError(true);
+    } finally {
+      setFormSending(false);
+    }
   }, []);
 
   const currentStep = howItWorksTabs[activeTab];
