@@ -117,6 +117,8 @@ export default function Landing() {
   const [tabProgress, setTabProgress] = useState(0);
   const [contentVisible, setContentVisible] = useState(true);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formError, setFormError] = useState(false);
+  const [formSending, setFormSending] = useState(false);
 
   const tabTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -176,9 +178,42 @@ export default function Landing() {
     }, 150);
   }, [activeTab, startTabTimer]);
 
-  const handleFormSubmit = useCallback((e: React.FormEvent) => {
+  const handleFormSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setFormSubmitted(true);
+    setFormError(false);
+    setFormSending(true);
+    const form = e.currentTarget;
+    const inputs = form.querySelectorAll<HTMLInputElement | HTMLSelectElement>(".contact-input");
+    const fullName = (inputs[0] as HTMLInputElement)?.value || "";
+    const email = (inputs[1] as HTMLInputElement)?.value || "";
+    const firmName = (inputs[2] as HTMLInputElement)?.value || "";
+    const auditsPerMonth = (inputs[3] as HTMLSelectElement)?.value || "";
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          access_key: "616e2253-630e-45a1-82c3-bcacde0de2d8",
+          subject: "New Auditron Demo Request",
+          from_name: "Auditron Website",
+          name: fullName,
+          email,
+          firm: firmName,
+          audits_per_month: auditsPerMonth,
+          redirect: "",
+        }),
+      });
+      if (res.ok) {
+        setFormSubmitted(true);
+        form.reset();
+      } else {
+        setFormError(true);
+      }
+    } catch {
+      setFormError(true);
+    } finally {
+      setFormSending(false);
+    }
   }, []);
 
   const currentStep = howItWorksTabs[activeTab];
@@ -617,18 +652,25 @@ export default function Landing() {
               </div>
               <button
                 type="submit"
+                disabled={formSending}
                 className="btn-hover-lift"
                 style={{
                   fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "16px",
                   background: "#111111", color: "#ffffff", border: "none", borderRadius: "8px",
-                  height: "52px", cursor: "pointer", transition: "all 0.2s ease", width: "100%",
+                  height: "52px", cursor: formSending ? "not-allowed" : "pointer", transition: "all 0.2s ease", width: "100%",
+                  opacity: formSending ? 0.6 : 1,
                 }}
               >
-                Send Request
+                {formSending ? "Sending..." : "Send Request"}
               </button>
               {formSubmitted && (
                 <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "15px", color: "#22c55e", textAlign: "center", marginTop: "8px" }}>
                   Thanks — we'll be in touch within 24 hours.
+                </p>
+              )}
+              {formError && (
+                <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "15px", color: "#ef4444", textAlign: "center", marginTop: "8px" }}>
+                  Something went wrong — please email tash@auditron.com.au directly.
                 </p>
               )}
             </form>
