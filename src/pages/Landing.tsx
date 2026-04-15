@@ -647,10 +647,9 @@ export default function Landing() {
                   defaultValue=""
                 >
                   <option value="" disabled>Select...</option>
-                  <option value="1-10">1–10</option>
-                  <option value="10-50">10–50</option>
-                  <option value="50-100">50–100</option>
-                  <option value="100+">100+</option>
+                  <option value="1-100">1–100</option>
+                  <option value="100-500">100–500</option>
+                  <option value="500+">500+</option>
                 </select>
               </div>
               <button
