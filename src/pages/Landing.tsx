@@ -198,8 +198,10 @@ export default function Landing() {
           from_name: "Auditron Website",
           name: fullName,
           email,
+          replyto: email,
           firm: firmName,
           audits_per_month: auditsPerMonth,
+          botcheck: "",
           redirect: "",
         }),
       });
@@ -624,6 +626,7 @@ export default function Landing() {
 
           <RevealSection>
             <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              <input type="checkbox" name="botcheck" className="hidden" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
               <div>
                 <label style={labelStyle}>Full Name</label>
                 <input type="text" required className="contact-input" style={inputStyle} />
