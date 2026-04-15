@@ -117,6 +117,8 @@ export default function Landing() {
   const [tabProgress, setTabProgress] = useState(0);
   const [contentVisible, setContentVisible] = useState(true);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formError, setFormError] = useState(false);
+  const [formSending, setFormSending] = useState(false);
 
   const tabTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
