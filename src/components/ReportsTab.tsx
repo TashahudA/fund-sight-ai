@@ -160,12 +160,17 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
     }
   };
 
-  const fileBaseName = `${reportMeta.fund_name} - ${reportTitle} - FY${reportMeta.financial_year}`;
+  const isWorkpapers = reportMeta.report_type === "workpapers";
+  const fileBaseName = isWorkpapers
+    ? `${reportMeta.fund_name}_Audit_Working_Papers_FY${reportMeta.financial_year}`
+    : `${reportMeta.fund_name} - ${reportTitle} - FY${reportMeta.financial_year}`;
 
   const isNoContent =
-    !reportContent.trim() ||
-    reportContent.toLowerCase().includes("no contraventions identified") ||
-    reportContent.toLowerCase().includes("no content");
+    !isWorkpapers && (
+      !reportContent.trim() ||
+      reportContent.toLowerCase().includes("no contraventions identified") ||
+      reportContent.toLowerCase().includes("no content")
+    );
 
   return (
     <div className="space-y-4">
@@ -222,7 +227,13 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
           </DialogHeader>
 
           <ScrollArea className="flex-1 min-h-0 rounded-lg border border-border bg-muted/30 p-4">
-            <ReportContentDisplay content={reportContent} />
+            {isWorkpapers ? (
+              <pre className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap font-sans m-0">
+                {reportContent}
+              </pre>
+            ) : (
+              <ReportContentDisplay content={reportContent} />
+            )}
           </ScrollArea>
 
           {!isNoContent ? (
