@@ -160,12 +160,17 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
     }
   };
 
-  const fileBaseName = `${reportMeta.fund_name} - ${reportTitle} - FY${reportMeta.financial_year}`;
+  const isWorkpapers = reportMeta.report_type === "workpapers";
+  const fileBaseName = isWorkpapers
+    ? `${reportMeta.fund_name}_Audit_Working_Papers_FY${reportMeta.financial_year}`
+    : `${reportMeta.fund_name} - ${reportTitle} - FY${reportMeta.financial_year}`;
 
   const isNoContent =
-    !reportContent.trim() ||
-    reportContent.toLowerCase().includes("no contraventions identified") ||
-    reportContent.toLowerCase().includes("no content");
+    !isWorkpapers && (
+      !reportContent.trim() ||
+      reportContent.toLowerCase().includes("no contraventions identified") ||
+      reportContent.toLowerCase().includes("no content")
+    );
 
   return (
     <div className="space-y-4">
