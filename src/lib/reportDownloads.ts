@@ -21,15 +21,15 @@ import {
 import { saveAs } from "file-saver";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Shared colour palette (used by both PDF and DOCX)
+// Shared colour palette
 // ─────────────────────────────────────────────────────────────────────────────
 
-// PDF colours as [R,G,B]
+// PDF colours [R,G,B]
 const PDF_NAVY: [number, number, number] = [28, 43, 69];
 const PDF_DGRAY: [number, number, number] = [51, 51, 51];
 const PDF_MGRAY: [number, number, number] = [102, 102, 102];
 const PDF_LGRAY: [number, number, number] = [242, 242, 242];
-const PDF_BGRAY: [number, number, number] = [232, 232, 232];
+const PDF_BGRAY: [number, number, number] = [220, 220, 220];
 const PDF_BORDER: [number, number, number] = [204, 204, 204];
 const PDF_WHITE: [number, number, number] = [255, 255, 255];
 const PDF_GREEN: [number, number, number] = [26, 92, 53];
@@ -40,14 +40,13 @@ const PDF_RED: [number, number, number] = [123, 17, 17];
 const PDF_RED_BG: [number, number, number] = [253, 240, 240];
 const PDF_BLUE: [number, number, number] = [26, 58, 107];
 const PDF_BLUE_BG: [number, number, number] = [237, 242, 250];
+const PDF_AMBER_BG: [number, number, number] = [255, 248, 220];
 
-// DOCX colours as hex strings
+// DOCX colours (hex)
 const NAVY = "1C2B45";
 const DGRAY = "333333";
 const MGRAY = "666666";
 const LGRAY = "F2F2F2";
-const BGRAY = "E8E8E8";
-const BORD = "CCCCCC";
 const WHITE = "FFFFFF";
 const GREEN = "1A5C35";
 const GREENBG = "EAF2EC";
@@ -57,9 +56,11 @@ const RED = "7B1111";
 const REDBG = "FDF0F0";
 const BLUE = "1A3A6B";
 const BLUEBG = "EDF2FA";
+const AMBERBG = "FFFBDC";
+const BORD = "CCCCCC";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Shared status helpers
+// Status / risk helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 function statusColorDocx(status: string): { text: string; label: string; bg: string } {
@@ -86,27 +87,40 @@ function statusColorPdf(status: string): {
   return { text: PDF_MGRAY, label: "N/A", bg: PDF_LGRAY };
 }
 
-function opinionColorDocx(overall: string): { text: string; bg: string } {
-  const o = (overall ?? "").toLowerCase();
-  if (/unqualified|unmodified/.test(o)) return { text: GREEN, bg: GREENBG };
-  if (/adverse|disclaim/.test(o)) return { text: RED, bg: REDBG };
-  if (/qualified|modified/.test(o)) return { text: ORANGE, bg: ORNBG };
+function riskColorDocx(risk: string): { text: string; bg: string } {
+  const r = (risk ?? "").toUpperCase();
+  if (r === "HIGH") return { text: RED, bg: REDBG };
+  if (r === "MEDIUM") return { text: ORANGE, bg: ORNBG };
+  if (r === "LOW") return { text: GREEN, bg: GREENBG };
+  return { text: MGRAY, bg: LGRAY };
+}
+
+function riskColorPdf(risk: string): { text: [number, number, number]; bg: [number, number, number] } {
+  const r = (risk ?? "").toUpperCase();
+  if (r === "HIGH") return { text: PDF_RED, bg: PDF_RED_BG };
+  if (r === "MEDIUM") return { text: PDF_ORANGE, bg: PDF_ORN_BG };
+  if (r === "LOW") return { text: PDF_GREEN, bg: PDF_GREEN_BG };
+  return { text: PDF_MGRAY, bg: PDF_LGRAY };
+}
+
+function opinionColorDocx(o: string): { text: string; bg: string } {
+  const v = (o ?? "").toLowerCase();
+  if (/unqualified|unmodified/.test(v)) return { text: GREEN, bg: GREENBG };
+  if (/adverse|disclaim/.test(v)) return { text: RED, bg: REDBG };
+  if (/qualified|modified/.test(v)) return { text: ORANGE, bg: ORNBG };
   return { text: DGRAY, bg: LGRAY };
 }
 
-function opinionColorPdf(overall: string): {
-  text: [number, number, number];
-  bg: [number, number, number];
-} {
-  const o = (overall ?? "").toLowerCase();
-  if (/unqualified|unmodified/.test(o)) return { text: PDF_GREEN, bg: PDF_GREEN_BG };
-  if (/adverse|disclaim/.test(o)) return { text: PDF_RED, bg: PDF_RED_BG };
-  if (/qualified|modified/.test(o)) return { text: PDF_ORANGE, bg: PDF_ORN_BG };
+function opinionColorPdf(o: string): { text: [number, number, number]; bg: [number, number, number] } {
+  const v = (o ?? "").toLowerCase();
+  if (/unqualified|unmodified/.test(v)) return { text: PDF_GREEN, bg: PDF_GREEN_BG };
+  if (/adverse|disclaim/.test(v)) return { text: PDF_RED, bg: PDF_RED_BG };
+  if (/qualified|modified/.test(v)) return { text: PDF_ORANGE, bg: PDF_ORN_BG };
   return { text: PDF_DGRAY, bg: PDF_LGRAY };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PDF Generation — routes to workpaper builder or generic builder
+// PDF entry points
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function generateReportPdf(content: string, fundName: string, financialYear: string, fileBaseName: string) {
@@ -118,7 +132,7 @@ export function generateReportPdf(content: string, fundName: string, financialYe
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Workpaper PDF — mirrors the DOCX structure section-for-section
+// Workpaper PDF
 // ─────────────────────────────────────────────────────────────────────────────
 
 function buildWorkpaperPdf(content: string, fundName: string, financialYear: string, fileBaseName: string) {
@@ -144,26 +158,15 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const PW = doc.internal.pageSize.getWidth();
   const PH = doc.internal.pageSize.getHeight();
-  const ML = 15; // left margin
-  const MR = 15; // right margin
-  const CW = PW - ML - MR; // content width
-  const FOOT = 16; // footer reserve from bottom
+  const ML = 15;
+  const MR = 15;
+  const CW = PW - ML - MR;
+  const FOOT = 16;
 
   let y = ML;
-
   const san = (s: any) => String(s ?? "").replace(/[^\x00-\x7E]/g, "");
 
-  // ── ensure space ────────────────────────────────────────────────────────────
-  const need = (h: number) => {
-    if (y + h > PH - FOOT) {
-      addFooter();
-      doc.addPage();
-      y = ML;
-    }
-  };
-
-  // ── draw footer on current page ─────────────────────────────────────────────
-  const addFooter = () => {
+  const addPageFooter = () => {
     const pg = doc.getCurrentPageInfo().pageNumber;
     const fy = PH - 8;
     doc.setDrawColor(...PDF_BORDER);
@@ -173,81 +176,74 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     doc.setFontSize(7);
     doc.setTextColor(...PDF_MGRAY);
     doc.text(san(fund), ML, fy);
-    // page count added at end
   };
 
-  // ── section divider bar (mirrors DOCX sectionDiv) ───────────────────────────
+  const need = (h: number) => {
+    if (y + h > PH - FOOT) {
+      addPageFooter();
+      doc.addPage();
+      y = ML;
+    }
+  };
+
   const sectionDiv = (label: string, title: string) => {
     need(10);
-    // label box
     doc.setFillColor(...PDF_NAVY);
     doc.rect(ML, y, 14, 8, "F");
     doc.setFont("times", "bold");
     doc.setFontSize(10);
     doc.setTextColor(...PDF_WHITE);
     doc.text(san(label), ML + 7, y + 5.5, { align: "center" });
-    // title box
-    doc.setFillColor(46, 68, 112); // "2E4470"
+    doc.setFillColor(46, 68, 112);
     doc.rect(ML + 14, y, CW - 14, 8, "F");
     doc.setFontSize(11);
     doc.text(san(title), ML + 18, y + 5.5);
     y += 11;
   };
 
-  // ── helper: body text ────────────────────────────────────────────────────────
-  const bodyText = (
-    text: string,
-    opts: {
-      bold?: boolean;
-      italic?: boolean;
-      size?: number;
-      color?: [number, number, number];
-      indent?: number;
-    } = {},
-  ) => {
-    const sz = opts.size ?? 9;
-    const color = opts.color ?? PDF_DGRAY;
-    const indent = opts.indent ?? 0;
-    doc.setFont("times", opts.bold ? "bold" : opts.italic ? "italic" : "normal");
-    doc.setFontSize(sz);
-    doc.setTextColor(...color);
-    const lines = doc.splitTextToSize(san(text), CW - indent);
-    for (const ln of lines) {
-      need(sz * 0.4 + 1);
-      doc.text(ln, ML + indent, y);
-      y += sz * 0.42 + 0.5;
-    }
-  };
-
-  // ── helper: labelled field row ───────────────────────────────────────────────
-  const labelField = (label: string, value: string) => {
-    need(5);
-    doc.setFont("times", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(...PDF_DGRAY);
-    doc.text(san(label), ML + 2, y);
-    doc.setFont("times", "normal");
-    doc.text(san(value), ML + 42, y);
-    y += 5;
-  };
-
-  // ── helper: horizontal rule ──────────────────────────────────────────────────
-  const hRule = (color = PDF_BORDER) => {
-    need(3);
-    doc.setDrawColor(...color);
-    doc.setLineWidth(0.3);
-    doc.line(ML, y, ML + CW, y);
-    y += 3;
-  };
-
-  // ── helper: gap ──────────────────────────────────────────────────────────────
   const gap = (mm = 4) => {
     y += mm;
   };
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ── bullet list helper ────────────────────────────────────────────────────
+  const bulletList = (items: string[], labelColor: [number, number, number], itemColor: [number, number, number]) => {
+    if (!items?.length) return;
+    for (const item of items) {
+      const lines = doc.splitTextToSize(san(item), CW - 8);
+      for (let li = 0; li < lines.length; li++) {
+        need(4.5);
+        if (li === 0) {
+          doc.setFont("times", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(...labelColor);
+          doc.text("-", ML + 2, y);
+        }
+        doc.setTextColor(...itemColor);
+        doc.text(lines[li], ML + 6, y);
+        y += 4.2;
+      }
+    }
+  };
+
+  // ── section label bar ─────────────────────────────────────────────────────
+  const labelBar = (
+    label: string,
+    bgColor: [number, number, number],
+    textColor: [number, number, number] = PDF_WHITE,
+  ) => {
+    need(6);
+    doc.setFillColor(...bgColor);
+    doc.rect(ML, y, CW, 5.5, "F");
+    doc.setFont("times", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...textColor);
+    doc.text(san(label), ML + 2, y + 3.8);
+    y += 5.5;
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
   // COVER
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
   doc.setFillColor(...PDF_NAVY);
   doc.rect(0, 0, PW, 60, "F");
   doc.setFont("times", "bold");
@@ -265,35 +261,30 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   }
   y = 68;
 
-  // Cover detail boxes — Fund Details | Opinion Summary (2-col)
+  // Cover 2-col: Fund Details | Opinion Summary
   const halfW = CW / 2 - 2;
   const boxTop = y;
-  const opCol = opinionColorPdf(opinion.overall ?? "");
-
-  // Fund details box
-  doc.setFillColor(...PDF_BLUE_BG);
-  // height will be computed dynamically — just draw text first, measure, then rect
-  const fundLines = [
+  const opC = opinionColorPdf(opinion.overall ?? "");
+  const fundRows = [
     { label: "ABN:", value: san(meta.fundABN ?? "N/A") },
     { label: "Financial Year:", value: `Year ended 30 June ${san(year)}` },
     { label: "Prepared:", value: san(meta.preparedDate ?? "N/A") },
-    { label: "Audit Standard:", value: "ASAE 3100 / SISA / SISR" },
+    { label: "Standard:", value: san(meta.standard ?? "ASA 230 / GS 009 / ASAE 3100") },
   ];
-  const boxH = 8 + fundLines.length * 5.5 + 4;
+  const boxH = 8 + fundRows.length * 5.5 + 4;
+
   doc.setFillColor(...PDF_BLUE_BG);
   doc.rect(ML, boxTop, halfW, boxH, "F");
   doc.setDrawColor(...PDF_BORDER);
   doc.setLineWidth(0.2);
   doc.rect(ML, boxTop, halfW, boxH);
 
-  // Opinion box
-  doc.setFillColor(...opCol.bg);
+  doc.setFillColor(...opC.bg);
   doc.rect(ML + halfW + 4, boxTop, halfW, boxH, "F");
-  doc.setDrawColor(...opCol.text);
+  doc.setDrawColor(...opC.text);
   doc.setLineWidth(0.4);
   doc.rect(ML + halfW + 4, boxTop, halfW, boxH);
 
-  // Fund details text
   let bx = ML + 2;
   let by = boxTop + 6;
   doc.setFont("times", "bold");
@@ -301,17 +292,16 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   doc.setTextColor(...PDF_NAVY);
   doc.text("Fund Details", bx, by);
   by += 5;
-  for (const fl of fundLines) {
+  for (const fr of fundRows) {
     doc.setFont("times", "bold");
     doc.setFontSize(8.5);
     doc.setTextColor(...PDF_DGRAY);
-    doc.text(fl.label, bx, by);
+    doc.text(fr.label, bx, by);
     doc.setFont("times", "normal");
-    doc.text(fl.value, bx + 30, by);
+    doc.text(fr.value, bx + 30, by);
     by += 5.2;
   }
 
-  // Opinion text
   bx = ML + halfW + 6;
   by = boxTop + 6;
   doc.setFont("times", "bold");
@@ -321,99 +311,109 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   by += 5;
   doc.setFont("times", "bold");
   doc.setFontSize(8.5);
-  doc.setTextColor(...opCol.text);
-  const opLabel = (opinion.overall ?? "PENDING").toUpperCase();
-  doc.text(`Overall: ${opLabel}`, bx, by);
+  doc.setTextColor(...opC.text);
+  doc.text(`Overall: ${(opinion.overall ?? "PENDING").toUpperCase()}`, bx, by);
   by += 5;
+  doc.setFont("times", "italic");
+  doc.setFontSize(7.5);
+  doc.setTextColor(...PDF_MGRAY);
+  const reasonSnippet = doc.splitTextToSize(san(opinion.reasoning ?? ""), halfW - 6);
+  for (const rl of reasonSnippet) {
+    if (by > boxTop + boxH - 1) break;
+    doc.text(rl, bx, by);
+    by += 3.8;
+  }
+  y = boxTop + boxH + 6;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PART A
+  // ─────────────────────────────────────────────────────────────────────────
+  addPageFooter();
+  doc.addPage();
+  y = ML;
+
+  sectionDiv("A", "Part A — Financial Audit Working Papers  (ASA 330 / GS 009 Part A)");
+  gap(3);
   doc.setFont("times", "italic");
   doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
-  // Full reasoning text — no truncation
-  const reasoningSnippetLines = doc.splitTextToSize(san(opinion.reasoning ?? "Opinion pending."), halfW - 6);
-  for (const rl of reasoningSnippetLines) {
-    if (by > boxTop + boxH - 1) break; // clip to box height
-    doc.text(rl, bx, by);
-    by += 4;
-  }
-
-  y = boxTop + boxH + 6;
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PART A
-  // ─────────────────────────────────────────────────────────────────────────────
-  addFooter();
-  doc.addPage();
-  y = ML;
-
-  sectionDiv("A", "Part A — Financial Audit Working Papers");
-  gap(3);
-  doc.setFont("times", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(...PDF_DGRAY);
-  doc.text("Objective:", ML, y);
-  doc.setFont("times", "italic");
-  doc.setFontSize(8.5);
-  doc.setTextColor(...PDF_MGRAY);
-  doc.text(
-    "  Obtain sufficient appropriate audit evidence to support the opinion on the financial statements (ASAE 3100, ASA 500).",
-    ML + 20,
-    y,
+  const objA = doc.splitTextToSize(
+    "Objective: Obtain sufficient appropriate audit evidence to form an opinion on the financial report (ASA 500). " +
+      "For each area, procedures must be specific enough that an experienced auditor with no prior connection " +
+      "to this engagement can understand what was done, the evidence obtained, and the conclusion reached (ASA 230 para 8).",
+    CW,
   );
-  y += 5;
+  for (const l of objA) {
+    need(4);
+    doc.text(l, ML, y);
+    y += 4;
+  }
   gap(3);
 
-  if (partAFindings.length === 0) {
-    bodyText("No Part A findings recorded.", { italic: true, color: PDF_MGRAY });
+  if (!partAFindings.length) {
+    doc.setFont("times", "italic");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...PDF_MGRAY);
+    doc.text("No Part A findings recorded.", ML, y);
+    y += 5;
   } else {
-    partAFindings.forEach((f: any, i: number) => renderFindingPdf(doc, f, i, ML, CW, PH, FOOT, san, gap, need));
-    y = (doc as any).__lastY ?? y; // sync y after finding renders
+    for (let i = 0; i < partAFindings.length; i++) {
+      renderFindingPdf(doc, partAFindings[i], i, ML, CW, PH, FOOT, san, gap, need, labelBar, bulletList);
+    }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
   // PART B
-  // ─────────────────────────────────────────────────────────────────────────────
-  addFooter();
+  // ─────────────────────────────────────────────────────────────────────────
+  addPageFooter();
   doc.addPage();
   y = ML;
 
-  sectionDiv("B", "Part B — Compliance Engagement Working Papers");
+  sectionDiv("B", "Part B — Compliance Engagement Working Papers  (ASAE 3100 / GS 009 Part B)");
   gap(3);
-  doc.setFont("times", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(...PDF_DGRAY);
-  doc.text("Objective:", ML, y);
   doc.setFont("times", "italic");
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
-  doc.text(
-    "  Assess compliance with the provisions of the SISA and SISR specified in NAT 11466 (ASAE 3100, GS 009).",
-    ML + 20,
-    y,
+  const objB = doc.splitTextToSize(
+    "Objective: Obtain sufficient appropriate evidence to conclude on compliance with SISA/SISR provisions " +
+      "specified in NAT 11466. Each area documents the specific provision tested, procedures performed, " +
+      "evidence obtained, any deviations, and the auditor's conclusion.",
+    CW,
   );
-  y += 5;
+  for (const l of objB) {
+    need(4);
+    doc.text(l, ML, y);
+    y += 4;
+  }
   gap(3);
 
-  if (partBFindings.length === 0) {
-    bodyText("No Part B findings recorded.", { italic: true, color: PDF_MGRAY });
+  if (!partBFindings.length) {
+    doc.setFont("times", "italic");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...PDF_MGRAY);
+    doc.text("No Part B findings recorded.", ML, y);
+    y += 5;
   } else {
-    partBFindings.forEach((f: any, i: number) => renderFindingPdf(doc, f, i, ML, CW, PH, FOOT, san, gap, need));
-    y = (doc as any).__lastY ?? y;
+    for (let i = 0; i < partBFindings.length; i++) {
+      renderFindingPdf(doc, partBFindings[i], i, ML, CW, PH, FOOT, san, gap, need, labelBar, bulletList);
+    }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
   // SECTION C — Deterministic Checks
-  // ─────────────────────────────────────────────────────────────────────────────
-  addFooter();
+  // ─────────────────────────────────────────────────────────────────────────
+  addPageFooter();
   doc.addPage();
   y = ML;
 
   sectionDiv("C", "Deterministic Checks — Code Verified");
   gap(3);
-  bodyText(
-    "The following results were computed arithmetically and are authoritative. Do not override with AI assessment.",
-    { italic: true, color: PDF_MGRAY, size: 8 },
-  );
-  gap(3);
+  doc.setFont("times", "italic");
+  doc.setFontSize(8);
+  doc.setTextColor(...PDF_MGRAY);
+  doc.text("Results computed arithmetically. Do not override with AI assessment.", ML, y);
+  y += 5;
+  gap(2);
 
   for (const line of deterministicBlock.split("\n")) {
     const trimmed = line.trim();
@@ -423,24 +423,31 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     }
     const isBold = /PASS|FAIL|BREACH|MATERIALITY/.test(trimmed);
     const isBad = /BREACH|FAIL/.test(trimmed);
-    bodyText(trimmed, {
-      bold: isBold,
-      size: 8.5,
-      color: isBad ? PDF_RED : PDF_DGRAY,
-    });
+    const lns = doc.splitTextToSize(san(trimmed), CW);
+    doc.setFont("times", isBold ? "bold" : "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...(isBad ? PDF_RED : PDF_DGRAY));
+    for (const l of lns) {
+      need(4.5);
+      doc.text(l, ML, y);
+      y += 4.2;
+    }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
   // SECTION D — Contraventions
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
   gap(6);
-  sectionDiv("D", "Contraventions Register");
+  sectionDiv("D", "Contraventions Register  (s129/s130 SISA)");
   gap(3);
 
-  if (contraventions.length === 0) {
-    bodyText("No contraventions identified.", { italic: true, color: PDF_GREEN });
+  if (!contraventions.length) {
+    doc.setFont("times", "italic");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...PDF_GREEN);
+    doc.text("No contraventions identified.", ML, y);
+    y += 5;
   } else {
-    // Table header
     const dCols = [
       { label: "#", w: 0.05 },
       { label: "SIS Section", w: 0.15 },
@@ -450,31 +457,42 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     ];
     drawTableHeader(doc, ML, CW, y, dCols);
     y += 6;
-
     contraventions.forEach((c: any, i: number) => {
-      const bg = i % 2 === 0 ? PDF_WHITE : PDF_LGRAY;
       const sevColor = c.severity === "material" ? PDF_RED : PDF_ORANGE;
-      const cells = [
-        { text: String(i + 1), bold: true },
-        { text: san(c.section), bold: true, color: PDF_NAVY },
-        { text: san(c.area) },
-        { text: (c.severity ?? "").toUpperCase(), bold: true, color: sevColor },
-        { text: san(c.description) },
-      ];
-      y = drawTableRow(doc, ML, CW, y, dCols, cells, bg, PH, FOOT);
+      y = drawTableRow(
+        doc,
+        ML,
+        CW,
+        y,
+        dCols,
+        [
+          { text: String(i + 1), bold: true },
+          { text: san(c.section), bold: true, color: PDF_NAVY },
+          { text: san(c.area) },
+          { text: (c.severity ?? "").toUpperCase(), bold: true, color: sevColor },
+          { text: san(c.description) },
+        ],
+        i % 2 === 0 ? PDF_WHITE : PDF_LGRAY,
+        PH,
+        FOOT,
+      );
     });
     gap(4);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
   // SECTION E — RFIs
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
   gap(6);
   sectionDiv("E", "Requests for Information (RFIs)");
   gap(3);
 
-  if (rfis.length === 0) {
-    bodyText("No RFIs raised.", { italic: true, color: PDF_GREEN });
+  if (!rfis.length) {
+    doc.setFont("times", "italic");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...PDF_GREEN);
+    doc.text("No RFIs raised.", ML, y);
+    y += 5;
   } else {
     const eCols = [
       { label: "#", w: 0.05 },
@@ -485,39 +503,43 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     ];
     drawTableHeader(doc, ML, CW, y, eCols);
     y += 6;
-
     rfis.forEach((r: any, i: number) => {
-      const bg = i % 2 === 0 ? PDF_WHITE : PDF_LGRAY;
       const pc = r.priority === "HIGH" ? PDF_RED : r.priority === "MEDIUM" ? PDF_ORANGE : PDF_MGRAY;
-      const stCol = r.status === "RESOLVED" ? PDF_GREEN : PDF_ORANGE;
-      const cells = [
-        { text: String(i + 1), bold: true },
-        { text: san(r.priority), bold: true, color: pc },
-        { text: san(r.description) },
-        { text: san(r.title), bold: true, color: PDF_NAVY },
-        { text: san(r.status), bold: true, color: stCol },
-      ];
-      y = drawTableRow(doc, ML, CW, y, eCols, cells, bg, PH, FOOT);
+      const stC = r.status === "RESOLVED" ? PDF_GREEN : PDF_ORANGE;
+      y = drawTableRow(
+        doc,
+        ML,
+        CW,
+        y,
+        eCols,
+        [
+          { text: String(i + 1), bold: true },
+          { text: san(r.priority), bold: true, color: pc },
+          { text: san(r.description) },
+          { text: san(r.title), bold: true, color: PDF_NAVY },
+          { text: san(r.status), bold: true, color: stC },
+        ],
+        i % 2 === 0 ? PDF_WHITE : PDF_LGRAY,
+        PH,
+        FOOT,
+      );
     });
     gap(4);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
   // SECTION F — Opinion
-  // ─────────────────────────────────────────────────────────────────────────────
-  addFooter();
+  // ─────────────────────────────────────────────────────────────────────────
+  addPageFooter();
   doc.addPage();
   y = ML;
 
-  sectionDiv("F", "Audit Opinion");
+  sectionDiv("F", "Audit Opinion  (NAT 11466 / ASAE 3100)");
   gap(4);
 
-  const opC = opinionColorPdf(opinion.overall ?? "");
-  const opTxt = (opinion.overall ?? "PENDING").toUpperCase();
-
-  // Opinion box — full reasoning, no truncation
-  const reasoningLines = doc.splitTextToSize(san(opinion.reasoning ?? "Opinion reasoning pending."), CW - 6);
-  const opBoxH = 16 + reasoningLines.length * 4.5;
+  const opLabel = (opinion.overall ?? "PENDING").toUpperCase();
+  const reasonLines = doc.splitTextToSize(san(opinion.reasoning ?? "Opinion reasoning pending."), CW - 6);
+  const opBoxH = 16 + reasonLines.length * 4.5;
   need(opBoxH);
 
   doc.setFillColor(...opC.bg);
@@ -525,72 +547,66 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   doc.setDrawColor(...opC.text);
   doc.setLineWidth(0.5);
   doc.rect(ML, y, CW, opBoxH);
-
   doc.setFont("times", "bold");
   doc.setFontSize(14);
   doc.setTextColor(...opC.text);
-  doc.text(`Overall Opinion:  ${opTxt}`, ML + 3, y + 9);
-
+  doc.text(`Overall Opinion:  ${opLabel}`, ML + 3, y + 9);
   doc.setFont("times", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(...PDF_DGRAY);
   let oy = y + 15;
-  for (const rl of reasoningLines) {
+  for (const rl of reasonLines) {
     doc.text(rl, ML + 3, oy);
     oy += 4.5;
   }
   y = oy + 4;
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // SECTION G — Auditor Sign-Off
-  // ─────────────────────────────────────────────────────────────────────────────
-  addFooter();
+  // ─────────────────────────────────────────────────────────────────────────
+  // SECTION G — Sign-Off
+  // ─────────────────────────────────────────────────────────────────────────
+  addPageFooter();
   doc.addPage();
   y = ML;
 
-  sectionDiv("G", "Auditor Sign-Off");
+  sectionDiv("G", "Auditor Sign-Off  (ASA 230 / APES 110)");
   gap(4);
 
   const checklist = [
     "reviewed all working papers contained in this file",
-    "obtained sufficient appropriate audit evidence",
-    "conducted this audit in accordance with ASAE 3100",
+    "obtained sufficient appropriate audit evidence for each area documented",
+    "conducted this audit in accordance with ASAE 3100 and ASA 200-899",
     "complied with independence requirements under APES 110",
-    "identified and assessed all contraventions as documented",
+    "identified and assessed all contraventions per ACR criteria (s129/s130)",
     "formed the opinion expressed in Section F",
   ];
-  const decItems = checklist.length;
+  const signRows = ["Name:", "SMSF Auditor Number (SAN):", "Firm:", "Date:", "Signature:"];
   const leftW = CW / 2 - 2;
   const rightW = CW / 2 - 2;
-  const signRows = ["Name:", "SMSF Auditor Number:", "Firm:", "Date:", "Signature:"];
-  const leftH = 10 + decItems * 5 + signRows.length * 7 + 10;
-  const retLines = doc.splitTextToSize(
-    "These working papers must be retained for a minimum of 7 years from the date of signing, in accordance with ASIC requirements and ASA 230.",
+  const retLine1 = doc.splitTextToSize(
+    "Working papers must be retained for a minimum of 7 years from the date of signing (ASA 230, ASIC requirements).",
     rightW - 6,
   );
-  const bodyLine2 = doc.splitTextToSize(
-    "An experienced auditor with no prior connection to this engagement should be able to understand, from these working papers alone, the nature, timing and extent of the audit procedures performed, the audit evidence obtained and the conclusions reached.",
+  const retLine2 = doc.splitTextToSize(
+    "An experienced auditor with no prior connection to this engagement should be able to understand, from these working papers alone, " +
+      "the nature, timing and extent of audit procedures performed, evidence obtained, and conclusions reached (ASA 230 para 8).",
     rightW - 6,
   );
-  const rightH = 10 + retLines.length * 4.2 + 6 + bodyLine2.length * 4.2 + 6;
-  const soBoxH = Math.max(leftH, rightH);
-  need(soBoxH);
+  const leftH = 10 + checklist.length * 5 + signRows.length * 7 + 10;
+  const rightH = 10 + retLine1.length * 4.2 + 6 + retLine2.length * 4.2 + 6;
+  const soH = Math.max(leftH, rightH);
+  need(soH);
 
-  // Left (blue)
   doc.setFillColor(...PDF_BLUE_BG);
-  doc.rect(ML, y, leftW, soBoxH, "F");
+  doc.rect(ML, y, leftW, soH, "F");
   doc.setDrawColor(...PDF_BORDER);
   doc.setLineWidth(0.2);
-  doc.rect(ML, y, leftW, soBoxH);
-
-  // Right (grey)
+  doc.rect(ML, y, leftW, soH);
   doc.setFillColor(...PDF_LGRAY);
-  doc.rect(ML + leftW + 4, y, rightW, soBoxH, "F");
-  doc.rect(ML + leftW + 4, y, rightW, soBoxH);
+  doc.rect(ML + leftW + 4, y, rightW, soH, "F");
+  doc.rect(ML + leftW + 4, y, rightW, soH);
 
-  // Left content
-  let lx = ML + 3;
-  let ly = y + 6;
+  let lx = ML + 3,
+    ly = y + 6;
   doc.setFont("times", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...PDF_NAVY);
@@ -610,13 +626,12 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     doc.text(row, lx, ly);
     doc.setDrawColor(...PDF_BORDER);
     doc.setLineWidth(0.25);
-    doc.line(lx + 38, ly + 1, ML + leftW - 3, ly + 1);
+    doc.line(lx + 45, ly + 1, ML + leftW - 3, ly + 1);
     ly += 7;
   }
 
-  // Right content
-  let rx = ML + leftW + 7;
-  let ry = y + 6;
+  let rx = ML + leftW + 7,
+    ry = y + 6;
   doc.setFont("times", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...PDF_NAVY);
@@ -625,39 +640,34 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   doc.setFont("times", "italic");
   doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
-  for (const rl of retLines) {
-    doc.text(rl, rx, ry);
+  for (const l of retLine1) {
+    doc.text(l, rx, ry);
     ry += 4.2;
   }
   ry += 3;
   doc.setFont("times", "normal");
-  for (const bl of bodyLine2) {
-    doc.text(bl, rx, ry);
+  for (const l of retLine2) {
+    doc.text(l, rx, ry);
     ry += 4.2;
   }
 
-  y += soBoxH + 6;
-
-  // ── Stamp footers + page numbers on every page ───────────────────────────────
+  // ── Page numbers on all pages ─────────────────────────────────────────────
   const pageCount = doc.getNumberOfPages();
   for (let pg = 1; pg <= pageCount; pg++) {
     doc.setPage(pg);
-    const fy = PH - 8;
-    doc.setDrawColor(...PDF_BORDER);
-    doc.setLineWidth(0.2);
-    doc.line(ML, fy - 4, PW - MR, fy - 4);
+    const fy2 = PH - 8;
     doc.setFont("times", "normal");
     doc.setFontSize(7);
     doc.setTextColor(...PDF_MGRAY);
-    doc.text(san(fund), ML, fy);
-    doc.text(`Page ${pg} of ${pageCount}`, PW - MR, fy, { align: "right" });
+    doc.text(`Page ${pg} of ${pageCount}`, PW - MR, fy2, { align: "right" });
   }
 
   doc.save(`${fileBaseName}.pdf`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Finding card renderer (PDF) — mirrors DOCX findingBlock exactly
+// ASA 230 Finding renderer — PDF
+// Six sections: Assertions | Risk | Procedures | Evidence | Exceptions | Conclusion
 // ─────────────────────────────────────────────────────────────────────────────
 
 function renderFindingPdf(
@@ -671,165 +681,200 @@ function renderFindingPdf(
   san: (s: any) => string,
   gap: (mm?: number) => void,
   need: (h: number) => void,
+  labelBar: (label: string, bg: [number, number, number], text?: [number, number, number]) => void,
+  bulletList: (items: string[], lc: [number, number, number], ic: [number, number, number]) => void,
 ) {
   const st = statusColorPdf(f.status);
+  const rc = riskColorPdf(f.risk_level || "MEDIUM");
   const shade = idx % 2 === 0 ? PDF_WHITE : PDF_LGRAY;
 
-  // ── Row 1: area | reference | confidence | result ──────────────────────────
-  need(30);
-  const r1H = 14;
-  const r1y = (doc as any).__currentY ?? ML;
-  // We'll use doc.getCurrentPageInfo to track y across pages — keep local y tracking
-  // Since we can't pass y in/out cleanly here, track via a closure var stored on doc
+  // ── Header row ─────────────────────────────────────────────────────────────
+  need(14);
+  // Working paper reference number
+  const wpRef = `WP-${idx + 1 < 10 ? "0" : ""}${idx + 1}`;
+
+  doc.setFillColor(...shade);
+  doc.rect(ML, (doc as any).__y ?? ML, CW, 13, "F");
+  doc.setDrawColor(...PDF_BORDER);
+  doc.setLineWidth(0.3);
+  doc.rect(ML, (doc as any).__y ?? ML, CW, 13);
+
+  // We need to track y properly — use a shared ref approach
+  // Since renderFindingPdf can't directly modify the outer y, we use doc.__lastY
   let ly: number = (doc as any).__lastY ?? ML;
 
-  // Row 1 background
   doc.setFillColor(...shade);
-  doc.rect(ML, ly, CW, r1H, "F");
+  doc.rect(ML, ly, CW, 13, "F");
   doc.setDrawColor(...PDF_BORDER);
-  doc.setLineWidth(0.2);
-  doc.rect(ML, ly, CW, r1H);
+  doc.setLineWidth(0.3);
+  doc.rect(ML, ly, CW, 13);
 
-  // Area name
+  // Area name + WP ref
   doc.setFont("times", "bold");
-  doc.setFontSize(9);
+  doc.setFontSize(9.5);
   doc.setTextColor(...PDF_NAVY);
-  doc.text(san(f.area), ML + 2, ly + 5);
+  doc.text(san(f.area), ML + 2, ly + 5.5);
+  doc.setFont("times", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(...PDF_MGRAY);
+  doc.text(wpRef, ML + 2, ly + 10);
 
-  // Reference col
+  // SIS reference
   const refX = ML + CW * 0.42;
-  doc.setFont("times", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
-  doc.text("SIS Reference", refX, ly + 4);
+  doc.text("SIS / Std Reference", refX, ly + 4.5);
   doc.setFont("times", "bold");
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setTextColor(...PDF_NAVY);
-  doc.text(san(f.reference ?? "N/A"), refX, ly + 8.5);
+  doc.text(san(f.reference || "N/A"), refX, ly + 9.5);
 
-  // Confidence col
-  const confX = ML + CW * 0.57;
+  // Risk level
+  const riskX = ML + CW * 0.62;
   doc.setFont("times", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
-  doc.text("Confidence", confX, ly + 4);
-  const confVal = (f.confidence ?? "N/A").toUpperCase();
-  const confColor = f.confidence === "high" ? PDF_GREEN : f.confidence === "medium" ? PDF_ORANGE : PDF_MGRAY;
+  doc.text("Inherent Risk (ASA 315)", riskX, ly + 4.5);
   doc.setFont("times", "bold");
-  doc.setFontSize(8.5);
-  doc.setTextColor(...confColor);
-  doc.text(confVal, confX, ly + 8.5);
+  doc.setFontSize(8);
+  doc.setTextColor(...rc.text);
+  doc.text((f.risk_level || "MEDIUM").toUpperCase(), riskX, ly + 9.5);
 
-  // Result col
-  const resX = ML + CW * 0.75;
+  // Status
+  const resX = ML + CW * 0.82;
   doc.setFont("times", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
-  doc.text("Result", resX, ly + 4);
+  doc.text("Result", resX, ly + 4.5);
   doc.setFont("times", "bold");
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setTextColor(...st.text);
-  doc.text(st.label, resX, ly + 8.5);
+  doc.text(st.label, resX, ly + 9.5);
 
-  ly += r1H;
+  ly += 14;
+  (doc as any).__lastY = ly;
 
-  // ── Row 2: procedure (full, no truncation) + sign-off box ─────────────────
-  const procedureText = san(f.detail ?? "");
-  const signOffW = CW * 0.25;
-  const procW = CW - signOffW;
-  doc.setFont("times", "normal");
-  doc.setFontSize(8);
-  const procLines = doc.splitTextToSize(procedureText, procW - 6);
-  const r2H = Math.max(procLines.length * 4 + 10, 22);
-
-  // check page
-  if (ly + r2H > doc.internal.pageSize.getHeight() - FOOT) {
-    doc.addPage();
-    ly = ML;
+  // ── Section 1: Assertions ─────────────────────────────────────────────────
+  if (f.assertions?.length) {
+    labelBar("1. ASSERTIONS TESTED (ASA 315)", PDF_NAVY);
+    ly = (doc as any).__lastY ?? ly;
+    bulletList(f.assertions, PDF_MGRAY, PDF_DGRAY);
+    ly = (doc as any).__lastY ?? ly;
+    (doc as any).__lastY = ly;
   }
 
-  // procedure box
-  doc.setFillColor(...PDF_WHITE);
-  doc.rect(ML, ly, procW, r2H, "F");
-  doc.setDrawColor(...PDF_BORDER);
-  doc.setLineWidth(0.2);
-  doc.rect(ML, ly, procW, r2H);
-  doc.setFont("times", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(...PDF_MGRAY);
-  doc.text("Procedure Performed", ML + 2, ly + 4.5);
-  doc.setFontSize(8);
-  doc.setTextColor(...PDF_DGRAY);
-  let py = ly + 9;
-  for (const pl of procLines) {
-    doc.text(pl, ML + 2, py);
-    py += 4;
+  // ── Section 2: Procedures ─────────────────────────────────────────────────
+  if (f.procedures?.length) {
+    labelBar("2. PROCEDURES PERFORMED (ASA 330)", [68, 90, 130]);
+    ly = (doc as any).__lastY ?? ly;
+    bulletList(f.procedures, PDF_NAVY, PDF_DGRAY);
+    ly = (doc as any).__lastY ?? ly;
+    (doc as any).__lastY = ly;
+  } else {
+    labelBar("2. PROCEDURES PERFORMED (ASA 330)", [68, 90, 130]);
+    ly = (doc as any).__lastY ?? ly;
+    need(4.5);
+    doc.setFont("times", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(...PDF_RED);
+    doc.text(
+      "WARNING: No procedures documented — does not satisfy ASA 230 reperformance test.",
+      ML + 3,
+      (doc as any).__lastY ?? ly,
+    );
+    (doc as any).__lastY = ((doc as any).__lastY ?? ly) + 4.5;
   }
 
-  // sign-off box
-  doc.setFillColor(...PDF_WHITE);
-  doc.rect(ML + procW, ly, signOffW, r2H, "F");
-  doc.rect(ML + procW, ly, signOffW, r2H);
-  doc.setFont("times", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(...PDF_MGRAY);
-  doc.text("Auditor Sign-Off", ML + procW + 2, ly + 4.5);
-  doc.setFontSize(8);
-  doc.text("Initials: ________", ML + procW + 2, ly + 10);
-  doc.text("Date:        ________", ML + procW + 2, ly + 15);
+  // ── Section 3: Evidence obtained ─────────────────────────────────────────
+  if (f.evidence?.length) {
+    labelBar("3. EVIDENCE OBTAINED (ASA 500)", [50, 110, 80]);
+    ly = (doc as any).__lastY ?? ly;
+    bulletList(f.evidence, PDF_GREEN, PDF_DGRAY);
+    ly = (doc as any).__lastY ?? ly;
+    (doc as any).__lastY = ly;
+  } else {
+    labelBar("3. EVIDENCE OBTAINED (ASA 500)", [50, 110, 80]);
+    ly = (doc as any).__lastY ?? ly;
+    need(4.5);
+    doc.setFont("times", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(...PDF_RED);
+    doc.text(
+      "WARNING: No evidence documented — file does not meet ASA 230 requirements.",
+      ML + 3,
+      (doc as any).__lastY ?? ly,
+    );
+    (doc as any).__lastY = ((doc as any).__lastY ?? ly) + 4.5;
+  }
 
-  ly += r2H;
+  // ── Section 4: Exceptions ────────────────────────────────────────────────
+  labelBar("4. EXCEPTIONS / DEVIATIONS (ASA 230 para 16)", [150, 80, 30]);
+  ly = (doc as any).__lastY ?? ly;
+  if (f.exceptions?.length) {
+    bulletList(f.exceptions, PDF_RED, PDF_RED);
+  } else {
+    need(4.5);
+    doc.setFont("times", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...PDF_GREEN);
+    doc.text("No exceptions noted.", ML + 3, (doc as any).__lastY ?? ly);
+    (doc as any).__lastY = ((doc as any).__lastY ?? ly) + 4.5;
+  }
+  ly = (doc as any).__lastY ?? ly;
 
-  // ── Row 3: conclusion (full text) ─────────────────────────────────────────
+  // ── Section 5: Conclusion ─────────────────────────────────────────────────
   const conclusionText = f.reviewAction
     ? `${f.reviewAction.toUpperCase()}${f.reviewNote ? " — " + f.reviewNote : ""}`
-    : "Pending auditor review.";
+    : f.conclusion || "Pending auditor review.";
 
-  doc.setFont("times", "normal");
-  doc.setFontSize(8);
-  const concLines = doc.splitTextToSize(`Conclusion:  ${san(conclusionText)}`, CW - 6);
-  const r3H = concLines.length * 4 + 6;
-
-  if (ly + r3H > doc.internal.pageSize.getHeight() - FOOT) {
-    doc.addPage();
-    ly = ML;
-  }
+  const concLines = doc.splitTextToSize(san(conclusionText), CW - 6);
+  const concH = concLines.length * 4.2 + 10;
+  need(concH + 6);
 
   doc.setFillColor(...st.bg);
-  doc.rect(ML, ly, CW, r3H, "F");
+  doc.rect(ML, (doc as any).__lastY ?? ly, CW, concH, "F");
   doc.setDrawColor(...PDF_BORDER);
   doc.setLineWidth(0.2);
-  doc.rect(ML, ly, CW, r3H);
-
-  let cy = ly + 4.5;
-  for (let ci = 0; ci < concLines.length; ci++) {
-    if (ci === 0) {
-      // Bold "Conclusion:" prefix
-      doc.setFont("times", "bold");
-      doc.setFontSize(8);
-      doc.setTextColor(...PDF_MGRAY);
-      doc.text("Conclusion:", ML + 2, cy);
-      doc.setFont("times", !f.reviewAction ? "italic" : "normal");
-      doc.setFontSize(8);
-      doc.setTextColor(...PDF_DGRAY);
-      const prefixW = doc.getTextWidth("Conclusion:  ");
-      doc.text(concLines[0].replace("Conclusion:  ", ""), ML + 2 + prefixW, cy);
-    } else {
-      doc.setFont("times", !f.reviewAction ? "italic" : "normal");
-      doc.setTextColor(...PDF_DGRAY);
-      doc.text(concLines[ci], ML + 2, cy);
-    }
-    cy += 4;
+  doc.rect(ML, (doc as any).__lastY ?? ly, CW, concH);
+  const concY0 = (doc as any).__lastY ?? ly;
+  doc.setFont("times", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(...PDF_MGRAY);
+  doc.text("5. AUDITOR CONCLUSION (ASA 230)", ML + 2, concY0 + 4);
+  doc.setFont("times", !f.reviewAction ? "italic" : "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(...PDF_DGRAY);
+  let cy = concY0 + 9;
+  for (const cl of concLines) {
+    doc.text(cl, ML + 2, cy);
+    cy += 4.2;
   }
 
-  ly += r3H + 3;
+  // ── Sign-off row ──────────────────────────────────────────────────────────
+  const soH2 = 10;
+  need(soH2);
+  const soY = cy + 1;
+  doc.setDrawColor(...PDF_BORDER);
+  doc.setLineWidth(0.15);
+  doc.line(ML, soY, ML + CW, soY);
+  doc.setFont("times", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(...PDF_MGRAY);
+  if (f.reviewedBy || f.reviewedAt) {
+    doc.text(
+      `Reviewed by: ${san(f.reviewedBy || "___________")}   Date: ${san(f.reviewedAt || "__________")}   Initials: _______`,
+      ML + 2,
+      soY + 5,
+    );
+  } else {
+    doc.text("Reviewed by: ___________   Date: __________   Initials: _______", ML + 2, soY + 5);
+  }
 
-  // Store for next call
-  (doc as any).__lastY = ly;
+  (doc as any).__lastY = soY + soH2 + 3;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Table helpers for PDF
+// PDF table helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 type ColDef = { label: string; w: number };
@@ -842,9 +887,8 @@ function drawTableHeader(doc: jsPDF, ML: number, CW: number, y: number, cols: Co
   doc.setTextColor(...PDF_WHITE);
   let cx = ML + 1;
   for (const col of cols) {
-    const w = col.w * CW;
     doc.text(col.label, cx, y + 4.2);
-    cx += w;
+    cx += col.w * CW;
   }
 }
 
@@ -860,7 +904,6 @@ function drawTableRow(
   FOOT: number,
 ): number {
   const colWidths = cols.map((c) => c.w * CW);
-  // pre-wrap all cells to find row height
   const wrapped = cells.map((cell, i) => {
     doc.setFont("times", cell.bold ? "bold" : "normal");
     doc.setFontSize(8);
@@ -872,7 +915,6 @@ function drawTableRow(
   if (y + rowH > PH - FOOT) {
     doc.addPage();
     y = ML;
-    // re-draw header
     drawTableHeader(doc, ML, CW, y, cols);
     y += 6;
   }
@@ -885,11 +927,9 @@ function drawTableRow(
 
   let cx = ML + 1;
   for (let i = 0; i < cells.length; i++) {
-    const cell = cells[i];
-    const color = cell.color ?? PDF_DGRAY;
-    doc.setFont("times", cell.bold ? "bold" : "normal");
+    doc.setFont("times", cells[i].bold ? "bold" : "normal");
     doc.setFontSize(8);
-    doc.setTextColor(...color);
+    doc.setTextColor(...(cells[i].color ?? PDF_DGRAY));
     let ty = y + 4;
     for (const ln of wrapped[i]) {
       doc.text(ln, cx, ty);
@@ -897,12 +937,11 @@ function drawTableRow(
     }
     cx += colWidths[i];
   }
-
   return y + rowH;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Generic PDF — plain text reports (IAR, management letter, etc.)
+// Generic PDF
 // ─────────────────────────────────────────────────────────────────────────────
 
 function buildGenericPdf(content: string, fundName: string, fileBaseName: string) {
@@ -910,10 +949,9 @@ function buildGenericPdf(content: string, fundName: string, fileBaseName: string
   const margin = 20;
   const pageW = doc.internal.pageSize.getWidth() - margin * 2;
   const pageH = doc.internal.pageSize.getHeight() - margin * 2;
-  const lines = content.split("\n");
   let y = margin;
 
-  for (const line of lines) {
+  for (const line of content.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed) {
       y += 4;
@@ -945,8 +983,7 @@ function buildGenericPdf(content: string, fundName: string, fileBaseName: string
       doc.setFont("times", "bold");
       doc.setFontSize(11);
       doc.setTextColor(30, 30, 30);
-      const wrapped = doc.splitTextToSize(trimmed, pageW);
-      for (const wl of wrapped) {
+      for (const wl of doc.splitTextToSize(trimmed, pageW)) {
         if (y > pageH + margin) {
           doc.addPage();
           y = margin;
@@ -960,9 +997,7 @@ function buildGenericPdf(content: string, fundName: string, fileBaseName: string
     doc.setFont("times", "normal");
     doc.setFontSize(10);
     doc.setTextColor(40, 40, 40);
-    const sanitized = trimmed.replace(/[^\x00-\x7E]/g, "");
-    const wrapped = doc.splitTextToSize(sanitized, pageW);
-    for (const wl of wrapped) {
+    for (const wl of doc.splitTextToSize(trimmed.replace(/[^\x00-\x7E]/g, ""), pageW)) {
       if (y > pageH + margin) {
         doc.addPage();
         y = margin;
@@ -973,22 +1008,21 @@ function buildGenericPdf(content: string, fundName: string, fileBaseName: string
     y += 1;
   }
 
-  const pageCount = doc.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
+  const pc = doc.getNumberOfPages();
+  for (let i = 1; i <= pc; i++) {
     doc.setPage(i);
     const fy = doc.internal.pageSize.getHeight() - 10;
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.setFont("times", "normal");
     doc.text(fundName, margin, fy);
-    doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.getWidth() - margin, fy, { align: "right" });
+    doc.text(`Page ${i} of ${pc}`, doc.internal.pageSize.getWidth() - margin, fy, { align: "right" });
   }
-
   doc.save(`${fileBaseName}.pdf`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DOCX Generation — routes to workpaper builder or generic builder
+// DOCX entry point
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function generateReportDocx(content: string, fileBaseName: string) {
@@ -1009,7 +1043,6 @@ const B = (color = BORD, sz = 4) => ({
   left: { style: BorderStyle.SINGLE, size: sz, color },
   right: { style: BorderStyle.SINGLE, size: sz, color },
 });
-
 const NB = () => ({
   top: { style: BorderStyle.NONE, size: 0, color: WHITE },
   bottom: { style: BorderStyle.NONE, size: 0, color: WHITE },
@@ -1034,10 +1067,7 @@ const t = (text: string, opts: { bold?: boolean; size?: number; color?: string; 
   });
 
 const gap = (pt = 160) =>
-  new Paragraph({
-    children: [new TextRun({ text: " ", size: 4 })],
-    spacing: { before: 0, after: pt },
-  });
+  new Paragraph({ children: [new TextRun({ text: " ", size: 4 })], spacing: { before: 0, after: pt } });
 
 const hRule = (color = BORD, sz = 6) =>
   new Paragraph({
@@ -1080,46 +1110,84 @@ const sectionDiv = (label: string, title: string) =>
     ],
   });
 
-// Finding block — full text, no truncation anywhere
+// Sub-section label row — used within finding blocks
+const subLabelRow = (label: string, bgHex: string, colWidth = 9360) =>
+  new Table({
+    width: { size: colWidth, type: WidthType.DXA },
+    columnWidths: [colWidth],
+    rows: [
+      tr([
+        tc([p([t(label, { bold: true, size: 16, color: WHITE })], { before: 0, after: 0 })], colWidth, {
+          bord: NB(),
+          bg: bgHex,
+          m: { top: 60, bottom: 60, left: 120, right: 60 },
+        }),
+      ]),
+    ],
+  });
+
+// Bullet list helper for DOCX
+const bulletItems = (items: string[], color = DGRAY, size = 18): Paragraph[] => {
+  if (!items?.length) return [];
+  return items.map(
+    (item) =>
+      new Paragraph({
+        numbering: { reference: "bullets", level: 0 },
+        children: [t(item, { size, color })],
+        spacing: { before: 40, after: 40 },
+      }),
+  );
+};
+
+const warningPara = (msg: string) => p([t(msg, { size: 17, italic: true, color: RED })], { before: 60, after: 60 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ASA 230 Finding block — DOCX
+// Six sections: Assertions | Procedures | Evidence | Exceptions | Conclusion | Sign-off
+// ─────────────────────────────────────────────────────────────────────────────
+
 function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
   const st = statusColorDocx(f.status);
+  const rc = riskColorDocx(f.risk_level || "MEDIUM");
   const shade = idx % 2 === 0 ? WHITE : LGRAY;
+  const wpRef = `WP-${idx + 1 < 10 ? "0" : ""}${idx + 1}`;
 
   const conclusionText = f.reviewAction
     ? `${f.reviewAction.toUpperCase()}${f.reviewNote ? " — " + f.reviewNote : ""}`
-    : "Pending auditor review.";
+    : f.conclusion || "Pending auditor review.";
 
   return [
+    // ── Header: area | reference | risk | result ────────────────────────────
     new Table({
       width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [3800, 1400, 1400, 2760],
+      columnWidths: [3600, 1680, 1880, 2200],
       rows: [
-        // Row 1: area | reference | confidence | status
         tr([
-          tc([p([t(f.area, { bold: true, size: 20, color: NAVY })], { before: 0, after: 20 })], 3800, { bg: shade }),
           tc(
             [
-              p([t("SIS Reference", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
-              p([t(f.reference || "N/A", { bold: true, size: 18, color: NAVY })], { before: 0, after: 0 }),
+              p([t(f.area, { bold: true, size: 20, color: NAVY })], { before: 0, after: 20 }),
+              p([t(wpRef, { size: 15, color: MGRAY, italic: true })], { before: 0, after: 0 }),
             ],
-            1400,
+            3600,
             { bg: shade },
           ),
           tc(
             [
-              p([t("Confidence", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
-              p(
-                [
-                  t((f.confidence || "N/A").toUpperCase(), {
-                    bold: true,
-                    size: 18,
-                    color: f.confidence === "high" ? GREEN : f.confidence === "medium" ? ORANGE : MGRAY,
-                  }),
-                ],
-                { before: 0, after: 0 },
-              ),
+              p([t("SIS / Std Reference", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
+              p([t(f.reference || "N/A", { bold: true, size: 18, color: NAVY })], { before: 0, after: 0 }),
             ],
-            1400,
+            1680,
+            { bg: shade },
+          ),
+          tc(
+            [
+              p([t("Inherent Risk (ASA 315)", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
+              p([t((f.risk_level || "MEDIUM").toUpperCase(), { bold: true, size: 18, color: rc.text })], {
+                before: 0,
+                after: 0,
+              }),
+            ],
+            1880,
             { bg: shade },
           ),
           tc(
@@ -1127,61 +1195,72 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
               p([t("Result", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
               p([t(st.label, { bold: true, size: 18, color: st.text })], { before: 0, after: 0 }),
             ],
-            2760,
+            2200,
             { bg: shade },
-          ),
-        ]),
-        // Row 2: procedure (full, no truncation) | sign-off
-        tr([
-          tc(
-            [
-              p([t("Procedure Performed", { size: 14, color: MGRAY })], { before: 0, after: 30 }),
-              // f.detail is the full text — no slicing
-              p([t(f.detail ?? "", { size: 18 })], { before: 0, after: 0 }),
-            ],
-            7200,
-            { bg: WHITE, span: 3 },
-          ),
-          tc(
-            [
-              p([t("Auditor Sign-Off", { size: 14, color: MGRAY })], { before: 0, after: 40 }),
-              p([t("Initials: ________", { size: 17, color: MGRAY })], { before: 0, after: 30 }),
-              p([t("Date:        ________", { size: 17, color: MGRAY })], { before: 0, after: 0 }),
-            ],
-            2160,
-            { bg: WHITE },
-          ),
-        ]),
-        // Row 3: conclusion — full text
-        tr([
-          tc(
-            [
-              p(
-                [
-                  t("Conclusion:  ", { size: 15, bold: true, color: MGRAY }),
-                  t(conclusionText, { size: 18, italic: !f.reviewAction }),
-                ],
-                { before: 0, after: 0 },
-              ),
-            ],
-            9360,
-            { bg: st.bg, span: 4 },
           ),
         ]),
       ],
     }),
-    gap(80),
+
+    // ── 1. Assertions ────────────────────────────────────────────────────────
+    subLabelRow("1. ASSERTIONS TESTED (ASA 315)", NAVY),
+    ...(f.assertions?.length ? bulletItems(f.assertions, DGRAY) : [warningPara("No assertions documented.")]),
+
+    // ── 2. Procedures ────────────────────────────────────────────────────────
+    subLabelRow("2. PROCEDURES PERFORMED (ASA 330)", "445C8A"),
+    ...(f.procedures?.length
+      ? bulletItems(f.procedures, DGRAY)
+      : [warningPara("WARNING: No procedures documented — does not satisfy ASA 230 reperformance test.")]),
+
+    // ── 3. Evidence obtained ─────────────────────────────────────────────────
+    subLabelRow("3. EVIDENCE OBTAINED (ASA 500)", "326B50"),
+    ...(f.evidence?.length
+      ? bulletItems(f.evidence, DGRAY)
+      : [warningPara("WARNING: No evidence documented — file does not meet ASA 230 requirements.")]),
+
+    // ── 4. Exceptions ────────────────────────────────────────────────────────
+    subLabelRow("4. EXCEPTIONS / DEVIATIONS (ASA 230 para 16)", "96501E"),
+    ...(f.exceptions?.length
+      ? bulletItems(f.exceptions, RED, 18)
+      : [p([t("No exceptions noted.", { size: 18, italic: true, color: GREEN })], { before: 60, after: 60 })]),
+
+    // ── 5. Conclusion + sign-off ─────────────────────────────────────────────
+    new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: [7000, 2360],
+      rows: [
+        tr([
+          tc(
+            [
+              p([t("5. AUDITOR CONCLUSION (ASA 230)", { size: 15, bold: true, color: MGRAY })], {
+                before: 0,
+                after: 30,
+              }),
+              p([t(conclusionText, { size: 18, italic: !f.reviewAction })], { before: 0, after: 0 }),
+            ],
+            7000,
+            { bg: st.bg, bord: B(st.text) },
+          ),
+          tc(
+            [
+              p([t("Auditor Sign-Off", { size: 14, color: MGRAY })], { before: 0, after: 40 }),
+              p([t(`Reviewed by: ${f.reviewedBy || "___________"}`, { size: 16 })], { before: 0, after: 30 }),
+              p([t(`Date: ${f.reviewedAt || "__________"}`, { size: 16 })], { before: 0, after: 30 }),
+              p([t("Initials: _______", { size: 16, color: MGRAY })], { before: 0, after: 0 }),
+            ],
+            2360,
+            { bg: WHITE },
+          ),
+        ]),
+      ],
+    }),
+
+    gap(100),
   ];
 }
 
-function priorityColor(p: string): string {
-  if (p === "HIGH") return RED;
-  if (p === "MEDIUM") return ORANGE;
-  return MGRAY;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
-// Workpaper DOCX — full document (no text truncation anywhere)
+// Workpaper DOCX builder
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function buildWorkpaperDocx(content: string, fileBaseName: string) {
@@ -1222,7 +1301,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   );
   children.push(gap(200));
 
-  // Cover details — Fund | Opinion (full reasoning, no slice)
+  // Cover 2-col: fund details | opinion
   children.push(
     new Table({
       width: { size: 9360, type: WidthType.DXA },
@@ -1244,10 +1323,13 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                 before: 0,
                 after: 40,
               }),
-              p([t("Audit Standard:  ", { bold: true, size: 18 }), t("ASAE 3100 / SISA / SISR", { size: 18 })], {
-                before: 0,
-                after: 0,
-              }),
+              p(
+                [
+                  t("Standard:  ", { bold: true, size: 18 }),
+                  t(meta.standard || "ASA 230 / GS 009 / ASAE 3100", { size: 18 }),
+                ],
+                { before: 0, after: 0 },
+              ),
             ],
             4680,
             { bg: BLUEBG },
@@ -1262,7 +1344,6 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                 ],
                 { before: 0, after: 80 },
               ),
-              // Full reasoning — no .slice(0, 300)
               p([t(opinion.reasoning || "Opinion pending.", { size: 17, italic: true, color: MGRAY })], {
                 before: 0,
                 after: 0,
@@ -1278,20 +1359,23 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
 
   // ── PART A ─────────────────────────────────────────────────────────────────
   children.push(new Paragraph({ children: [new PageBreak()] }));
-  children.push(sectionDiv("A", "Part A — Financial Audit Working Papers"));
-  children.push(gap(140));
+  children.push(sectionDiv("A", "Part A — Financial Audit Working Papers  (ASA 330 / GS 009 Part A)"));
+  children.push(gap(120));
   children.push(
     p(
       [
-        t("Objective:", { bold: true, size: 17 }),
+        t("Objective: ", { bold: true, size: 17 }),
         t(
-          "  Obtain sufficient appropriate audit evidence to support the opinion on the financial statements (ASAE 3100, ASA 500).",
+          "Obtain sufficient appropriate audit evidence to form an opinion on the financial report (ASA 500). " +
+            "Each area documents assertions tested, procedures performed, evidence obtained, exceptions, and the auditor's conclusion " +
+            "to satisfy the reperformance test under ASA 230 para 8.",
           { size: 17, italic: true, color: MGRAY },
         ),
       ],
       { before: 0, after: 120 },
     ),
   );
+
   if (!partAFindings.length) {
     children.push(
       p([t("No Part A findings recorded.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
@@ -1304,21 +1388,22 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
 
   // ── PART B ─────────────────────────────────────────────────────────────────
   children.push(new Paragraph({ children: [new PageBreak()] }));
-  children.push(sectionDiv("B", "Part B — Compliance Engagement Working Papers"));
-  children.push(gap(140));
+  children.push(sectionDiv("B", "Part B — Compliance Engagement Working Papers  (ASAE 3100 / GS 009 Part B)"));
+  children.push(gap(120));
   children.push(
     p(
       [
-        t("Objective:", { bold: true, size: 17 }),
-        t("  Assess compliance with the provisions of the SISA and SISR specified in NAT 11466 (ASAE 3100, GS 009).", {
-          size: 17,
-          italic: true,
-          color: MGRAY,
-        }),
+        t("Objective: ", { bold: true, size: 17 }),
+        t(
+          "Obtain sufficient appropriate evidence to conclude on compliance with SISA/SISR provisions specified in NAT 11466. " +
+            "Each area documents the specific provision tested, procedures, evidence, exceptions, and conclusion.",
+          { size: 17, italic: true, color: MGRAY },
+        ),
       ],
       { before: 0, after: 120 },
     ),
   );
+
   if (!partBFindings.length) {
     children.push(
       p([t("No Part B findings recorded.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
@@ -1332,14 +1417,15 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   // ── SECTION C — Deterministic ──────────────────────────────────────────────
   children.push(new Paragraph({ children: [new PageBreak()] }));
   children.push(sectionDiv("C", "Deterministic Checks — Code Verified"));
-  children.push(gap(120));
+  children.push(gap(100));
   children.push(
     p(
       [
-        t(
-          "The following results were computed arithmetically and are authoritative. Do not override with AI assessment.",
-          { size: 17, italic: true, color: MGRAY },
-        ),
+        t("Results computed arithmetically. Do not override with AI assessment.", {
+          size: 17,
+          italic: true,
+          color: MGRAY,
+        }),
       ],
       { before: 0, after: 120 },
     ),
@@ -1367,8 +1453,8 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
 
   // ── SECTION D — Contraventions ─────────────────────────────────────────────
   children.push(gap(160));
-  children.push(sectionDiv("D", "Contraventions Register"));
-  children.push(gap(120));
+  children.push(sectionDiv("D", "Contraventions Register  (s129/s130 SISA)"));
+  children.push(gap(100));
   if (!contraventions.length) {
     children.push(
       p([t("No contraventions identified.", { size: 18, italic: true, color: GREEN })], { before: 0, after: 0 }),
@@ -1398,12 +1484,12 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
           ),
           ...contraventions.map((c: any, i: number) => {
             const bg = i % 2 === 0 ? WHITE : LGRAY;
-            const sevColor = c.severity === "material" ? RED : ORANGE;
+            const sev = c.severity === "material" ? RED : ORANGE;
             return tr([
               tc(p([t(`${i + 1}`, { bold: true, size: 18 })]), 400, { bg }),
               tc(p([t(c.section, { size: 17, bold: true, color: NAVY })]), 1400, { bg }),
               tc(p([t(c.area, { size: 17 })]), 1600, { bg }),
-              tc(p([t(c.severity.toUpperCase(), { bold: true, size: 17, color: sevColor })]), 1200, { bg }),
+              tc(p([t(c.severity.toUpperCase(), { bold: true, size: 17, color: sev })]), 1200, { bg }),
               tc(p([t(c.description, { size: 17 })]), 4760, { bg }),
             ]);
           }),
@@ -1415,7 +1501,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   // ── SECTION E — RFIs ───────────────────────────────────────────────────────
   children.push(gap(160));
   children.push(sectionDiv("E", "Requests for Information (RFIs)"));
-  children.push(gap(120));
+  children.push(gap(100));
   if (!rfis.length) {
     children.push(p([t("No RFIs raised.", { size: 18, italic: true, color: GREEN })], { before: 0, after: 0 }));
   } else {
@@ -1443,14 +1529,14 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
           ),
           ...rfis.map((r: any, i: number) => {
             const bg = i % 2 === 0 ? WHITE : LGRAY;
-            const pc = priorityColor(r.priority);
-            const stCol = r.status === "RESOLVED" ? GREEN : ORANGE;
+            const pc = r.priority === "HIGH" ? RED : r.priority === "MEDIUM" ? ORANGE : MGRAY;
+            const stC = r.status === "RESOLVED" ? GREEN : ORANGE;
             return tr([
               tc(p([t(`${i + 1}`, { bold: true, size: 18 })]), 400, { bg }),
               tc(p([t(r.priority, { bold: true, size: 17, color: pc })]), 900, { bg }),
               tc(p([t(r.description, { size: 17 })]), 4860, { bg }),
               tc(p([t(r.title, { bold: true, size: 17, color: NAVY })]), 1800, { bg }),
-              tc(p([t(r.status, { bold: true, size: 17, color: stCol })]), 1400, { bg }),
+              tc(p([t(r.status, { bold: true, size: 17, color: stC })]), 1400, { bg }),
             ]);
           }),
         ],
@@ -1460,7 +1546,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
 
   // ── SECTION F — Opinion ────────────────────────────────────────────────────
   children.push(new Paragraph({ children: [new PageBreak()] }));
-  children.push(sectionDiv("F", "Audit Opinion"));
+  children.push(sectionDiv("F", "Audit Opinion  (NAT 11466)"));
   children.push(gap(140));
   children.push(
     new Table({
@@ -1477,7 +1563,6 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                 ],
                 { before: 0, after: 100 },
               ),
-              // Full reasoning — no truncation
               p([t(opinion.reasoning || "Opinion reasoning pending.", { size: 18 })], { before: 0, after: 0 }),
             ],
             9360,
@@ -1490,7 +1575,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
 
   // ── SECTION G — Sign-Off ───────────────────────────────────────────────────
   children.push(new Paragraph({ children: [new PageBreak()] }));
-  children.push(sectionDiv("G", "Auditor Sign-Off"));
+  children.push(sectionDiv("G", "Auditor Sign-Off  (ASA 230 / APES 110)"));
   children.push(gap(140));
   children.push(
     new Table({
@@ -1504,10 +1589,10 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               p([t("I confirm that I have:", { size: 18 })], { before: 0, after: 60 }),
               ...[
                 "reviewed all working papers contained in this file",
-                "obtained sufficient appropriate audit evidence",
-                "conducted this audit in accordance with ASAE 3100",
+                "obtained sufficient appropriate audit evidence for each area documented",
+                "conducted this audit in accordance with ASAE 3100 and ASA 200-899",
                 "complied with independence requirements under APES 110",
-                "identified and assessed all contraventions as documented",
+                "identified and assessed all contraventions per ACR criteria (s129/s130)",
                 "formed the opinion expressed in Section F",
               ].map(
                 (item) =>
@@ -1519,7 +1604,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               ),
               gap(100),
               p([t("Name:  ___________________________________", { size: 18 })], { before: 0, after: 80 }),
-              p([t("SMSF Auditor Number:  ____________________", { size: 18 })], { before: 0, after: 80 }),
+              p([t("SMSF Auditor Number (SAN):  ______________", { size: 18 })], { before: 0, after: 80 }),
               p([t("Firm:  ____________________________________", { size: 18 })], { before: 0, after: 80 }),
               p([t("Date:  ____________________________________", { size: 18 })], { before: 0, after: 80 }),
               p([t("Signature:  _______________________________", { size: 18 })], { before: 0, after: 0 }),
@@ -1529,11 +1614,12 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
           ),
           tc(
             [
-              p([t("Retention Notice", { bold: true, size: 19, color: NAVY })], { before: 0, after: 80 }),
+              p([t("Retention Notice  (ASA 230)", { bold: true, size: 19, color: NAVY })], { before: 0, after: 80 }),
               p(
                 [
                   t(
-                    "These working papers must be retained for a minimum of 7 years from the date of signing, in accordance with ASIC requirements and ASA 230.",
+                    "Working papers must be retained for a minimum of 7 years from the date of signing, " +
+                      "in accordance with ASIC requirements and ASA 230.",
                     { size: 17, italic: true, color: MGRAY },
                   ),
                 ],
@@ -1542,7 +1628,9 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               p(
                 [
                   t(
-                    "An experienced auditor with no prior connection to this engagement should be able to understand, from these working papers alone, the nature, timing and extent of the audit procedures performed, the audit evidence obtained and the conclusions reached.",
+                    "An experienced auditor with no prior connection to this engagement should be able to understand, " +
+                      "from these working papers alone, the nature, timing and extent of audit procedures performed, " +
+                      "evidence obtained, and conclusions reached (ASA 230 para 8).",
                     { size: 17, color: MGRAY },
                   ),
                 ],
@@ -1557,7 +1645,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
     }),
   );
 
-  // ── BUILD ──────────────────────────────────────────────────────────────────
+  // ── Build ──────────────────────────────────────────────────────────────────
   const docx = new Document({
     styles: {
       default: { document: { run: { font: "Times New Roman", size: 20, color: DGRAY } } },
@@ -1599,10 +1687,10 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                         p([t("Audit Working Papers", { bold: true, size: 18, color: NAVY })], { before: 0, after: 20 }),
                         p(
                           [
-                            t(`${meta.fundName}  |  ABN ${meta.fundABN}  |  Year ended 30 June ${meta.financialYear}`, {
-                              size: 15,
-                              color: MGRAY,
-                            }),
+                            t(
+                              `${meta.fundName}  |  ABN ${meta.fundABN}  |  Year ended 30 June ${meta.financialYear}  |  ${meta.standard || "ASA 230 / GS 009"}`,
+                              { size: 15, color: MGRAY },
+                            ),
                           ],
                           { before: 0, after: 0 },
                         ),
@@ -1653,7 +1741,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Generic DOCX — plain reports (IAR, management letter, etc.)
+// Generic DOCX
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function buildGenericDocx(content: string, fileBaseName: string) {
@@ -1711,7 +1799,7 @@ async function buildGenericDocx(content: string, fileBaseName: string) {
             .map((c) => c.trim())
             .filter(Boolean),
         );
-      if (parsed.length > 0) {
+      if (parsed.length) {
         const colCount = Math.max(...parsed.map((r) => r.length));
         const colWidth = Math.floor(9360 / colCount);
         children.push(
@@ -1762,9 +1850,7 @@ async function buildGenericDocx(content: string, fileBaseName: string) {
   }
 
   const docx = new Document({
-    styles: {
-      default: { document: { run: { font: "Times New Roman", size: 20, color: DGRAY } } },
-    },
+    styles: { default: { document: { run: { font: "Times New Roman", size: 20, color: DGRAY } } } },
     sections: [
       {
         properties: {
