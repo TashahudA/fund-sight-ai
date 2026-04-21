@@ -275,7 +275,7 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
 
       if (isWorkpapersReport) {
         const wpFileBase = `${resolvedFundName}_Audit_Working_Papers_FY${resolvedFY}`;
-        await generateReportDocx({ kind: "workpaper", data: data }, wpFileBase);
+        await generateReportDocx(content, wpFileBase);
         toast({ title: "Working papers downloaded" });
       } else {
         setReportContent(content);
