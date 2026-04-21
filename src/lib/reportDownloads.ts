@@ -222,9 +222,42 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   const renderFinding = (f: any, idx: number) => {
     doc.setFont("times", "normal");
     doc.setFontSize(9);
+
+    // ── Layout maths ────────────────────────────────────────
+    // Three columns in the header, each capped at one third of CONTENT_W
+    // with a small inner gutter so they never collide.
+    const colW = CONTENT_W / 3;
+    const gutter = CONTENT_W * 0.01;
+    const areaX = MARGIN + PAD_X;
+    const areaMaxW = colW - PAD_X - gutter;
+    const refCenterX = MARGIN + CONTENT_W / 2;
+    const refMaxW = colW - gutter * 2;
+    const statusRightX = MARGIN + CONTENT_W - PAD_X;
+    const statusMaxW = colW - PAD_X - gutter;
+
+    // Truncate header strings to fit their column
+    const truncate = (text: string, maxW: number, font: "bold" | "normal") => {
+      doc.setFont("times", font);
+      doc.setFontSize(9);
+      let s = sanitize(text);
+      if (doc.getTextWidth(s) <= maxW) return s;
+      while (s.length > 1 && doc.getTextWidth(s + "…") > maxW) s = s.slice(0, -1);
+      return s + "…";
+    };
+
+    const areaText = truncate(f.area || f.title || "—", areaMaxW, "bold");
+    const refText = truncate(f.reference || f.section || "", refMaxW, "normal");
+    const statusRaw = String(f.status ?? "").toUpperCase().replace(/_/g, " ") || "—";
+    const statusText = truncate(statusRaw, statusMaxW, "bold");
+
+    const headerH = PAD_Y * 2 + 4;
+    const signOffH = PAD_Y * 2 + 3;
     const detail = sanitize(f.detail || f.description || "");
-    const detailLines = doc.splitTextToSize(detail, CONTENT_W - 6);
-    const cardH = 8 + Math.max(detailLines.length * 4.2, 6) + 7;
+    const bodyMaxW = CONTENT_W - PAD_X * 2;
+    const detailLines = detail ? doc.splitTextToSize(detail, bodyMaxW) : [];
+    const bodyH = PAD_Y * 2 + Math.max(detailLines.length, 1) * LINE_H;
+    const cardH = headerH + bodyH + signOffH;
+
     ensureSpace(cardH + 2);
 
     // alternate row bg
@@ -239,36 +272,43 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
     // header strip
     doc.setFillColor(...GREY_HEAD);
-    doc.rect(MARGIN, y, CONTENT_W, 7, "F");
+    doc.rect(MARGIN, y, CONTENT_W, headerH, "F");
+    const headerBaseline = y + headerH / 2 + 1.4;
+
     doc.setFont("times", "bold");
     doc.setFontSize(9);
     doc.setTextColor(20, 20, 20);
-    doc.text(sanitize(f.area || f.title || "—"), MARGIN + 3, y + 4.8);
-    doc.setFont("times", "normal");
-    doc.text(sanitize(f.reference || f.section || ""), MARGIN + CONTENT_W * 0.55, y + 4.8);
+    doc.text(areaText, areaX, headerBaseline);
 
-    const status = String(f.status ?? "").toUpperCase().replace(/_/g, " ");
+    doc.setFont("times", "normal");
+    doc.text(refText, refCenterX, headerBaseline, { align: "center" });
+
     const [sr, sg, sb] = statusColor(f.status);
     doc.setFont("times", "bold");
     doc.setTextColor(sr, sg, sb);
-    doc.text(status || "—", MARGIN + CONTENT_W - 3, y + 4.8, { align: "right" });
+    doc.text(statusText, statusRightX, headerBaseline, { align: "right" });
 
     // detail body
     doc.setFont("times", "normal");
     doc.setFontSize(9);
     doc.setTextColor(40, 40, 40);
-    let ty = y + 11;
+    let ty = y + headerH + PAD_Y + LINE_H * 0.7;
     for (const dl of detailLines) {
-      doc.text(dl, MARGIN + 3, ty);
-      ty += 4.2;
+      doc.text(dl, MARGIN + PAD_X, ty);
+      ty += LINE_H;
     }
 
     // sign-off line
+    const signY = y + cardH - signOffH;
     doc.setDrawColor(...BORDER);
-    doc.line(MARGIN, y + cardH - 5, MARGIN + CONTENT_W, y + cardH - 5);
+    doc.line(MARGIN, signY, MARGIN + CONTENT_W, signY);
     doc.setFontSize(8);
     doc.setTextColor(110, 110, 110);
-    doc.text("Auditor sign-off: ______________________   Date: ______________", MARGIN + 3, y + cardH - 1.5);
+    doc.text(
+      "Auditor sign-off: ______________________   Date: ______________",
+      MARGIN + PAD_X,
+      signY + signOffH - PAD_Y,
+    );
 
     y += cardH + 2;
   };
