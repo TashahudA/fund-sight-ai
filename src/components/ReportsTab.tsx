@@ -260,7 +260,7 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
 
       if (isWorkpapersReport) {
         const wpFileBase = `${resolvedFundName}_Audit_Working_Papers_FY${resolvedFY}`;
-        generateReportDocx(content, wpFileBase);
+        (generateReportDocx as any)(content, wpFileBase);
         toast({ title: "Working papers downloaded" });
       } else {
         setReportContent(content);
@@ -355,11 +355,11 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
 
           {!isNoContent ? (
             <div className="flex items-center gap-3 pt-2 border-t border-border">
-              <Button size="sm" onClick={() => generateReportPdf(reportContent, reportMeta.fund_name, reportMeta.financial_year, fileBaseName)}>
+              <Button size="sm" onClick={() => (generateReportPdf as any)(reportContent, reportMeta.fund_name, reportMeta.financial_year, fileBaseName)}>
                 <Download className="h-4 w-4 mr-1.5" />
                 Download as PDF
               </Button>
-              <Button size="sm" variant="outline" onClick={() => generateReportDocx(reportContent, fileBaseName)}>
+              <Button size="sm" variant="outline" onClick={() => (generateReportDocx as any)(reportContent, fileBaseName)}>
                 <Download className="h-4 w-4 mr-1.5" />
                 Download as Word
               </Button>
