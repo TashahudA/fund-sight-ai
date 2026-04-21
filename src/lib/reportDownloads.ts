@@ -25,8 +25,12 @@ import { saveAs } from "file-saver";
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function generateReportPdf(content: string, fundName: string, financialYear: string, fileBaseName: string) {
-  // If workpaper JSON, convert to readable plain text for PDF
-  const text = content.startsWith("__WORKPAPER_JSON__") ? workpaperJsonToPlainText(content) : content;
+  // Workpaper JSON gets a fully formatted PDF — no plain-text fallback
+  if (content.startsWith("__WORKPAPER_JSON__")) {
+    buildWorkpaperPdf(content, fundName, financialYear, fileBaseName);
+    return;
+  }
+  const text = content;
 
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const margin = 20;
