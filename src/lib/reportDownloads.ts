@@ -18,6 +18,7 @@ import {
   Header,
   Footer,
 } from "docx";
+import { PageNumber } from "docx";
 import { saveAs } from "file-saver";
 
 // ─────────────────────────────────────────────────────────────────────────────
