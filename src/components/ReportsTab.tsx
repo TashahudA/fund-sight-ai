@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { generateReportPdf } from "@/lib/reportDownloads";
 import { generateReportDocx } from "@/lib/reportDownloads";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const API_BASE = "https://auditron-server-production.up.railway.app";
 
