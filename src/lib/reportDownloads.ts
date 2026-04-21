@@ -678,114 +678,97 @@ const tc = (children: any, width: number, opts: any = {}) =>
 
 const tr = (cells: TableCell[]) => new TableRow({ children: cells });
 
-// Section divider
-const sectionDiv = (label: string, title: string) =>
+// Section header bar — full-width navy with white title (matches PDF)
+const sectionDiv = (_label: string, title: string) =>
   new Table({
     width: { size: 9360, type: WidthType.DXA },
-    columnWidths: [480, 8880],
+    columnWidths: [9360],
     rows: [
       tr([
-        tc(p([t(label, { bold: true, size: 20, color: WHITE })], { before: 0, after: 0 }, AlignmentType.CENTER), 480, {
+        tc([p([t(title.toUpperCase(), { bold: true, size: 22, color: WHITE })], { before: 0, after: 0 })], 9360, {
           bord: NB(),
           bg: NAVY,
-          m: { top: 100, bottom: 100, left: 60, right: 60 },
+          m: { top: 100, bottom: 100, left: 160, right: 120 },
           va: VerticalAlign.CENTER,
-        }),
-        tc([p([t(title, { bold: true, size: 21, color: WHITE })], { before: 0, after: 0 })], 8880, {
-          bord: NB(),
-          bg: "2E4470",
-          m: { top: 100, bottom: 100, left: 180, right: 100 },
         }),
       ]),
     ],
   });
 
-// Single finding block — each area is its own mini-table
+// Single finding block — bordered box w/ grey header strip, body, sign-off line (matches PDF)
 function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
   const st = statusColor(f.status);
-  const shade = idx % 2 === 0 ? WHITE : LGRAY;
+  const rowShade = idx % 2 === 1 ? LGRAY : WHITE;
 
   return [
     new Table({
       width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [3800, 1400, 1400, 2760],
+      columnWidths: [9360],
       rows: [
-        // Row 1: area name | reference | confidence | status
+        // Header strip: area | reference | status
         tr([
-          tc([p([t(f.area, { bold: true, size: 20, color: NAVY })], { before: 0, after: 20 })], 3800, { bg: shade }),
           tc(
             [
-              p([t("SIS Reference", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
-              p([t(f.reference || "N/A", { bold: true, size: 18, color: NAVY })], { before: 0, after: 0 }),
-            ],
-            1400,
-            { bg: shade },
-          ),
-          tc(
-            [
-              p([t("Confidence", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
-              p(
-                [
-                  t((f.confidence || "N/A").toUpperCase(), {
-                    bold: true,
-                    size: 18,
-                    color: f.confidence === "high" ? GREEN : f.confidence === "medium" ? ORANGE : MGRAY,
-                  }),
+              new Table({
+                width: { size: 9100, type: WidthType.DXA },
+                columnWidths: [4500, 2600, 2000],
+                rows: [
+                  tr([
+                    tc(p([t(f.area || "—", { bold: true, size: 18, color: DGRAY })], { before: 0, after: 0 }), 4500, {
+                      bord: NB(),
+                      bg: BGRAY,
+                      m: { top: 40, bottom: 40, left: 80, right: 40 },
+                    }),
+                    tc(
+                      p([t(f.reference || "", { size: 18, color: DGRAY })], { before: 0, after: 0 }),
+                      2600,
+                      { bord: NB(), bg: BGRAY, m: { top: 40, bottom: 40, left: 40, right: 40 } },
+                    ),
+                    tc(
+                      p(
+                        [t(st.label, { bold: true, size: 18, color: st.text })],
+                        { before: 0, after: 0 },
+                        AlignmentType.RIGHT,
+                      ),
+                      2000,
+                      { bord: NB(), bg: BGRAY, m: { top: 40, bottom: 40, left: 40, right: 80 } },
+                    ),
+                  ]),
                 ],
-                { before: 0, after: 0 },
-              ),
+              }),
             ],
-            1400,
-            { bg: shade },
-          ),
-          tc(
-            [
-              p([t("Result", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
-              p([t(st.label, { bold: true, size: 18, color: st.text })], { before: 0, after: 0 }),
-            ],
-            2760,
-            { bg: shade },
+            9360,
+            { bord: NB(), bg: BGRAY, m: { top: 0, bottom: 0, left: 0, right: 0 } },
           ),
         ]),
-        // Row 2: procedure | sign-off box
+        // Detail body
         tr([
           tc(
-            [
-              p([t("Procedure Performed", { size: 14, color: MGRAY })], { before: 0, after: 30 }),
-              p([t(f.detail, { size: 18 })], { before: 0, after: 0 }),
-            ],
-            7200,
-            { bg: WHITE, span: 3 },
-          ),
-          tc(
-            [
-              p([t("Auditor Sign-Off", { size: 14, color: MGRAY })], { before: 0, after: 40 }),
-              p([t("Initials: ________", { size: 17, color: MGRAY })], { before: 0, after: 30 }),
-              p([t("Date:        ________", { size: 17, color: MGRAY })], { before: 0, after: 0 }),
-            ],
-            2160,
-            { bg: WHITE },
+            [p([t(f.detail || f.description || "", { size: 18, color: DGRAY })], { before: 0, after: 60 })],
+            9360,
+            { bord: NB(), bg: rowShade, m: { top: 100, bottom: 60, left: 140, right: 140 } },
           ),
         ]),
-        // Row 3: conclusion spanning full width
+        // Sign-off line at bottom
         tr([
           tc(
             [
               p(
-                [
-                  t("Conclusion:  ", { size: 15, bold: true, color: MGRAY }),
-                  t(
-                    f.reviewAction
-                      ? `${f.reviewAction.toUpperCase()}${f.reviewNote ? " — " + f.reviewNote : ""}`
-                      : "Pending auditor review.",
-                    { size: 18, italic: !f.reviewAction },
-                  ),
-                ],
+                [t("Auditor sign-off: ______________________   Date: ______________", { size: 15, color: MGRAY })],
                 { before: 0, after: 0 },
               ),
             ],
             9360,
-            { bg: st.bg, span: 4 },
+            {
+              bord: {
+                top: { style: BorderStyle.SINGLE, size: 4, color: BORD },
+                bottom: { style: BorderStyle.NONE, size: 0, color: WHITE },
+                left: { style: BorderStyle.NONE, size: 0, color: WHITE },
+                right: { style: BorderStyle.NONE, size: 0, color: WHITE },
+              },
+              bg: rowShade,
+              m: { top: 60, bottom: 80, left: 140, right: 140 },
+            },
           ),
         ]),
       ],
