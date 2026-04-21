@@ -121,6 +121,346 @@ export function generateReportPdf(content: string, fundName: string, financialYe
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Workpaper PDF — fully formatted (cover, sections, tables, opinion, sign-off)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildWorkpaperPdf(content: string, fundName: string, financialYear: string, fileBaseName: string) {
+  const NAVY: [number, number, number] = [28, 43, 69];     // #1C2B45
+  const GREY_BG: [number, number, number] = [242, 242, 242]; // #F2F2F2
+  const GREY_HEAD: [number, number, number] = [220, 220, 220];
+  const BORDER: [number, number, number] = [180, 180, 180];
+  const GREEN: [number, number, number] = [22, 128, 60];
+  const ORANGE: [number, number, number] = [200, 110, 20];
+  const RED: [number, number, number] = [180, 30, 40];
+
+  let wp: any;
+  try {
+    wp = JSON.parse(content.replace("__WORKPAPER_JSON__", ""));
+  } catch {
+    // Fallback: render as plain text
+    const fallback = content.replace("__WORKPAPER_JSON__", "");
+    const docF = new jsPDF({ unit: "mm", format: "a4" });
+    docF.setFont("times", "normal");
+    docF.setFontSize(9);
+    docF.text(docF.splitTextToSize(fallback, 170), 20, 20);
+    docF.save(`${fileBaseName}.pdf`);
+    return;
+  }
+
+  const meta = wp.meta || {};
+  const fund = meta.fundName || fundName;
+  const year = meta.financialYear || financialYear;
+
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const PAGE_W = doc.internal.pageSize.getWidth();
+  const PAGE_H = doc.internal.pageSize.getHeight();
+  const MARGIN = 15;
+  const CONTENT_W = PAGE_W - MARGIN * 2;
+  const FOOTER_RESERVE = 18;
+  let y = MARGIN;
+
+  const sanitize = (s: any) => String(s ?? "").replace(/[^\x00-\x7E]/g, "");
+
+  const ensureSpace = (needed: number) => {
+    if (y + needed > PAGE_H - FOOTER_RESERVE) {
+      doc.addPage();
+      y = MARGIN;
+    }
+  };
+
+  const statusColor = (status: string): [number, number, number] => {
+    const s = String(status ?? "").toLowerCase();
+    if (s === "pass") return GREEN;
+    if (s === "fail") return RED;
+    return ORANGE;
+  };
+
+  // ── COVER BLOCK ─────────────────────────────────────────────
+  doc.setFillColor(...NAVY);
+  doc.rect(0, 0, PAGE_W, 80, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("times", "bold");
+  doc.setFontSize(20);
+  doc.text("AUDIT WORKING PAPERS", PAGE_W / 2, 30, { align: "center" });
+  doc.setFontSize(14);
+  doc.setFont("times", "normal");
+  doc.text(sanitize(fund), PAGE_W / 2, 48, { align: "center" });
+  doc.setFontSize(11);
+  doc.text(`Year ended 30 June ${sanitize(year)}`, PAGE_W / 2, 60, { align: "center" });
+  if (meta.fundABN) {
+    doc.setFontSize(9);
+    doc.text(`ABN ${sanitize(meta.fundABN)}`, PAGE_W / 2, 70, { align: "center" });
+  }
+  y = 95;
+
+  // ── Section header bar ──────────────────────────────────────
+  const sectionHeader = (title: string) => {
+    ensureSpace(14);
+    doc.setFillColor(...NAVY);
+    doc.rect(MARGIN, y, CONTENT_W, 8, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("times", "bold");
+    doc.setFontSize(11);
+    doc.text(sanitize(title), MARGIN + 3, y + 5.6);
+    y += 11;
+  };
+
+  // ── Finding card ────────────────────────────────────────────
+  const renderFinding = (f: any, idx: number) => {
+    doc.setFont("times", "normal");
+    doc.setFontSize(9);
+    const detail = sanitize(f.detail || f.description || "");
+    const detailLines = doc.splitTextToSize(detail, CONTENT_W - 6);
+    const cardH = 8 + Math.max(detailLines.length * 4.2, 6) + 7;
+    ensureSpace(cardH + 2);
+
+    // alternate row bg
+    if (idx % 2 === 1) {
+      doc.setFillColor(...GREY_BG);
+      doc.rect(MARGIN, y, CONTENT_W, cardH, "F");
+    }
+    // outer border
+    doc.setDrawColor(...BORDER);
+    doc.setLineWidth(0.2);
+    doc.rect(MARGIN, y, CONTENT_W, cardH);
+
+    // header strip
+    doc.setFillColor(...GREY_HEAD);
+    doc.rect(MARGIN, y, CONTENT_W, 7, "F");
+    doc.setFont("times", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(20, 20, 20);
+    doc.text(sanitize(f.area || f.title || "—"), MARGIN + 3, y + 4.8);
+    doc.setFont("times", "normal");
+    doc.text(sanitize(f.reference || f.section || ""), MARGIN + CONTENT_W * 0.55, y + 4.8);
+
+    const status = String(f.status ?? "").toUpperCase().replace(/_/g, " ");
+    const [sr, sg, sb] = statusColor(f.status);
+    doc.setFont("times", "bold");
+    doc.setTextColor(sr, sg, sb);
+    doc.text(status || "—", MARGIN + CONTENT_W - 3, y + 4.8, { align: "right" });
+
+    // detail body
+    doc.setFont("times", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    let ty = y + 11;
+    for (const dl of detailLines) {
+      doc.text(dl, MARGIN + 3, ty);
+      ty += 4.2;
+    }
+
+    // sign-off line
+    doc.setDrawColor(...BORDER);
+    doc.line(MARGIN, y + cardH - 5, MARGIN + CONTENT_W, y + cardH - 5);
+    doc.setFontSize(8);
+    doc.setTextColor(110, 110, 110);
+    doc.text("Auditor sign-off: ______________________   Date: ______________", MARGIN + 3, y + cardH - 1.5);
+
+    y += cardH + 2;
+  };
+
+  // ── Generic table renderer ──────────────────────────────────
+  const renderTable = (headers: string[], widths: number[], rows: string[][]) => {
+    const totalRel = widths.reduce((a, b) => a + b, 0);
+    const colW = widths.map((w) => (w / totalRel) * CONTENT_W);
+    const rowH = 6;
+
+    ensureSpace(rowH + 4);
+    // header
+    doc.setFillColor(...NAVY);
+    doc.rect(MARGIN, y, CONTENT_W, rowH, "F");
+    doc.setFont("times", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    let cx = MARGIN;
+    headers.forEach((h, i) => {
+      doc.text(sanitize(h), cx + 2, y + 4.2);
+      cx += colW[i];
+    });
+    y += rowH;
+
+    // body
+    doc.setFont("times", "normal");
+    doc.setTextColor(30, 30, 30);
+    rows.forEach((row, rIdx) => {
+      const wrapped = row.map((cell, i) => doc.splitTextToSize(sanitize(cell), colW[i] - 4));
+      const lineCount = Math.max(...wrapped.map((w) => w.length), 1);
+      const h = lineCount * 4.2 + 2;
+      ensureSpace(h);
+      if (rIdx % 2 === 1) {
+        doc.setFillColor(...GREY_BG);
+        doc.rect(MARGIN, y, CONTENT_W, h, "F");
+      }
+      doc.setDrawColor(...BORDER);
+      doc.setLineWidth(0.15);
+      doc.rect(MARGIN, y, CONTENT_W, h);
+      let bx = MARGIN;
+      wrapped.forEach((lines, i) => {
+        let ty = y + 4;
+        for (const ln of lines) {
+          doc.text(ln, bx + 2, ty);
+          ty += 4.2;
+        }
+        bx += colW[i];
+      });
+      y += h;
+    });
+    y += 4;
+  };
+
+  // ── SECTION A & B: Findings ─────────────────────────────────
+  const renderFindingSection = (title: string, findings: any[]) => {
+    sectionHeader(title);
+    if (!findings || !findings.length) {
+      doc.setFont("times", "italic");
+      doc.setFontSize(9);
+      doc.setTextColor(110, 110, 110);
+      ensureSpace(6);
+      doc.text("No findings recorded.", MARGIN, y + 4);
+      y += 8;
+      return;
+    }
+    findings.forEach((f, i) => renderFinding(f, i));
+  };
+
+  renderFindingSection("SECTION A — FINANCIAL AUDIT WORKING PAPERS", wp.partAFindings || []);
+  renderFindingSection("SECTION B — COMPLIANCE ENGAGEMENT WORKING PAPERS", wp.partBFindings || []);
+
+  // ── SECTION C: Deterministic checks (if present) ────────────
+  if (wp.deterministicBlock) {
+    sectionHeader("SECTION C — DETERMINISTIC CHECKS");
+    doc.setFont("times", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    const lines = doc.splitTextToSize(sanitize(wp.deterministicBlock), CONTENT_W);
+    for (const ln of lines) {
+      ensureSpace(5);
+      doc.text(ln, MARGIN, y + 4);
+      y += 4.5;
+    }
+    y += 4;
+  }
+
+  // ── SECTION D: Contraventions table ─────────────────────────
+  sectionHeader("SECTION D — CONTRAVENTIONS");
+  if (wp.contraventions && wp.contraventions.length) {
+    renderTable(
+      ["Area", "SIS Section", "Severity", "Details"],
+      [25, 18, 15, 42],
+      wp.contraventions.map((c: any) => [c.area || "—", c.section || "—", c.severity || "—", c.description || "—"]),
+    );
+  } else {
+    doc.setFont("times", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(110, 110, 110);
+    ensureSpace(6);
+    doc.text("No contraventions identified.", MARGIN, y + 4);
+    y += 8;
+  }
+
+  // ── SECTION E: RFIs table ───────────────────────────────────
+  sectionHeader("SECTION E — REQUESTS FOR INFORMATION");
+  if (wp.rfis && wp.rfis.length) {
+    renderTable(
+      ["Priority", "Title", "Description", "Status"],
+      [15, 25, 45, 15],
+      wp.rfis.map((r: any) => [r.priority || "—", r.title || "—", r.description || "—", r.status || "—"]),
+    );
+  } else {
+    doc.setFont("times", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(110, 110, 110);
+    ensureSpace(6);
+    doc.text("No RFIs raised.", MARGIN, y + 4);
+    y += 8;
+  }
+
+  // ── SECTION F: Opinion ──────────────────────────────────────
+  sectionHeader("SECTION F — OPINION AND CONCLUSION");
+  const opinionRaw = String(wp?.opinion?.overall ?? "").toUpperCase();
+  let opLabel = opinionRaw || "—";
+  let opColor: [number, number, number] = [40, 40, 40];
+  if (/UNQUALIFIED|UNMODIFIED/.test(opinionRaw)) {
+    opLabel = "UNQUALIFIED";
+    opColor = GREEN;
+  } else if (/ADVERSE|DISCLAIM/.test(opinionRaw)) {
+    opColor = RED;
+  } else if (/QUALIFIED|MODIFIED/.test(opinionRaw)) {
+    opLabel = "QUALIFIED";
+    opColor = ORANGE;
+  }
+  ensureSpace(14);
+  doc.setFont("times", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(...opColor);
+  doc.text(opLabel, MARGIN, y + 8);
+  y += 14;
+
+  if (wp?.opinion?.reasoning) {
+    doc.setFont("times", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    const lines = doc.splitTextToSize(sanitize(wp.opinion.reasoning), CONTENT_W);
+    for (const ln of lines) {
+      ensureSpace(5);
+      doc.text(ln, MARGIN, y + 4);
+      y += 4.5;
+    }
+    y += 4;
+  }
+
+  // ── SECTION G: Sign-off ─────────────────────────────────────
+  sectionHeader("SECTION G — AUDITOR SIGN-OFF");
+  doc.setFont("times", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(40, 40, 40);
+  const declaration =
+    "I have reviewed the above working papers and confirm that the audit has been conducted in accordance with Australian Auditing Standards and Standards on Assurance Engagements issued by the AUASB.";
+  const decLines = doc.splitTextToSize(declaration, CONTENT_W);
+  for (const ln of decLines) {
+    ensureSpace(5);
+    doc.text(ln, MARGIN, y + 4);
+    y += 4.5;
+  }
+  y += 4;
+
+  const signLine = (label: string) => {
+    ensureSpace(10);
+    doc.setFont("times", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+    doc.text(label, MARGIN, y + 4);
+    doc.setDrawColor(...BORDER);
+    doc.setLineWidth(0.3);
+    doc.line(MARGIN + 45, y + 5, MARGIN + CONTENT_W, y + 5);
+    y += 9;
+  };
+  signLine("Name:");
+  signLine("SMSF Auditor Number:");
+  signLine("Firm:");
+  signLine("Date:");
+  signLine("Signature:");
+
+  // ── Footer on every page ────────────────────────────────────
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    const fy = PAGE_H - 8;
+    doc.setDrawColor(...BORDER);
+    doc.setLineWidth(0.2);
+    doc.line(MARGIN, fy - 4, PAGE_W - MARGIN, fy - 4);
+    doc.setFont("times", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(120, 120, 120);
+    doc.text(sanitize(fund), MARGIN, fy);
+    doc.text(`Page ${i} of ${pageCount}`, PAGE_W - MARGIN, fy, { align: "right" });
+  }
+
+  doc.save(`${fileBaseName}.pdf`);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Workpaper JSON → plain text (used by PDF path)
 // ─────────────────────────────────────────────────────────────────────────────
 
