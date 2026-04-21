@@ -163,6 +163,22 @@ export function TopNav() {
     fetchCredits();
   }, [user, location.key, fetchNotifications, fetchCredits]);
 
+  // Handle Stripe payment success redirect
+  useEffect(() => {
+    if (!user) return;
+    const params = new URLSearchParams(location.search);
+    if (params.get("payment") === "success") {
+      fetchCredits();
+      toast.success("Credits added! Your balance has been updated.");
+      params.delete("payment");
+      const newSearch = params.toString();
+      navigate(
+        { pathname: location.pathname, search: newSearch ? `?${newSearch}` : "" },
+        { replace: true }
+      );
+    }
+  }, [user, location.search, location.pathname, navigate, fetchCredits]);
+
   // Close bell dropdown on outside click
   useEffect(() => {
     if (!bellOpen) return;
