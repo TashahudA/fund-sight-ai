@@ -15,10 +15,9 @@ import {
   LevelFormat,
   TabStopType,
   PageBreak,
-  Header,
   Footer,
+  PageNumber,
 } from "docx";
-import { PageNumber } from "docx";
 import { saveAs } from "file-saver";
 
 // ─────────────────────────────────────────────────────────────────────────────
