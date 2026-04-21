@@ -161,6 +161,11 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   const sanitize = (s: any) => String(s ?? "").replace(/[^\x00-\x7E]/g, "");
 
+  // Proportional padding (~Word default ~0.1" cell margin scaled to page)
+  const PAD_X = CONTENT_W * 0.025; // horizontal inner padding
+  const PAD_Y = CONTENT_W * 0.018; // vertical inner padding
+  const LINE_H = 4.4;
+
   const ensureSpace = (needed: number) => {
     if (y + needed > PAGE_H - FOOTER_RESERVE) {
       doc.addPage();
@@ -176,22 +181,30 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   };
 
   // ── COVER BLOCK ─────────────────────────────────────────────
-  doc.setFillColor(...NAVY);
-  doc.rect(0, 0, PAGE_W, 80, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("times", "bold");
-  doc.setFontSize(20);
-  doc.text("AUDIT WORKING PAPERS", PAGE_W / 2, 30, { align: "center" });
-  doc.setFontSize(14);
-  doc.setFont("times", "normal");
-  doc.text(sanitize(fund), PAGE_W / 2, 48, { align: "center" });
-  doc.setFontSize(11);
-  doc.text(`Year ended 30 June ${sanitize(year)}`, PAGE_W / 2, 60, { align: "center" });
-  if (meta.fundABN) {
-    doc.setFontSize(9);
-    doc.text(`ABN ${sanitize(meta.fundABN)}`, PAGE_W / 2, 70, { align: "center" });
+  {
+    const coverPadY = PAGE_H * 0.04;
+    const coverH = 80;
+    doc.setFillColor(...NAVY);
+    doc.rect(0, 0, PAGE_W, coverH, "F");
+    doc.setTextColor(255, 255, 255);
+    let cy = coverPadY + 10;
+    doc.setFont("times", "bold");
+    doc.setFontSize(20);
+    doc.text("AUDIT WORKING PAPERS", PAGE_W / 2, cy, { align: "center" });
+    cy += 14;
+    doc.setFontSize(14);
+    doc.setFont("times", "normal");
+    doc.text(sanitize(fund), PAGE_W / 2, cy, { align: "center" });
+    cy += 10;
+    doc.setFontSize(11);
+    doc.text(`Year ended 30 June ${sanitize(year)}`, PAGE_W / 2, cy, { align: "center" });
+    if (meta.fundABN) {
+      cy += 8;
+      doc.setFontSize(9);
+      doc.text(`ABN ${sanitize(meta.fundABN)}`, PAGE_W / 2, cy, { align: "center" });
+    }
+    y = coverH + PAGE_H * 0.02;
   }
-  y = 95;
 
   // ── Section header bar ──────────────────────────────────────
   const sectionHeader = (title: string) => {
