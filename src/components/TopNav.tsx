@@ -142,19 +142,22 @@ export function TopNav() {
 
   const fetchCredits = useCallback(async () => {
     if (!user) return;
-    console.log("[fetchCredits] calling balance endpoint with user_id:", user.id);
+    console.log("[fetchCredits] reading profiles.credit_balance for user_id:", user.id);
     try {
-      const res = await fetch(`https://auditron-server-production.up.railway.app/stripe/balance/${user.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        console.log("[fetchCredits] response:", data);
-        if (data.audit_price_cents === 0) {
-          setCreditBalance(-1); // sentinel for free account
-        } else {
-          setCreditBalance(data.credits ?? data.balance ?? 0);
-        }
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("credit_balance, audit_price_cents")
+        .eq("id", user.id)
+        .single();
+      console.log("[fetchCredits] response:", { data, error });
+      if (error) {
+        console.warn("[fetchCredits] error", error);
+        return;
+      }
+      if (data?.audit_price_cents === 0) {
+        setCreditBalance(-1); // sentinel for free account
       } else {
-        console.warn("[fetchCredits] non-OK response", res.status);
+        setCreditBalance(data?.credit_balance ?? 0);
       }
     } catch (e) {
       console.error("Failed to fetch credit balance", e);
