@@ -294,8 +294,11 @@ const NB = () => ({
 });
 
 // Basic paragraph helpers
-const p = (runs: any[], spacing = { before: 0, after: 80 }, align = AlignmentType.LEFT) =>
-  new Paragraph({ children: runs, spacing, alignment: align });
+const p = (
+  runs: any[],
+  spacing: { before?: number; after?: number } = { before: 0, after: 80 },
+  align: (typeof AlignmentType)[keyof typeof AlignmentType] = AlignmentType.LEFT,
+) => new Paragraph({ children: runs, spacing, alignment: align });
 
 const t = (text: string, opts: { bold?: boolean; size?: number; color?: string; italic?: boolean } = {}) =>
   new TextRun({
@@ -318,7 +321,7 @@ const hRule = (color = BORD, sz = 6) =>
   });
 
 // Cell helper
-const tc = (children: any[], width: number, opts: any = {}) =>
+const tc = (children: any, width: number, opts: any = {}) =>
   new TableCell({
     children: Array.isArray(children) ? children : [children],
     width: { size: width, type: WidthType.DXA },
