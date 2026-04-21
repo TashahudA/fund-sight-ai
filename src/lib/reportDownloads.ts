@@ -1053,7 +1053,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                   t(meta.fundName || "", { size: 14, color: MGRAY }),
                   new TextRun({ text: "\t", size: 14 }),
                   new TextRun({
-                    children: ["Page ", { toString: () => "" } as any] as any,
+                    children: ["Page ", PageNumber.CURRENT, " of ", PageNumber.TOTAL_PAGES],
                     size: 14,
                     color: MGRAY,
                     font: "Times New Roman",
