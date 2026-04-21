@@ -239,6 +239,10 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
 
   const handleGenerate = async (report: ReportDef) => {
     setLoading(report.type);
+    const isWorkpapersReport = report.type === "workpapers";
+    if (isWorkpapersReport) {
+      toast({ title: "Downloading working papers..." });
+    }
     try {
       const res = await fetch(`${API_BASE}/reports/generate`, {
         method: "POST",
@@ -250,14 +254,24 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
         throw new Error(data.error || data.message || "Failed to generate report");
       }
       const data = await res.json();
-      setReportContent(data.content || "No content returned.");
-      setReportTitle(report.label);
-      setReportMeta({
-        fund_name: data.fund_name || fundName,
-        report_type: report.type,
-        financial_year: data.financial_year || financialYear || "",
-      });
-      setModalOpen(true);
+      const content = data.content || "No content returned.";
+      const resolvedFundName = data.fund_name || fundName;
+      const resolvedFY = data.financial_year || financialYear || "";
+
+      if (isWorkpapersReport) {
+        const wpFileBase = `${resolvedFundName}_Audit_Working_Papers_FY${resolvedFY}`;
+        generateReportDocx(content, wpFileBase);
+        toast({ title: "Working papers downloaded" });
+      } else {
+        setReportContent(content);
+        setReportTitle(report.label);
+        setReportMeta({
+          fund_name: resolvedFundName,
+          report_type: report.type,
+          financial_year: resolvedFY,
+        });
+        setModalOpen(true);
+      }
     } catch (err: any) {
       toast({ title: "Report generation failed", description: err.message, variant: "destructive" });
     } finally {
