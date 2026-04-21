@@ -129,7 +129,11 @@ function WorkpaperPreview({ content }: { content: string }) {
   }
 
   const meta = json.meta || {};
-  const opinion: string = json.opinion || meta.opinion || "—";
+  const rawOpinion = json.opinion ?? meta.opinion;
+  const opinion: string =
+    typeof rawOpinion === "string"
+      ? rawOpinion
+      : rawOpinion?.type || rawOpinion?.opinion || rawOpinion?.value || "—";
   const partA: any[] = json.part_a_findings || json.partA || [];
   const partB: any[] = json.part_b_findings || json.partB || [];
   const contraventions: any[] = json.contraventions || [];
@@ -167,8 +171,8 @@ function WorkpaperPreview({ content }: { content: string }) {
             <TableBody>
               {allFindings.map((f, i) => (
                 <TableRow key={i}>
-                  <TableCell className="text-sm">{f.area || f.title || f.name || "—"}</TableCell>
-                  <TableCell className={`text-sm font-medium uppercase ${statusColor(f.status)}`}>{f.status || "—"}</TableCell>
+                  <TableCell className="text-sm">{String(f.area || f.title || f.name || "—")}</TableCell>
+                  <TableCell className={`text-sm font-medium uppercase ${statusColor(f.status)}`}>{String(f.status ?? "—")}</TableCell>
                   <TableCell className="text-sm">{f.confidence != null ? `${f.confidence}${typeof f.confidence === "number" && f.confidence <= 1 ? "" : "%"}` : "—"}</TableCell>
                 </TableRow>
               ))}
