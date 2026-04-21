@@ -100,15 +100,15 @@ function ReportContentDisplay({ content }: { content: string }) {
   );
 }
 
-function statusColor(status: string): string {
-  const s = (status || "").toLowerCase();
+function statusColor(status: any): string {
+  const s = String(status ?? "").toLowerCase();
   if (s === "pass") return "text-status-pass";
   if (s === "fail") return "text-status-fail";
   return "text-status-warn";
 }
 
-function opinionColor(opinion: string): string {
-  const o = (opinion || "").toLowerCase();
+function opinionColor(opinion: any): string {
+  const o = String(opinion ?? "").toLowerCase();
   if (o.includes("unqualified") || o.includes("unmodified")) return "text-status-pass";
   if (o.includes("adverse") || o.includes("disclaim")) return "text-status-fail";
   if (o.includes("qualified") || o.includes("modified")) return "text-status-warn";
@@ -129,7 +129,11 @@ function WorkpaperPreview({ content }: { content: string }) {
   }
 
   const meta = json.meta || {};
-  const opinion: string = json.opinion || meta.opinion || "—";
+  const rawOpinion = json.opinion ?? meta.opinion;
+  const opinion: string =
+    typeof rawOpinion === "string"
+      ? rawOpinion
+      : rawOpinion?.type || rawOpinion?.opinion || rawOpinion?.value || "—";
   const partA: any[] = json.part_a_findings || json.partA || [];
   const partB: any[] = json.part_b_findings || json.partB || [];
   const contraventions: any[] = json.contraventions || [];
@@ -167,8 +171,8 @@ function WorkpaperPreview({ content }: { content: string }) {
             <TableBody>
               {allFindings.map((f, i) => (
                 <TableRow key={i}>
-                  <TableCell className="text-sm">{f.area || f.title || f.name || "—"}</TableCell>
-                  <TableCell className={`text-sm font-medium uppercase ${statusColor(f.status)}`}>{f.status || "—"}</TableCell>
+                  <TableCell className="text-sm">{String(f.area || f.title || f.name || "—")}</TableCell>
+                  <TableCell className={`text-sm font-medium uppercase ${statusColor(f.status)}`}>{String(f.status ?? "—")}</TableCell>
                   <TableCell className="text-sm">{f.confidence != null ? `${f.confidence}${typeof f.confidence === "number" && f.confidence <= 1 ? "" : "%"}` : "—"}</TableCell>
                 </TableRow>
               ))}
