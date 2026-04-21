@@ -780,24 +780,30 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
 async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   const raw = content.replace("__WORKPAPER_JSON__", "");
   const wp = JSON.parse(raw);
-  const { meta, opinion, partAFindings, partBFindings, deterministicBlock, contraventions, rfis } = wp;
+  const meta = wp.meta || {};
+  const opinion = wp.opinion || {};
+  const partAFindings: any[] = wp.partAFindings || [];
+  const partBFindings: any[] = wp.partBFindings || [];
+  const deterministicBlock: string = wp.deterministicBlock || "";
+  const contraventions: any[] = wp.contraventions || [];
+  const rfis: any[] = wp.rfis || [];
 
-  const opColor =
-    opinion.overall.toLowerCase() === "unqualified"
-      ? GREEN
-      : opinion.overall.toLowerCase() === "qualified"
-        ? ORANGE
-        : RED;
-  const opBg =
-    opinion.overall.toLowerCase() === "unqualified"
-      ? GREENBG
-      : opinion.overall.toLowerCase() === "qualified"
-        ? ORNBG
-        : REDBG;
+  const opinionRaw = String(opinion.overall ?? "").toUpperCase();
+  let opLabel = opinionRaw || "—";
+  let opColor: string = DGRAY;
+  if (/UNQUALIFIED|UNMODIFIED/.test(opinionRaw)) {
+    opLabel = "UNQUALIFIED";
+    opColor = GREEN;
+  } else if (/ADVERSE|DISCLAIM/.test(opinionRaw)) {
+    opColor = RED;
+  } else if (/QUALIFIED|MODIFIED/.test(opinionRaw)) {
+    opLabel = "QUALIFIED";
+    opColor = ORANGE;
+  }
 
   const children: any[] = [];
 
-  // ── COVER ──────────────────────────────────────────────────────────────────
+  // ── COVER BLOCK (full-width navy, matches PDF) ─────────────────────────────
   children.push(
     new Table({
       width: { size: 9360, type: WidthType.DXA },
@@ -808,214 +814,109 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
             [
               p(
                 [t("AUDIT WORKING PAPERS", { bold: true, size: 40, color: WHITE })],
-                { before: 0, after: 80 },
+                { before: 0, after: 120 },
                 AlignmentType.CENTER,
               ),
-              p([t(meta.fundName, { size: 28, color: "B8D4E8" })], { before: 0, after: 60 }, AlignmentType.CENTER),
+              p([t(meta.fundName || "", { size: 28, color: WHITE })], { before: 0, after: 80 }, AlignmentType.CENTER),
               p(
-                [t(`Year ended 30 June ${meta.financialYear}`, { size: 20, color: "8BADC4" })],
-                { before: 0, after: 0 },
+                [t(`Year ended 30 June ${meta.financialYear || ""}`, { size: 22, color: WHITE })],
+                { before: 0, after: meta.fundABN ? 80 : 0 },
                 AlignmentType.CENTER,
               ),
+              ...(meta.fundABN
+                ? [p([t(`ABN ${meta.fundABN}`, { size: 18, color: WHITE })], { before: 0, after: 0 }, AlignmentType.CENTER)]
+                : []),
             ],
             9360,
-            { bord: NB(), bg: NAVY, m: { top: 280, bottom: 280, left: 300, right: 300 } },
+            { bord: NB(), bg: NAVY, m: { top: 360, bottom: 360, left: 200, right: 200 } },
           ),
         ]),
       ],
     }),
   );
-  children.push(gap(200));
+  children.push(gap(220));
 
-  // Cover details 2-col
-  children.push(
-    new Table({
-      width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [4680, 4680],
-      rows: [
-        tr([
-          tc(
-            [
-              p([t("Fund Details", { bold: true, size: 19, color: NAVY })], { before: 0, after: 100 }),
-              p([t("ABN:  ", { bold: true, size: 18 }), t(meta.fundABN, { size: 18 })], { before: 0, after: 40 }),
-              p(
-                [
-                  t("Financial Year:  ", { bold: true, size: 18 }),
-                  t(`Year ended 30 June ${meta.financialYear}`, { size: 18 }),
-                ],
-                { before: 0, after: 40 },
-              ),
-              p([t("Prepared:  ", { bold: true, size: 18 }), t(meta.preparedDate, { size: 18 })], {
-                before: 0,
-                after: 40,
-              }),
-              p([t("Audit Standard:  ", { bold: true, size: 18 }), t("ASAE 3100 / SISA / SISR", { size: 18 })], {
-                before: 0,
-                after: 0,
-              }),
-            ],
-            4680,
-            { bg: BLUEBG },
-          ),
-          tc(
-            [
-              p([t("Audit Opinion Summary", { bold: true, size: 19, color: NAVY })], { before: 0, after: 100 }),
-              p(
-                [
-                  t("Overall:  ", { bold: true, size: 18 }),
-                  t(opinion.overall.toUpperCase(), { bold: true, size: 18, color: opColor }),
-                ],
-                { before: 0, after: 80 },
-              ),
-              p([t(opinion.reasoning.slice(0, 300) || "Opinion pending.", { size: 17, italic: true, color: MGRAY })], {
-                before: 0,
-                after: 0,
-              }),
-            ],
-            4680,
-            { bg: opBg, bord: B(opColor) },
-          ),
-        ]),
-      ],
-    }),
-  );
-
-  // ── PART A ─────────────────────────────────────────────────────────────────
-  children.push(new Paragraph({ children: [new PageBreak()] }));
-  children.push(sectionDiv("A", "Part A — Financial Audit Working Papers"));
-  children.push(gap(140));
-  children.push(
-    p(
-      [
-        t("Objective:", { bold: true, size: 17 }),
-        t(
-          "  Obtain sufficient appropriate audit evidence to support the opinion on the financial statements (ASAE 3100, ASA 500).",
-          { size: 17, italic: true, color: MGRAY },
-        ),
-      ],
-      { before: 0, after: 120 },
-    ),
-  );
-
+  // ── SECTION A ──────────────────────────────────────────────────────────────
+  children.push(sectionDiv("A", "Section A — Financial Audit Working Papers"));
+  children.push(gap(100));
   if (partAFindings.length === 0) {
-    children.push(
-      p([t("No Part A findings recorded.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
-    );
+    children.push(p([t("No findings recorded.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }));
   } else {
-    for (let i = 0; i < partAFindings.length; i++) {
-      children.push(...findingBlock(partAFindings[i], i));
-    }
+    for (let i = 0; i < partAFindings.length; i++) children.push(...findingBlock(partAFindings[i], i));
   }
 
-  // ── PART B ─────────────────────────────────────────────────────────────────
-  children.push(new Paragraph({ children: [new PageBreak()] }));
-  children.push(sectionDiv("B", "Part B — Compliance Engagement Working Papers"));
+  // ── SECTION B ──────────────────────────────────────────────────────────────
   children.push(gap(140));
-  children.push(
-    p(
-      [
-        t("Objective:", { bold: true, size: 17 }),
-        t("  Assess compliance with the provisions of the SISA and SISR specified in NAT 11466 (ASAE 3100, GS 009).", {
-          size: 17,
-          italic: true,
-          color: MGRAY,
-        }),
-      ],
-      { before: 0, after: 120 },
-    ),
-  );
-
+  children.push(sectionDiv("B", "Section B — Compliance Engagement Working Papers"));
+  children.push(gap(100));
   if (partBFindings.length === 0) {
-    children.push(
-      p([t("No Part B findings recorded.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
-    );
+    children.push(p([t("No findings recorded.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }));
   } else {
-    for (let i = 0; i < partBFindings.length; i++) {
-      children.push(...findingBlock(partBFindings[i], i));
+    for (let i = 0; i < partBFindings.length; i++) children.push(...findingBlock(partBFindings[i], i));
+  }
+
+  // ── SECTION C — DETERMINISTIC CHECKS (only if present) ─────────────────────
+  if (deterministicBlock && deterministicBlock.trim()) {
+    children.push(gap(140));
+    children.push(sectionDiv("C", "Section C — Deterministic Checks"));
+    children.push(gap(100));
+    for (const line of deterministicBlock.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        children.push(gap(40));
+        continue;
+      }
+      const isBad = /BREACH|FAIL/.test(trimmed);
+      children.push(
+        p([t(trimmed, { size: 18, color: isBad ? RED : DGRAY, bold: /PASS|FAIL|BREACH|MATERIALITY/.test(trimmed) })], {
+          before: 0,
+          after: 40,
+        }),
+      );
     }
   }
 
-  // ── DETERMINISTIC CHECKS ───────────────────────────────────────────────────
-  children.push(new Paragraph({ children: [new PageBreak()] }));
-  children.push(sectionDiv("C", "Deterministic Checks — Code Verified"));
-  children.push(gap(120));
-  children.push(
-    p(
-      [
-        t(
-          "The following results were computed arithmetically and are authoritative. Do not override with AI assessment.",
-          { size: 17, italic: true, color: MGRAY },
-        ),
-      ],
-      { before: 0, after: 120 },
-    ),
-  );
-
-  // Split deterministic block into individual lines for clean rendering
-  for (const line of deterministicBlock.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      children.push(gap(40));
-      continue;
-    }
-    const isBold =
-      trimmed.includes("PASS") ||
-      trimmed.includes("FAIL") ||
-      trimmed.includes("BREACH") ||
-      trimmed.includes("MATERIALITY");
-    children.push(
-      p(
-        [
-          t(trimmed, {
-            size: 18,
-            bold: isBold,
-            color: trimmed.includes("BREACH") || trimmed.includes("FAIL") ? RED : DGRAY,
-          }),
-        ],
-        { before: 0, after: 40 },
-      ),
-    );
-  }
-
-  // ── CONTRAVENTIONS ─────────────────────────────────────────────────────────
-  children.push(gap(160));
-  children.push(sectionDiv("D", "Contraventions Register"));
-  children.push(gap(120));
+  // ── SECTION D — CONTRAVENTIONS ────────────────────────────────────────────
+  children.push(gap(140));
+  children.push(sectionDiv("D", "Section D — Contraventions"));
+  children.push(gap(100));
 
   if (contraventions.length === 0) {
     children.push(
-      p([t("No contraventions identified.", { size: 18, italic: true, color: GREEN })], { before: 0, after: 0 }),
+      p([t("No contraventions identified.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
     );
   } else {
+    const colW = [2000, 1600, 1400, 4360];
     children.push(
       new Table({
         width: { size: 9360, type: WidthType.DXA },
-        columnWidths: [400, 1400, 1600, 1200, 4760],
+        columnWidths: colW,
         rows: [
           tr(
-            [
-              ["#", 400],
-              ["SIS Section", 1400],
-              ["Area", 1600],
-              ["Severity", 1200],
-              ["Details", 4760],
-            ].map(([h, w]) =>
-              tc(p([t(h as string, { bold: true, size: 17, color: WHITE })]), w as number, {
+            ["Area", "SIS Section", "Severity", "Details"].map((h, i) =>
+              tc(p([t(h, { bold: true, size: 18, color: WHITE })], { before: 0, after: 0 }), colW[i], {
                 bord: B(NAVY),
                 bg: NAVY,
-                m: { top: 60, bottom: 60, left: 100, right: 60 },
+                m: { top: 80, bottom: 80, left: 100, right: 80 },
               }),
             ),
           ),
           ...contraventions.map((c: any, i: number) => {
-            const bg = i % 2 === 0 ? WHITE : LGRAY;
-            const sevColor = c.severity === "material" ? RED : ORANGE;
+            const bg = i % 2 === 1 ? LGRAY : WHITE;
+            const sev = String(c.severity ?? "").toLowerCase();
+            const sevColor = sev === "material" ? RED : ORANGE;
             return tr([
-              tc(p([t(`${i + 1}`, { bold: true, size: 18 })]), 400, { bg }),
-              tc(p([t(c.section, { size: 17, bold: true, color: NAVY })]), 1400, { bg }),
-              tc(p([t(c.area, { size: 17 })]), 1600, { bg }),
-              tc(p([t(c.severity.toUpperCase(), { bold: true, size: 17, color: sevColor })]), 1200, { bg }),
-              tc(p([t(c.description, { size: 17 })]), 4760, { bg }),
+              tc(p([t(c.area || "—", { size: 17 })], { before: 0, after: 0 }), colW[0], { bg }),
+              tc(p([t(c.section || "—", { size: 17, bold: true, color: NAVY })], { before: 0, after: 0 }), colW[1], { bg }),
+              tc(
+                p([t(String(c.severity ?? "—").toUpperCase(), { bold: true, size: 17, color: sevColor })], {
+                  before: 0,
+                  after: 0,
+                }),
+                colW[2],
+                { bg },
+              ),
+              tc(p([t(c.description || "—", { size: 17 })], { before: 0, after: 0 }), colW[3], { bg }),
             ]);
           }),
         ],
@@ -1023,45 +924,53 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
     );
   }
 
-  // ── RFIs ───────────────────────────────────────────────────────────────────
-  children.push(gap(160));
-  children.push(sectionDiv("E", "Requests for Information (RFIs)"));
-  children.push(gap(120));
+  // ── SECTION E — RFIs ──────────────────────────────────────────────────────
+  children.push(gap(140));
+  children.push(sectionDiv("E", "Section E — Requests for Information"));
+  children.push(gap(100));
 
   if (rfis.length === 0) {
-    children.push(p([t("No RFIs raised.", { size: 18, italic: true, color: GREEN })], { before: 0, after: 0 }));
+    children.push(p([t("No RFIs raised.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }));
   } else {
+    const rcolW = [1100, 2200, 4860, 1200];
     children.push(
       new Table({
         width: { size: 9360, type: WidthType.DXA },
-        columnWidths: [400, 900, 4860, 1800, 1400],
+        columnWidths: rcolW,
         rows: [
           tr(
-            [
-              ["#", 400],
-              ["Priority", 900],
-              ["Request", 4860],
-              ["Title", 1800],
-              ["Status", 1400],
-            ].map(([h, w]) =>
-              tc(p([t(h as string, { bold: true, size: 17, color: WHITE })]), w as number, {
+            ["Priority", "Title", "Description", "Status"].map((h, i) =>
+              tc(p([t(h, { bold: true, size: 18, color: WHITE })], { before: 0, after: 0 }), rcolW[i], {
                 bord: B(NAVY),
                 bg: NAVY,
-                m: { top: 60, bottom: 60, left: 100, right: 60 },
+                m: { top: 80, bottom: 80, left: 100, right: 80 },
               }),
             ),
           ),
           ...rfis.map((r: any, i: number) => {
-            const bg = i % 2 === 0 ? WHITE : LGRAY;
-            const pc = priorityColor(r.priority);
+            const bg = i % 2 === 1 ? LGRAY : WHITE;
+            const pc = priorityColor(String(r.priority ?? "").toUpperCase());
+            const stat = String(r.status ?? "");
             return tr([
-              tc(p([t(`${i + 1}`, { bold: true, size: 18 })]), 400, { bg }),
-              tc(p([t(r.priority, { bold: true, size: 17, color: pc })]), 900, { bg }),
-              tc(p([t(r.description, { size: 17 })]), 4860, { bg }),
-              tc(p([t(r.title, { bold: true, size: 17, color: NAVY })]), 1800, { bg }),
-              tc(p([t(r.status, { bold: true, size: 17, color: r.status === "RESOLVED" ? GREEN : ORANGE })]), 1400, {
-                bg,
-              }),
+              tc(
+                p([t(String(r.priority ?? "—"), { bold: true, size: 17, color: pc })], { before: 0, after: 0 }),
+                rcolW[0],
+                { bg },
+              ),
+              tc(
+                p([t(r.title || "—", { bold: true, size: 17, color: NAVY })], { before: 0, after: 0 }),
+                rcolW[1],
+                { bg },
+              ),
+              tc(p([t(r.description || "—", { size: 17 })], { before: 0, after: 0 }), rcolW[2], { bg }),
+              tc(
+                p(
+                  [t(stat || "—", { bold: true, size: 17, color: stat.toUpperCase() === "RESOLVED" ? GREEN : ORANGE })],
+                  { before: 0, after: 0 },
+                ),
+                rcolW[3],
+                { bg },
+              ),
             ]);
           }),
         ],
@@ -1069,105 +978,40 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
     );
   }
 
-  // ── OPINION ────────────────────────────────────────────────────────────────
-  children.push(new Paragraph({ children: [new PageBreak()] }));
-  children.push(sectionDiv("F", "Audit Opinion"));
-  children.push(gap(140));
+  // ── SECTION F — OPINION ───────────────────────────────────────────────────
+  children.push(gap(160));
+  children.push(sectionDiv("F", "Section F — Opinion and Conclusion"));
+  children.push(gap(120));
+  children.push(p([t(opLabel, { bold: true, size: 36, color: opColor })], { before: 0, after: 120 }));
+  if (opinion.reasoning) {
+    children.push(p([t(String(opinion.reasoning), { size: 18, color: DGRAY })], { before: 0, after: 0 }));
+  }
 
+  // ── SECTION G — SIGN-OFF ──────────────────────────────────────────────────
+  children.push(gap(180));
+  children.push(sectionDiv("G", "Section G — Auditor Sign-Off"));
+  children.push(gap(120));
   children.push(
-    new Table({
-      width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [9360],
-      rows: [
-        tr([
-          tc(
-            [
-              p(
-                [
-                  t("Overall Opinion:  ", { bold: true, size: 21 }),
-                  t(opinion.overall.toUpperCase(), { bold: true, size: 21, color: opColor }),
-                ],
-                { before: 0, after: 100 },
-              ),
-              p([t(opinion.reasoning || "Opinion reasoning pending.", { size: 18 })], { before: 0, after: 0 }),
-            ],
-            9360,
-            { bg: opBg, bord: B(opColor) },
-          ),
-        ]),
+    p(
+      [
+        t(
+          "I have reviewed the above working papers and confirm that the audit has been conducted in accordance with Australian Auditing Standards and Standards on Assurance Engagements issued by the AUASB.",
+          { size: 18, color: DGRAY },
+        ),
       ],
-    }),
+      { before: 0, after: 160 },
+    ),
   );
-
-  // ── SIGN-OFF ───────────────────────────────────────────────────────────────
-  children.push(new Paragraph({ children: [new PageBreak()] }));
-  children.push(sectionDiv("G", "Auditor Sign-Off"));
-  children.push(gap(140));
-
-  children.push(
-    new Table({
-      width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [4680, 4680],
-      rows: [
-        tr([
-          tc(
-            [
-              p([t("Auditor Declaration", { bold: true, size: 19, color: NAVY })], { before: 0, after: 80 }),
-              p([t("I confirm that I have:", { size: 18 })], { before: 0, after: 60 }),
-              ...[
-                "reviewed all working papers contained in this file",
-                "obtained sufficient appropriate audit evidence",
-                "conducted this audit in accordance with ASAE 3100",
-                "complied with independence requirements under APES 110",
-                "identified and assessed all contraventions as documented",
-                "formed the opinion expressed in Section F",
-              ].map(
-                (item) =>
-                  new Paragraph({
-                    numbering: { reference: "bullets", level: 0 },
-                    children: [t(item, { size: 18 })],
-                    spacing: { before: 40, after: 40 },
-                  }),
-              ),
-              gap(100),
-              p([t("Name:  ___________________________________", { size: 18 })], { before: 0, after: 80 }),
-              p([t("SMSF Auditor Number:  ____________________", { size: 18 })], { before: 0, after: 80 }),
-              p([t("Firm:  ____________________________________", { size: 18 })], { before: 0, after: 80 }),
-              p([t("Date:  ____________________________________", { size: 18 })], { before: 0, after: 80 }),
-              p([t("Signature:  _______________________________", { size: 18 })], { before: 0, after: 0 }),
-            ],
-            4680,
-            { bg: BLUEBG },
-          ),
-          tc(
-            [
-              p([t("Retention Notice", { bold: true, size: 19, color: NAVY })], { before: 0, after: 80 }),
-              p(
-                [
-                  t(
-                    "These working papers must be retained for a minimum of 7 years from the date of signing, in accordance with ASIC requirements and ASA 230.",
-                    { size: 17, italic: true, color: MGRAY },
-                  ),
-                ],
-                { before: 0, after: 80 },
-              ),
-              p(
-                [
-                  t(
-                    "An experienced auditor with no prior connection to this engagement should be able to understand, from these working papers alone, the nature, timing and extent of the audit procedures performed, the audit evidence obtained and the conclusions reached.",
-                    { size: 17, color: MGRAY },
-                  ),
-                ],
-                { before: 0, after: 0 },
-              ),
-            ],
-            4680,
-            { bg: LGRAY },
-          ),
-        ]),
-      ],
-    }),
-  );
+  for (const label of ["Name:", "SMSF Auditor Number:", "Firm:", "Date:", "Signature:"]) {
+    children.push(
+      new Paragraph({
+        spacing: { before: 0, after: 140 },
+        tabStops: [{ type: TabStopType.RIGHT, position: 9360 }],
+        border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: BORD, space: 4 } },
+        children: [t(label, { size: 18, color: DGRAY }), new TextRun({ text: "\t", size: 18 })],
+      }),
+    );
+  }
 
   // ── BUILD DOCUMENT ─────────────────────────────────────────────────────────
   const docx = new Document({
