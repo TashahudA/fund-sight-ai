@@ -100,6 +100,104 @@ function ReportContentDisplay({ content }: { content: string }) {
   );
 }
 
+function statusColor(status: string): string {
+  const s = (status || "").toLowerCase();
+  if (s === "pass") return "text-status-pass";
+  if (s === "fail") return "text-status-fail";
+  return "text-status-warn";
+}
+
+function opinionColor(opinion: string): string {
+  const o = (opinion || "").toLowerCase();
+  if (o.includes("unqualified") || o.includes("unmodified")) return "text-status-pass";
+  if (o.includes("adverse") || o.includes("disclaim")) return "text-status-fail";
+  if (o.includes("qualified") || o.includes("modified")) return "text-status-warn";
+  return "text-foreground";
+}
+
+function WorkpaperPreview({ content }: { content: string }) {
+  const json = (() => {
+    try {
+      return JSON.parse(content.replace(/^__WORKPAPER_JSON__/, ""));
+    } catch {
+      return null;
+    }
+  })();
+
+  if (!json) {
+    return <p className="text-sm text-muted-foreground">Unable to parse working papers data.</p>;
+  }
+
+  const meta = json.meta || {};
+  const opinion: string = json.opinion || meta.opinion || "—";
+  const partA: any[] = json.part_a_findings || json.partA || [];
+  const partB: any[] = json.part_b_findings || json.partB || [];
+  const contraventions: any[] = json.contraventions || [];
+  const rfis: any[] = json.rfis || [];
+  const allFindings = [...partA, ...partB];
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div><span className="text-muted-foreground">Fund:</span> <span className="font-medium">{meta.fund_name || "—"}</span></div>
+        <div><span className="text-muted-foreground">ABN:</span> <span className="font-medium">{meta.fund_abn || meta.abn || "—"}</span></div>
+        <div><span className="text-muted-foreground">Financial Year:</span> <span className="font-medium">FY{meta.financial_year || "—"}</span></div>
+        <div><span className="text-muted-foreground">Prepared:</span> <span className="font-medium">{meta.prepared_date || meta.generated_at || "—"}</span></div>
+      </div>
+
+      <div className="rounded-lg border border-border p-4 bg-background">
+        <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Overall Opinion</div>
+        <div className={`text-2xl font-semibold ${opinionColor(opinion)}`}>{opinion}</div>
+      </div>
+
+      <div className="text-sm text-muted-foreground">
+        {partA.length} Part A findings | {partB.length} Part B findings | {contraventions.length} contraventions | {rfis.length} RFIs
+      </div>
+
+      {allFindings.length > 0 && (
+        <div className="rounded-lg border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Area</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Confidence</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {allFindings.map((f, i) => (
+                <TableRow key={i}>
+                  <TableCell className="text-sm">{f.area || f.title || f.name || "—"}</TableCell>
+                  <TableCell className={`text-sm font-medium uppercase ${statusColor(f.status)}`}>{f.status || "—"}</TableCell>
+                  <TableCell className="text-sm">{f.confidence != null ? `${f.confidence}${typeof f.confidence === "number" && f.confidence <= 1 ? "" : "%"}` : "—"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      {contraventions.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="text-sm font-semibold text-status-fail">Contraventions</h4>
+          <div className="rounded-lg border border-border divide-y divide-border">
+            {contraventions.map((c, i) => (
+              <div key={i} className="p-3 text-sm">
+                <div className="font-medium">{c.section || c.title || `Contravention ${i + 1}`}</div>
+                {c.description && <div className="text-muted-foreground mt-1">{c.description}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="text-xs text-muted-foreground italic pt-2 border-t border-border">
+        Download as Word to view full formatted working papers
+      </p>
+    </div>
+  );
+}
+
 export function ReportsTab({ auditId, fundName, financialYear, aiFindings, auditStatus }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
