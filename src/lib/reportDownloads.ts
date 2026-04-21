@@ -1149,7 +1149,7 @@ const NB = () => ({
   right: { style: BorderStyle.NONE, size: 0, color: PALETTE.WHITE.hex },
 });
 
-const BDR = (color = PALETTE.BORDER.hex, sz = 4) => ({
+const BDR = (color: string = PALETTE.BORDER.hex, sz = 4) => ({
   top: { style: BorderStyle.SINGLE, size: sz, color },
   bottom: { style: BorderStyle.SINGLE, size: sz, color },
   left: { style: BorderStyle.SINGLE, size: sz, color },
@@ -1175,7 +1175,7 @@ const t = (text: string, opts: { bold?: boolean; size?: number; color?: string; 
 const gapD = (pt = 160) =>
   new Paragraph({ children: [new TextRun({ text: " ", size: 4 })], spacing: { before: 0, after: pt } });
 
-const hRule = (color = PALETTE.BORDER.hex, sz = 6) =>
+const hRule = (color: string = PALETTE.BORDER.hex, sz = 6) =>
   new Paragraph({
     children: [],
     spacing: { before: 0, after: 120 },
