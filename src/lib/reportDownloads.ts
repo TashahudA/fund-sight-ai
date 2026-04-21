@@ -1239,7 +1239,7 @@ const subLabelDocx = (label: string, bgHex: string, colWidth = 9360) =>
     ],
   });
 
-const bulletItemsDocx = (items: string[], color = PALETTE.DGRAY.hex, size = 18): Paragraph[] => {
+const bulletItemsDocx = (items: string[], color: string = PALETTE.DGRAY.hex, size = 18): Paragraph[] => {
   if (!items?.length) return [];
   return items.map(
     (item) =>
