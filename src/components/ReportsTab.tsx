@@ -111,6 +111,8 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
     financial_year: "",
   });
 
+  // Inline component definition below
+
   const hasContraventions = (() => {
     if (!aiFindings) return false;
     try {
