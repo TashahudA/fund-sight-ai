@@ -100,15 +100,15 @@ function ReportContentDisplay({ content }: { content: string }) {
   );
 }
 
-function statusColor(status: string): string {
-  const s = (status || "").toLowerCase();
+function statusColor(status: any): string {
+  const s = String(status ?? "").toLowerCase();
   if (s === "pass") return "text-status-pass";
   if (s === "fail") return "text-status-fail";
   return "text-status-warn";
 }
 
-function opinionColor(opinion: string): string {
-  const o = (opinion || "").toLowerCase();
+function opinionColor(opinion: any): string {
+  const o = String(opinion ?? "").toLowerCase();
   if (o.includes("unqualified") || o.includes("unmodified")) return "text-status-pass";
   if (o.includes("adverse") || o.includes("disclaim")) return "text-status-fail";
   if (o.includes("qualified") || o.includes("modified")) return "text-status-warn";
