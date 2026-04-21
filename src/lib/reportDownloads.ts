@@ -1042,48 +1042,6 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
             margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 },
           },
         },
-        headers: {
-          default: new Header({
-            children: [
-              new Table({
-                width: { size: 9360, type: WidthType.DXA },
-                columnWidths: [6500, 2860],
-                rows: [
-                  tr([
-                    tc(
-                      [
-                        p([t("Audit Working Papers", { bold: true, size: 18, color: NAVY })], { before: 0, after: 20 }),
-                        p(
-                          [
-                            t(`${meta.fundName}  |  ABN ${meta.fundABN}  |  Year ended 30 June ${meta.financialYear}`, {
-                              size: 15,
-                              color: MGRAY,
-                            }),
-                          ],
-                          { before: 0, after: 0 },
-                        ),
-                      ],
-                      6500,
-                      { bord: NB() },
-                    ),
-                    tc(
-                      [
-                        p(
-                          [t("CONFIDENTIAL", { bold: true, size: 14, color: RED })],
-                          { before: 0, after: 0 },
-                          AlignmentType.RIGHT,
-                        ),
-                      ],
-                      2860,
-                      { bord: NB(), va: VerticalAlign.CENTER },
-                    ),
-                  ]),
-                ],
-              }),
-              hRule(NAVY, 8),
-            ],
-          }),
-        },
         footers: {
           default: new Footer({
             children: [
@@ -1091,9 +1049,14 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               new Paragraph({
                 tabStops: [{ type: TabStopType.RIGHT, position: 9360 }],
                 children: [
-                  t(`${meta.fundName} — Audit Working Papers FY${meta.financialYear}`, { size: 14, color: MGRAY }),
+                  t(meta.fundName || "", { size: 14, color: MGRAY }),
                   new TextRun({ text: "\t", size: 14 }),
-                  t("Prepared by registered SMSF auditor", { size: 14, color: MGRAY }),
+                  new TextRun({
+                    children: ["Page ", { toString: () => "" } as any] as any,
+                    size: 14,
+                    color: MGRAY,
+                    font: "Times New Roman",
+                  }),
                 ],
               }),
             ],
