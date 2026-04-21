@@ -7,6 +7,7 @@ import { NewAuditModal } from "@/components/NewAuditModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
