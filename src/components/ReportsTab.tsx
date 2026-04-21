@@ -72,9 +72,7 @@ function ReportContentDisplay({ content }: { content: string }) {
           case "major-header":
             return (
               <div key={i} className="pt-4 pb-1">
-                <h3 className="text-sm font-bold text-foreground tracking-wide uppercase">
-                  {section.text}
-                </h3>
+                <h3 className="text-sm font-bold text-foreground tracking-wide uppercase">{section.text}</h3>
               </div>
             );
           case "divider":
@@ -131,9 +129,7 @@ function WorkpaperPreview({ content }: { content: string }) {
   const meta = json.meta || {};
   const rawOpinion = json.opinion ?? meta.opinion;
   const opinion: string =
-    typeof rawOpinion === "string"
-      ? rawOpinion
-      : rawOpinion?.type || rawOpinion?.opinion || rawOpinion?.value || "—";
+    typeof rawOpinion === "string" ? rawOpinion : rawOpinion?.type || rawOpinion?.opinion || rawOpinion?.value || "—";
   const partA: any[] = json.part_a_findings || json.partA || [];
   const partB: any[] = json.part_b_findings || json.partB || [];
   const contraventions: any[] = json.contraventions || [];
@@ -143,10 +139,22 @@ function WorkpaperPreview({ content }: { content: string }) {
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-3 text-sm">
-        <div><span className="text-muted-foreground">Fund:</span> <span className="font-medium">{meta.fund_name || "—"}</span></div>
-        <div><span className="text-muted-foreground">ABN:</span> <span className="font-medium">{meta.fund_abn || meta.abn || "—"}</span></div>
-        <div><span className="text-muted-foreground">Financial Year:</span> <span className="font-medium">FY{meta.financial_year || "—"}</span></div>
-        <div><span className="text-muted-foreground">Prepared:</span> <span className="font-medium">{meta.prepared_date || meta.generated_at || "—"}</span></div>
+        <div>
+          <span className="text-muted-foreground">Fund:</span>{" "}
+          <span className="font-medium">{meta.fund_name || "—"}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">ABN:</span>{" "}
+          <span className="font-medium">{meta.fund_abn || meta.abn || "—"}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Financial Year:</span>{" "}
+          <span className="font-medium">FY{meta.financial_year || "—"}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Prepared:</span>{" "}
+          <span className="font-medium">{meta.prepared_date || meta.generated_at || "—"}</span>
+        </div>
       </div>
 
       <div className="rounded-lg border border-border p-4 bg-background">
@@ -155,7 +163,8 @@ function WorkpaperPreview({ content }: { content: string }) {
       </div>
 
       <div className="text-sm text-muted-foreground">
-        {partA.length} Part A findings | {partB.length} Part B findings | {contraventions.length} contraventions | {rfis.length} RFIs
+        {partA.length} Part A findings | {partB.length} Part B findings | {contraventions.length} contraventions |{" "}
+        {rfis.length} RFIs
       </div>
 
       {allFindings.length > 0 && (
@@ -172,8 +181,14 @@ function WorkpaperPreview({ content }: { content: string }) {
               {allFindings.map((f, i) => (
                 <TableRow key={i}>
                   <TableCell className="text-sm">{String(f.area || f.title || f.name || "—")}</TableCell>
-                  <TableCell className={`text-sm font-medium uppercase ${statusColor(f.status)}`}>{String(f.status ?? "—")}</TableCell>
-                  <TableCell className="text-sm">{f.confidence != null ? `${f.confidence}${typeof f.confidence === "number" && f.confidence <= 1 ? "" : "%"}` : "—"}</TableCell>
+                  <TableCell className={`text-sm font-medium uppercase ${statusColor(f.status)}`}>
+                    {String(f.status ?? "—")}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {f.confidence != null
+                      ? `${f.confidence}${typeof f.confidence === "number" && f.confidence <= 1 ? "" : "%"}`
+                      : "—"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -260,7 +275,7 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
 
       if (isWorkpapersReport) {
         const wpFileBase = `${resolvedFundName}_Audit_Working_Papers_FY${resolvedFY}`;
-        (generateReportDocx as any)(content, wpFileBase);
+        await generateReportDocx({ kind: "workpaper", data: wpData }, wpFileBase);
         toast({ title: "Working papers downloaded" });
       } else {
         setReportContent(content);
@@ -285,11 +300,10 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
     : `${reportMeta.fund_name} - ${reportTitle} - FY${reportMeta.financial_year}`;
 
   const isNoContent =
-    !isWorkpapers && (
-      !reportContent.trim() ||
+    !isWorkpapers &&
+    (!reportContent.trim() ||
       reportContent.toLowerCase().includes("no contraventions identified") ||
-      reportContent.toLowerCase().includes("no content")
-    );
+      reportContent.toLowerCase().includes("no content"));
 
   return (
     <div className="space-y-4">
@@ -299,7 +313,8 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
           Generate Reports
         </h3>
         <p className="text-xs text-muted-foreground">
-          Generate formal audit documents from the AI findings. Each report is produced by the server and can be downloaded as PDF or Word.
+          Generate formal audit documents from the AI findings. Each report is produced by the server and can be
+          downloaded as PDF or Word.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {visibleReports.map((report) => (
@@ -355,11 +370,16 @@ export function ReportsTab({ auditId, fundName, financialYear, aiFindings, audit
 
           {!isNoContent ? (
             <div className="flex items-center gap-3 pt-2 border-t border-border">
-              <Button size="sm" onClick={() => (generateReportPdf as any)(reportContent, reportMeta.fund_name, reportMeta.financial_year, fileBaseName)}>
+              <Button
+                size="sm"
+                onClick={() =>
+                  generateReportPdf(reportContent, reportMeta.fund_name, reportMeta.financial_year, fileBaseName)
+                }
+              >
                 <Download className="h-4 w-4 mr-1.5" />
                 Download as PDF
               </Button>
-              <Button size="sm" variant="outline" onClick={() => (generateReportDocx as any)(reportContent, fileBaseName)}>
+              <Button size="sm" variant="outline" onClick={() => generateReportDocx(reportContent, fileBaseName)}>
                 <Download className="h-4 w-4 mr-1.5" />
                 Download as Word
               </Button>
