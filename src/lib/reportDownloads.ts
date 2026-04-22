@@ -1132,19 +1132,19 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
         tr([
           tc(
             [
-              p([t(f.area, { bold: true, size: 20, color: NAVY })], { before: 0, after: 20 }),
+              p([t(f.area, { bold: true, size: 20, color: DGRAY })], { before: 0, after: 20 }),
               p([t(wpRef, { size: 15, color: MGRAY, italic: true })], { before: 0, after: 0 }),
             ],
             3600,
-            { bg: shade },
+            { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
           tc(
             [
               p([t("SIS / Std Reference", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
-              p([t(f.reference || "N/A", { bold: true, size: 18, color: NAVY })], { before: 0, after: 0 }),
+              p([t(f.reference || "N/A", { bold: true, size: 18, color: DGRAY })], { before: 0, after: 0 }),
             ],
             1680,
-            { bg: shade },
+            { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
           tc(
             [
@@ -1155,7 +1155,7 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
               }),
             ],
             1880,
-            { bg: shade },
+            { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
           tc(
             [
@@ -1163,7 +1163,7 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
               p([t(st.label, { bold: true, size: 18, color: st.text })], { before: 0, after: 0 }),
             ],
             2200,
-            { bg: shade },
+            { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
         ]),
       ],
@@ -1188,8 +1188,8 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
     // ── 4. Exceptions ────────────────────────────────────────────────────────
     subLabelRow("4. EXCEPTIONS / DEVIATIONS (ASA 230 para 16)", "96501E"),
     ...(f.exceptions?.length
-      ? bulletItems(f.exceptions, RED, 18)
-      : [p([t("No exceptions noted.", { size: 18, italic: true, color: GREEN })], { before: 60, after: 60 })]),
+      ? bulletItems(f.exceptions, DGRAY, 18)
+      : [p([t("No exceptions noted.", { size: 18, italic: true, color: MGRAY })], { before: 60, after: 60 })]),
 
     // ── 5. Conclusion + sign-off ─────────────────────────────────────────────
     new Table({
@@ -1206,7 +1206,15 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
               p([t(conclusionText, { size: 18, italic: !f.reviewAction })], { before: 0, after: 0 }),
             ],
             7000,
-            { bg: st.bg, bord: B(st.text) },
+            {
+              bg: LGRAY,
+              bord: {
+                top: { style: BorderStyle.NONE, size: 0, color: WHITE },
+                bottom: { style: BorderStyle.NONE, size: 0, color: WHITE },
+                right: { style: BorderStyle.NONE, size: 0, color: WHITE },
+                left: { style: BorderStyle.SINGLE, size: 12, color: NAVY },
+              },
+            },
           ),
           tc(
             [
