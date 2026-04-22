@@ -17,6 +17,7 @@ import {
   PageBreak,
   Header,
   Footer,
+  PageNumber,
 } from "docx";
 import { saveAs } from "file-saver";
 
