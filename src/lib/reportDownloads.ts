@@ -649,7 +649,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
       "the nature, timing and extent of audit procedures performed, evidence obtained, and conclusions reached (ASA 230 para 8).",
     rightW - 6,
   );
-  const leftH = 10 + checklist.length * 5 + signRows.length * 7 + 10;
+  const leftH = 10 + checklist.length * 5 + 30 + signRows.length * 7 + 10;
   const rightH = 10 + retLine1.length * 4.2 + 6 + retLine2.length * 4.2 + 6;
   const soH = Math.max(leftH, rightH);
   need(soH);
