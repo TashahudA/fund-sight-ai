@@ -537,16 +537,16 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   const opBoxH = 16 + reasonLines.length * 4.5;
   need(opBoxH);
 
-  doc.setFillColor(...opC.bg);
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML, y, CW, opBoxH, "F");
-  doc.setDrawColor(...opC.text);
-  doc.setLineWidth(0.5);
+  doc.setDrawColor(...PDF_BORDER);
+  doc.setLineWidth(0.2);
   doc.rect(ML, y, CW, opBoxH);
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.setTextColor(...opC.text);
+  doc.setTextColor(...PDF_NAVY);
   doc.text(`Overall Opinion:  ${opLabel}`, ML + 3, y + 9);
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(...PDF_DGRAY);
   let oy = y + 15;
@@ -591,7 +591,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   const soH = Math.max(leftH, rightH);
   need(soH);
 
-  doc.setFillColor(...PDF_BLUE_BG);
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML, y, leftW, soH, "F");
   doc.setDrawColor(...PDF_BORDER);
   doc.setLineWidth(0.2);
@@ -602,12 +602,12 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   let lx = ML + 3,
     ly = y + 6;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...PDF_NAVY);
   doc.text("Auditor Declaration", lx, ly);
   ly += 5;
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(...PDF_DGRAY);
   doc.text("I confirm that I have:", lx, ly);
@@ -627,12 +627,12 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   let rx = ML + leftW + 7,
     ry = y + 6;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...PDF_NAVY);
   doc.text("Retention Notice", rx, ry);
   ry += 5;
-  doc.setFont("times", "italic");
+  doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
   for (const l of retLine1) {
@@ -640,7 +640,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     ry += 4.2;
   }
   ry += 3;
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   for (const l of retLine2) {
     doc.text(l, rx, ry);
     ry += 4.2;
@@ -651,7 +651,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   for (let pg = 1; pg <= pageCount; pg++) {
     doc.setPage(pg);
     const fy2 = PH - 8;
-    doc.setFont("times", "normal");
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(...PDF_MGRAY);
     doc.text(`Page ${pg} of ${pageCount}`, PW - MR, fy2, { align: "right" });
