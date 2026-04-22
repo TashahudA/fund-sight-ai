@@ -1204,13 +1204,13 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
     subLabelRow("2. PROCEDURES PERFORMED (ASA 330)", "445C8A"),
     ...(f.procedures?.length
       ? bulletItems(f.procedures, DGRAY)
-      : [warningPara("WARNING: No procedures documented — does not satisfy ASA 230 reperformance test.")]),
+      : [warningPara("To be completed by auditor.")]),
 
     // ── 3. Evidence obtained ─────────────────────────────────────────────────
     subLabelRow("3. EVIDENCE OBTAINED (ASA 500)", "326B50"),
     ...(f.evidence?.length
       ? bulletItems(f.evidence, DGRAY)
-      : [warningPara("WARNING: No evidence documented — file does not meet ASA 230 requirements.")]),
+      : [warningPara("To be completed by auditor.")]),
 
     // ── 4. Exceptions ────────────────────────────────────────────────────────
     subLabelRow("4. EXCEPTIONS / DEVIATIONS (ASA 230 para 16)", "96501E"),
