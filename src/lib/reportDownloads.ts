@@ -1227,7 +1227,8 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
     // ── Header: area | reference | risk | result ────────────────────────────
     new Table({
       width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [3600, 1680, 1880, 2200],
+      // Five columns: area+wpRef | Evidence Source (V2) | SIS Ref | Risk | Result
+      columnWidths: [2400, 1880, 1680, 1480, 1920],
       rows: [
         tr([
           tc(
@@ -1235,7 +1236,15 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
               p([t(f.area, { bold: true, size: 20, color: DGRAY })], { before: 0, after: 20 }),
               p([t(wpRef, { size: 15, color: MGRAY, italic: true })], { before: 0, after: 0 }),
             ],
-            3600,
+            2400,
+            { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
+          ),
+          tc(
+            [
+              p([t("Evidence Source", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
+              p([t(san_evsrc(f.evidence_source), { bold: true, size: 18, color: DGRAY })], { before: 0, after: 0 }),
+            ],
+            1880,
             { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
           tc(
@@ -1254,7 +1263,7 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
                 after: 0,
               }),
             ],
-            1880,
+            1480,
             { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
           tc(
@@ -1262,7 +1271,7 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
               p([t("Result", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
               p([t(st.label, { bold: true, size: 18, color: st.text })], { before: 0, after: 0 }),
             ],
-            2200,
+            1920,
             { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
         ]),
