@@ -779,8 +779,21 @@ function renderFindingPdf(
   doc.setTextColor(...PDF_MGRAY);
   doc.text(wpRef, ML, ly + 10);
 
+  // Evidence Source (V2 field; "—" fallback)
+  const evX = ML + CW * 0.34;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(...PDF_MGRAY);
+  doc.text("Evidence Source", evX, ly + 4.5);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(...PDF_DGRAY);
+  const evSrc = san(f.evidence_source ?? "") || "—";
+  const evLines = doc.splitTextToSize(evSrc, CW * 0.18 - 2);
+  doc.text(evLines[0] ?? "—", evX, ly + 9.5);
+
   // SIS reference
-  const refX = ML + CW * 0.42;
+  const refX = ML + CW * 0.52;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
@@ -791,7 +804,7 @@ function renderFindingPdf(
   doc.text(san(f.reference || "N/A"), refX, ly + 9.5);
 
   // Risk level
-  const riskX = ML + CW * 0.62;
+  const riskX = ML + CW * 0.7;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
@@ -802,7 +815,7 @@ function renderFindingPdf(
   doc.text((f.risk_level || "MEDIUM").toUpperCase(), riskX, ly + 9.5);
 
   // Status
-  const resX = ML + CW * 0.82;
+  const resX = ML + CW * 0.88;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
