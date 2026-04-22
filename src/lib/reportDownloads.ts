@@ -1730,6 +1730,16 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                     spacing: { before: 40, after: 40 },
                   }),
               ),
+              // Independence statement (APES 110)
+              p(
+                [
+                  t(
+                    "Independence: The auditor confirms that, to the best of their knowledge and belief, the engagement team has complied with the independence requirements of APES 110 Code of Ethics for Professional Accountants throughout the conduct of this engagement. No relationships, interests, or circumstances have been identified that would compromise independence in accordance with APES 110.",
+                    { size: 17, italic: true, color: MGRAY },
+                  ),
+                ],
+                { before: 120, after: 80 },
+              ),
               gap(100),
               p([t("Name:  ___________________________________", { size: 18 })], { before: 0, after: 80 }),
               p([t("SMSF Auditor Number (SAN):  ______________", { size: 18 })], { before: 0, after: 80 }),
