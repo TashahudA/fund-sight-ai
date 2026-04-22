@@ -333,7 +333,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   sectionDiv("A", "Part A — Financial Audit Working Papers  (ASA 330 / GS 009 Part A)");
   gap(3);
-  doc.setFont("times", "italic");
+  doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
   const objA = doc.splitTextToSize(
@@ -350,7 +350,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   gap(3);
 
   if (!partAFindings.length) {
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
     doc.setTextColor(...PDF_MGRAY);
     doc.text("No Part A findings recorded.", ML, y);
@@ -370,7 +370,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   sectionDiv("B", "Part B — Compliance Engagement Working Papers  (ASAE 3100 / GS 009 Part B)");
   gap(3);
-  doc.setFont("times", "italic");
+  doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
   const objB = doc.splitTextToSize(
@@ -387,7 +387,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   gap(3);
 
   if (!partBFindings.length) {
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
     doc.setTextColor(...PDF_MGRAY);
     doc.text("No Part B findings recorded.", ML, y);
@@ -407,7 +407,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   sectionDiv("C", "Deterministic Checks — Code Verified");
   gap(3);
-  doc.setFont("times", "italic");
+  doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
   doc.text("Results computed arithmetically. Do not override with AI assessment.", ML, y);
@@ -421,11 +421,10 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
       continue;
     }
     const isBold = /PASS|FAIL|BREACH|MATERIALITY/.test(trimmed);
-    const isBad = /BREACH|FAIL/.test(trimmed);
     const lns = doc.splitTextToSize(san(trimmed), CW);
-    doc.setFont("times", isBold ? "bold" : "normal");
+    doc.setFont("helvetica", isBold ? "bold" : "normal");
     doc.setFontSize(8.5);
-    doc.setTextColor(...(isBad ? PDF_RED : PDF_DGRAY));
+    doc.setTextColor(...PDF_DGRAY);
     for (const l of lns) {
       need(4.5);
       doc.text(l, ML, y);
@@ -441,9 +440,9 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   gap(3);
 
   if (!contraventions.length) {
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
-    doc.setTextColor(...PDF_GREEN);
+    doc.setTextColor(...PDF_MGRAY);
     doc.text("No contraventions identified.", ML, y);
     y += 5;
   } else {
@@ -457,7 +456,6 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     drawTableHeader(doc, ML, CW, y, dCols);
     y += 6;
     contraventions.forEach((c: any, i: number) => {
-      const sevColor = c.severity === "material" ? PDF_RED : PDF_ORANGE;
       y = drawTableRow(
         doc,
         ML,
@@ -466,9 +464,9 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
         dCols,
         [
           { text: String(i + 1), bold: true },
-          { text: san(c.section), bold: true, color: PDF_NAVY },
+          { text: san(c.section), bold: true },
           { text: san(c.area) },
-          { text: (c.severity ?? "").toUpperCase(), bold: true, color: sevColor },
+          { text: (c.severity ?? "").toUpperCase(), bold: true },
           { text: san(c.description) },
         ],
         i % 2 === 0 ? PDF_WHITE : PDF_LGRAY,
@@ -487,9 +485,9 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   gap(3);
 
   if (!rfis.length) {
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
-    doc.setTextColor(...PDF_GREEN);
+    doc.setTextColor(...PDF_MGRAY);
     doc.text("No RFIs raised.", ML, y);
     y += 5;
   } else {
@@ -503,8 +501,6 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     drawTableHeader(doc, ML, CW, y, eCols);
     y += 6;
     rfis.forEach((r: any, i: number) => {
-      const pc = r.priority === "HIGH" ? PDF_RED : r.priority === "MEDIUM" ? PDF_ORANGE : PDF_MGRAY;
-      const stC = r.status === "RESOLVED" ? PDF_GREEN : PDF_ORANGE;
       y = drawTableRow(
         doc,
         ML,
@@ -513,10 +509,10 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
         eCols,
         [
           { text: String(i + 1), bold: true },
-          { text: san(r.priority), bold: true, color: pc },
+          { text: san(r.priority), bold: true },
           { text: san(r.description) },
-          { text: san(r.title), bold: true, color: PDF_NAVY },
-          { text: san(r.status), bold: true, color: stC },
+          { text: san(r.title), bold: true },
+          { text: san(r.status), bold: true },
         ],
         i % 2 === 0 ? PDF_WHITE : PDF_LGRAY,
         PH,
