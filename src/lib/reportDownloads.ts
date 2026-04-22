@@ -17,6 +17,7 @@ import {
   PageBreak,
   Header,
   Footer,
+  PageNumber,
 } from "docx";
 import { saveAs } from "file-saver";
 
@@ -184,6 +185,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
       doc.addPage();
       y = ML;
     }
+    (doc as any).__lastY = y;
   };
 
   const sectionDiv = (label: string, title: string) => {
@@ -199,10 +201,12 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     doc.setFontSize(11);
     doc.text(san(title), ML + 18, y + 5.5);
     y += 11;
+    (doc as any).__lastY = y;
   };
 
   const gap = (mm = 4) => {
     y += mm;
+    (doc as any).__lastY = y;
   };
 
   // ── bullet list helper ────────────────────────────────────────────────────
@@ -223,6 +227,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
         y += 4.2;
       }
     }
+    (doc as any).__lastY = y;
   };
 
   // ── section label bar ─────────────────────────────────────────────────────
@@ -239,6 +244,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     doc.setTextColor(...textColor);
     doc.text(san(label), ML + 2, y + 3.8);
     y += 5.5;
+    (doc as any).__lastY = y;
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -358,7 +364,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     y += 5;
   } else {
     for (let i = 0; i < partAFindings.length; i++) {
-      renderFindingPdf(doc, partAFindings[i], i, ML, CW, PH, FOOT, san, gap, need, labelBar, bulletList);
+      y = renderFindingPdf(doc, partAFindings[i], i, y, ML, CW, PH, FOOT, san, gap, need, labelBar, bulletList);
     }
   }
 
@@ -395,7 +401,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     y += 5;
   } else {
     for (let i = 0; i < partBFindings.length; i++) {
-      renderFindingPdf(doc, partBFindings[i], i, ML, CW, PH, FOOT, san, gap, need, labelBar, bulletList);
+      y = renderFindingPdf(doc, partBFindings[i], i, y, ML, CW, PH, FOOT, san, gap, need, labelBar, bulletList);
     }
   }
 
@@ -674,16 +680,17 @@ function renderFindingPdf(
   doc: jsPDF,
   f: any,
   idx: number,
+  y: number,
   ML: number,
   CW: number,
   PH: number,
   FOOT: number,
   san: (s: any) => string,
-  gap: (mm?: number) => void,
+  pdfGap: (mm?: number) => void,
   need: (h: number) => void,
   labelBar: (label: string, bg: [number, number, number], text?: [number, number, number]) => void,
   bulletList: (items: string[], lc: [number, number, number], ic: [number, number, number]) => void,
-) {
+): number {
   const st = statusColorPdf(f.status);
   const rc = riskColorPdf(f.risk_level || "MEDIUM");
   const shade = idx % 2 === 0 ? PDF_WHITE : PDF_LGRAY;
@@ -693,15 +700,7 @@ function renderFindingPdf(
   // Working paper reference number
   const wpRef = `WP-${idx + 1 < 10 ? "0" : ""}${idx + 1}`;
 
-  doc.setFillColor(...shade);
-  doc.rect(ML, (doc as any).__y ?? ML, CW, 13, "F");
-  doc.setDrawColor(...PDF_BORDER);
-  doc.setLineWidth(0.3);
-  doc.rect(ML, (doc as any).__y ?? ML, CW, 13);
-
-  // We need to track y properly — use a shared ref approach
-  // Since renderFindingPdf can't directly modify the outer y, we use doc.__lastY
-  let ly: number = (doc as any).__lastY ?? ML;
+  let ly: number = (doc as any).__lastY ?? y;
 
   doc.setFillColor(...shade);
   doc.rect(ML, ly, CW, 13, "F");
@@ -760,7 +759,6 @@ function renderFindingPdf(
     ly = (doc as any).__lastY ?? ly;
     bulletList(f.assertions, PDF_MGRAY, PDF_DGRAY);
     ly = (doc as any).__lastY ?? ly;
-    (doc as any).__lastY = ly;
   }
 
   // ── Section 2: Procedures ─────────────────────────────────────────────────
@@ -769,20 +767,16 @@ function renderFindingPdf(
     ly = (doc as any).__lastY ?? ly;
     bulletList(f.procedures, PDF_NAVY, PDF_DGRAY);
     ly = (doc as any).__lastY ?? ly;
-    (doc as any).__lastY = ly;
   } else {
     labelBar("2. PROCEDURES PERFORMED (ASA 330)", [68, 90, 130]);
     ly = (doc as any).__lastY ?? ly;
     need(4.5);
     doc.setFont("times", "italic");
     doc.setFontSize(8);
-    doc.setTextColor(...PDF_RED);
-    doc.text(
-      "WARNING: No procedures documented — does not satisfy ASA 230 reperformance test.",
-      ML + 3,
-      (doc as any).__lastY ?? ly,
-    );
-    (doc as any).__lastY = ((doc as any).__lastY ?? ly) + 4.5;
+    doc.setTextColor(...PDF_MGRAY);
+    doc.text("To be completed by auditor.", ML + 3, ly);
+    ly += 4.5;
+    (doc as any).__lastY = ly;
   }
 
   // ── Section 3: Evidence obtained ─────────────────────────────────────────
@@ -791,20 +785,16 @@ function renderFindingPdf(
     ly = (doc as any).__lastY ?? ly;
     bulletList(f.evidence, PDF_GREEN, PDF_DGRAY);
     ly = (doc as any).__lastY ?? ly;
-    (doc as any).__lastY = ly;
   } else {
     labelBar("3. EVIDENCE OBTAINED (ASA 500)", [50, 110, 80]);
     ly = (doc as any).__lastY ?? ly;
     need(4.5);
     doc.setFont("times", "italic");
     doc.setFontSize(8);
-    doc.setTextColor(...PDF_RED);
-    doc.text(
-      "WARNING: No evidence documented — file does not meet ASA 230 requirements.",
-      ML + 3,
-      (doc as any).__lastY ?? ly,
-    );
-    (doc as any).__lastY = ((doc as any).__lastY ?? ly) + 4.5;
+    doc.setTextColor(...PDF_MGRAY);
+    doc.text("To be completed by auditor.", ML + 3, ly);
+    ly += 4.5;
+    (doc as any).__lastY = ly;
   }
 
   // ── Section 4: Exceptions ────────────────────────────────────────────────
@@ -812,15 +802,16 @@ function renderFindingPdf(
   ly = (doc as any).__lastY ?? ly;
   if (f.exceptions?.length) {
     bulletList(f.exceptions, PDF_RED, PDF_RED);
+    ly = (doc as any).__lastY ?? ly;
   } else {
     need(4.5);
-    doc.setFont("times", "normal");
+    doc.setFont("times", "italic");
     doc.setFontSize(8);
-    doc.setTextColor(...PDF_GREEN);
-    doc.text("No exceptions noted.", ML + 3, (doc as any).__lastY ?? ly);
-    (doc as any).__lastY = ((doc as any).__lastY ?? ly) + 4.5;
+    doc.setTextColor(...PDF_MGRAY);
+    doc.text("No exceptions noted.", ML + 3, ly);
+    ly += 4.5;
+    (doc as any).__lastY = ly;
   }
-  ly = (doc as any).__lastY ?? ly;
 
   // ── Section 5: Conclusion ─────────────────────────────────────────────────
   const conclusionText = f.reviewAction
@@ -830,13 +821,14 @@ function renderFindingPdf(
   const concLines = doc.splitTextToSize(san(conclusionText), CW - 6);
   const concH = concLines.length * 4.2 + 10;
   need(concH + 6);
+  ly = (doc as any).__lastY ?? ly;
 
   doc.setFillColor(...st.bg);
-  doc.rect(ML, (doc as any).__lastY ?? ly, CW, concH, "F");
+  doc.rect(ML, ly, CW, concH, "F");
   doc.setDrawColor(...PDF_BORDER);
   doc.setLineWidth(0.2);
-  doc.rect(ML, (doc as any).__lastY ?? ly, CW, concH);
-  const concY0 = (doc as any).__lastY ?? ly;
+  doc.rect(ML, ly, CW, concH);
+  const concY0 = ly;
   doc.setFont("times", "bold");
   doc.setFontSize(7.5);
   doc.setTextColor(...PDF_MGRAY);
@@ -870,7 +862,9 @@ function renderFindingPdf(
     doc.text("Reviewed by: ___________   Date: __________   Initials: _______", ML + 2, soY + 5);
   }
 
-  (doc as any).__lastY = soY + soH2 + 3;
+  ly = soY + soH2 + 3;
+  (doc as any).__lastY = ly;
+  return ly;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1210,13 +1204,13 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
     subLabelRow("2. PROCEDURES PERFORMED (ASA 330)", "445C8A"),
     ...(f.procedures?.length
       ? bulletItems(f.procedures, DGRAY)
-      : [warningPara("WARNING: No procedures documented — does not satisfy ASA 230 reperformance test.")]),
+      : [warningPara("To be completed by auditor.")]),
 
     // ── 3. Evidence obtained ─────────────────────────────────────────────────
     subLabelRow("3. EVIDENCE OBTAINED (ASA 500)", "326B50"),
     ...(f.evidence?.length
       ? bulletItems(f.evidence, DGRAY)
-      : [warningPara("WARNING: No evidence documented — file does not meet ASA 230 requirements.")]),
+      : [warningPara("To be completed by auditor.")]),
 
     // ── 4. Exceptions ────────────────────────────────────────────────────────
     subLabelRow("4. EXCEPTIONS / DEVIATIONS (ASA 230 para 16)", "96501E"),
@@ -1726,6 +1720,10 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                   t(`${meta.fundName} — Audit Working Papers FY${meta.financialYear}`, { size: 14, color: MGRAY }),
                   new TextRun({ text: "\t", size: 14 }),
                   t("Prepared by registered SMSF auditor", { size: 14, color: MGRAY }),
+                  new TextRun({ text: "   Page ", size: 14, color: MGRAY }),
+                  new TextRun({ children: [PageNumber.CURRENT], size: 14, font: "Times New Roman", color: MGRAY }),
+                  new TextRun({ text: " of ", size: 14, color: MGRAY }),
+                  new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 14, font: "Times New Roman", color: MGRAY }),
                 ],
               }),
             ],
