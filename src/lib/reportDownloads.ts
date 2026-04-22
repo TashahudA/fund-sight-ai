@@ -499,6 +499,9 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   sectionDiv("D", "Contraventions Register  (s129/s130 SISA)");
   gap(3);
 
+  // Section D: contraventions[] is the single source of truth.
+  // Railway guarantees this array is populated whenever opinion_part_b is qualified.
+  // "No contraventions identified." is only shown when the array is genuinely empty.
   if (!contraventions.length) {
     doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
