@@ -396,7 +396,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     y += 5;
   } else {
     for (let i = 0; i < partBFindings.length; i++) {
-      renderFindingPdf(doc, partBFindings[i], i, ML, CW, PH, FOOT, san, gap, need, labelBar, bulletList);
+      y = renderFindingPdf(doc, partBFindings[i], i, y, ML, CW, PH, FOOT, san, gap, need, labelBar, bulletList);
     }
   }
 
