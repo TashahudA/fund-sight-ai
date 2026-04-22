@@ -122,6 +122,8 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   const deterministicBlock = wp.deterministicBlock ?? "";
   const contraventions = wp.contraventions ?? [];
   const rfis = wp.rfis ?? [];
+  // V2 payload (__type: "WORKPAPER_JSON_V2") adds wp.materiality. Absent on V1 — handled gracefully.
+  const materiality = wp.materiality ?? null;
 
   const fund = meta.fundName || fundName;
   const year = meta.financialYear || financialYear;
@@ -325,6 +327,64 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   y = boxTop + boxH + 6;
 
   // ─────────────────────────────────────────────────────────────────────────
+  // SECTION M — Materiality (V2 only; skipped if absent)
+  // ─────────────────────────────────────────────────────────────────────────
+  if (materiality) {
+    addPageFooter();
+    doc.addPage();
+    y = ML;
+
+    sectionDiv("M", "Materiality Determination (ASA 320 / GS 009)");
+    gap(4);
+
+    const matRows: Array<[string, string]> = [
+      ["Benchmark", "Total assets (GS 009 — primary measure of SMSF fund size)"],
+      [
+        "Benchmark value",
+        materiality.benchmark_value != null
+          ? `$${Number(materiality.benchmark_value).toLocaleString()}`
+          : "Per financial statements",
+      ],
+      ["Overall materiality (2%)", `$${Number(materiality.overall ?? 0).toLocaleString()}`],
+      ["Performance materiality (75%)", `$${Number(materiality.performance ?? 0).toLocaleString()}`],
+      ["Clearly trivial threshold (5%)", `$${Number(materiality.trivial ?? 0).toLocaleString()}`],
+    ];
+    const matBoxH = 6 + matRows.length * 6 + 4;
+    need(matBoxH);
+    doc.setFillColor(...PDF_LGRAY);
+    doc.rect(ML, y, CW, matBoxH, "F");
+    doc.setDrawColor(...PDF_BORDER);
+    doc.setLineWidth(0.2);
+    doc.rect(ML, y, CW, matBoxH);
+    let myy = y + 6;
+    for (const [lbl, val] of matRows) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...PDF_DGRAY);
+      doc.text(san(lbl), ML + 3, myy);
+      doc.setFont("helvetica", "normal");
+      doc.text(san(val), ML + 70, myy);
+      myy += 6;
+    }
+    y += matBoxH + 4;
+
+    const trivialStr = `$${Number(materiality.trivial ?? 0).toLocaleString()}`;
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(...PDF_MGRAY);
+    const noteLines = doc.splitTextToSize(
+      `Differences below ${trivialStr} will not be reported unless indicative of fraud or systematic error. (ASA 450)`,
+      CW,
+    );
+    for (const l of noteLines) {
+      need(4);
+      doc.text(l, ML, y);
+      y += 4;
+    }
+    gap(2);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // PART A
   // ─────────────────────────────────────────────────────────────────────────
   addPageFooter();
@@ -439,6 +499,9 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   sectionDiv("D", "Contraventions Register  (s129/s130 SISA)");
   gap(3);
 
+  // Section D: contraventions[] is the single source of truth.
+  // Railway guarantees this array is populated whenever opinion_part_b is qualified.
+  // "No contraventions identified." is only shown when the array is genuinely empty.
   if (!contraventions.length) {
     doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
@@ -586,7 +649,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
       "the nature, timing and extent of audit procedures performed, evidence obtained, and conclusions reached (ASA 230 para 8).",
     rightW - 6,
   );
-  const leftH = 10 + checklist.length * 5 + signRows.length * 7 + 10;
+  const leftH = 10 + checklist.length * 5 + 30 + signRows.length * 7 + 10;
   const rightH = 10 + retLine1.length * 4.2 + 6 + retLine2.length * 4.2 + 6;
   const soH = Math.max(leftH, rightH);
   need(soH);
@@ -617,6 +680,22 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     ly += 4.8;
   }
   ly += 3;
+  // Independence statement (APES 110)
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(8);
+  doc.setTextColor(...PDF_MGRAY);
+  const indepLines = doc.splitTextToSize(
+    "Independence: The auditor confirms that, to the best of their knowledge and belief, the engagement team has complied with the independence requirements of APES 110 Code of Ethics for Professional Accountants throughout the conduct of this engagement. No relationships, interests, or circumstances have been identified that would compromise independence in accordance with APES 110.",
+    leftW - 6,
+  );
+  for (const l of indepLines) {
+    doc.text(l, lx, ly);
+    ly += 4;
+  }
+  ly += 3;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(...PDF_DGRAY);
   for (const row of signRows) {
     doc.text(row, lx, ly);
     doc.setDrawColor(...PDF_BORDER);
@@ -700,8 +779,21 @@ function renderFindingPdf(
   doc.setTextColor(...PDF_MGRAY);
   doc.text(wpRef, ML, ly + 10);
 
+  // Evidence Source (V2 field; "—" fallback)
+  const evX = ML + CW * 0.34;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(...PDF_MGRAY);
+  doc.text("Evidence Source", evX, ly + 4.5);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(...PDF_DGRAY);
+  const evSrc = san(f.evidence_source ?? "") || "—";
+  const evLines = doc.splitTextToSize(evSrc, CW * 0.18 - 2);
+  doc.text(evLines[0] ?? "—", evX, ly + 9.5);
+
   // SIS reference
-  const refX = ML + CW * 0.42;
+  const refX = ML + CW * 0.52;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
@@ -712,7 +804,7 @@ function renderFindingPdf(
   doc.text(san(f.reference || "N/A"), refX, ly + 9.5);
 
   // Risk level
-  const riskX = ML + CW * 0.62;
+  const riskX = ML + CW * 0.7;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
@@ -723,7 +815,7 @@ function renderFindingPdf(
   doc.text((f.risk_level || "MEDIUM").toUpperCase(), riskX, ly + 9.5);
 
   // Status
-  const resX = ML + CW * 0.82;
+  const resX = ML + CW * 0.88;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
@@ -742,11 +834,19 @@ function renderFindingPdf(
   (doc as any).__lastY = ly;
 
   // ── Section 1: Assertions ─────────────────────────────────────────────────
+  labelBar("1. ASSERTIONS TESTED (ASA 315)", PDF_NAVY);
+  ly = (doc as any).__lastY ?? ly;
   if (f.assertions?.length) {
-    labelBar("1. ASSERTIONS TESTED (ASA 315)", PDF_NAVY);
-    ly = (doc as any).__lastY ?? ly;
     bulletList(f.assertions, PDF_MGRAY, PDF_DGRAY);
     ly = (doc as any).__lastY ?? ly;
+  } else {
+    need(4.5);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(...PDF_MGRAY);
+    doc.text("No assertions documented.", ML + 3, ly);
+    ly += 4.5;
+    (doc as any).__lastY = ly;
   }
 
   // ── Section 2: Procedures ─────────────────────────────────────────────────
@@ -1127,7 +1227,8 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
     // ── Header: area | reference | risk | result ────────────────────────────
     new Table({
       width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [3600, 1680, 1880, 2200],
+      // Five columns: area+wpRef | Evidence Source (V2) | SIS Ref | Risk | Result
+      columnWidths: [2400, 1880, 1680, 1480, 1920],
       rows: [
         tr([
           tc(
@@ -1135,7 +1236,15 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
               p([t(f.area, { bold: true, size: 20, color: DGRAY })], { before: 0, after: 20 }),
               p([t(wpRef, { size: 15, color: MGRAY, italic: true })], { before: 0, after: 0 }),
             ],
-            3600,
+            2400,
+            { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
+          ),
+          tc(
+            [
+              p([t("Evidence Source", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
+              p([t(String(f.evidence_source ?? "").trim() || "—", { bold: true, size: 18, color: DGRAY })], { before: 0, after: 0 }),
+            ],
+            1880,
             { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
           tc(
@@ -1154,7 +1263,7 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
                 after: 0,
               }),
             ],
-            1880,
+            1480,
             { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
           tc(
@@ -1162,7 +1271,7 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
               p([t("Result", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
               p([t(st.label, { bold: true, size: 18, color: st.text })], { before: 0, after: 0 }),
             ],
-            2200,
+            1920,
             { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
         ]),
@@ -1242,6 +1351,8 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   const raw = content.replace("__WORKPAPER_JSON__", "");
   const wp = JSON.parse(raw);
   const { meta, opinion, partAFindings, partBFindings, deterministicBlock, contraventions, rfis } = wp;
+  // V2 payload (__type: "WORKPAPER_JSON_V2") adds wp.materiality. Absent on V1 — handled gracefully.
+  const materiality = wp.materiality ?? null;
 
   const opC = opinionColorDocx(opinion.overall ?? "");
   const children: any[] = [];
@@ -1334,6 +1445,48 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
 
   // ── PART A ─────────────────────────────────────────────────────────────────
   children.push(new Paragraph({ children: [new PageBreak()] }));
+  // ── SECTION M — Materiality (V2 only; skipped if absent) ──────────────────
+  if (materiality) {
+    children.push(sectionDiv("M", "Materiality Determination (ASA 320 / GS 009)"));
+    children.push(gap(120));
+    const matRows: Array<[string, string]> = [
+      ["Benchmark", "Total assets (GS 009 — primary measure of SMSF fund size)"],
+      [
+        "Benchmark value",
+        materiality.benchmark_value != null
+          ? `$${Number(materiality.benchmark_value).toLocaleString()}`
+          : "Per financial statements",
+      ],
+      ["Overall materiality (2%)", `$${Number(materiality.overall ?? 0).toLocaleString()}`],
+      ["Performance materiality (75%)", `$${Number(materiality.performance ?? 0).toLocaleString()}`],
+      ["Clearly trivial threshold (5%)", `$${Number(materiality.trivial ?? 0).toLocaleString()}`],
+    ];
+    children.push(
+      new Table({
+        width: { size: 9360, type: WidthType.DXA },
+        columnWidths: [3600, 5760],
+        rows: matRows.map(([lbl, val]) =>
+          tr([
+            tc(p([t(lbl, { bold: true, size: 18 })], { before: 0, after: 0 }), 3600, { bg: LGRAY }),
+            tc(p([t(val, { size: 18 })], { before: 0, after: 0 }), 5760, { bg: LGRAY }),
+          ]),
+        ),
+      }),
+    );
+    const trivialStr = `$${Number(materiality.trivial ?? 0).toLocaleString()}`;
+    children.push(
+      p(
+        [
+          t(
+            `Differences below ${trivialStr} will not be reported unless indicative of fraud or systematic error. (ASA 450)`,
+            { size: 17, italic: true, color: MGRAY },
+          ),
+        ],
+        { before: 100, after: 120 },
+      ),
+    );
+    children.push(new Paragraph({ children: [new PageBreak()] }));
+  }
   children.push(sectionDiv("A", "Part A — Financial Audit Working Papers  (ASA 330 / GS 009 Part A)"));
   children.push(gap(120));
   children.push(
@@ -1430,6 +1583,9 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   children.push(gap(160));
   children.push(sectionDiv("D", "Contraventions Register  (s129/s130 SISA)"));
   children.push(gap(100));
+  // Section D: contraventions[] is the single source of truth.
+  // Railway guarantees this array is populated whenever opinion_part_b is qualified.
+  // "No contraventions identified." is only shown when the array is genuinely empty.
   if (!contraventions.length) {
     children.push(
       p([t("No contraventions identified.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
@@ -1573,6 +1729,16 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                     children: [t(item, { size: 18 })],
                     spacing: { before: 40, after: 40 },
                   }),
+              ),
+              // Independence statement (APES 110)
+              p(
+                [
+                  t(
+                    "Independence: The auditor confirms that, to the best of their knowledge and belief, the engagement team has complied with the independence requirements of APES 110 Code of Ethics for Professional Accountants throughout the conduct of this engagement. No relationships, interests, or circumstances have been identified that would compromise independence in accordance with APES 110.",
+                    { size: 17, italic: true, color: MGRAY },
+                  ),
+                ],
+                { before: 120, after: 80 },
               ),
               gap(100),
               p([t("Name:  ___________________________________", { size: 18 })], { before: 0, after: 80 }),
