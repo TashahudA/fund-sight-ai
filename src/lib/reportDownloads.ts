@@ -1418,7 +1418,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
           t(trimmed, {
             size: 18,
             bold: isBold,
-            color: /BREACH|FAIL/.test(trimmed) ? RED : DGRAY,
+            color: DGRAY,
           }),
         ],
         { before: 0, after: 40 },
@@ -1432,7 +1432,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   children.push(gap(100));
   if (!contraventions.length) {
     children.push(
-      p([t("No contraventions identified.", { size: 18, italic: true, color: GREEN })], { before: 0, after: 0 }),
+      p([t("No contraventions identified.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
     );
   } else {
     children.push(
