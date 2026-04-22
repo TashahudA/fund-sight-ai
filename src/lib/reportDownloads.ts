@@ -1342,6 +1342,8 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   const raw = content.replace("__WORKPAPER_JSON__", "");
   const wp = JSON.parse(raw);
   const { meta, opinion, partAFindings, partBFindings, deterministicBlock, contraventions, rfis } = wp;
+  // V2 payload (__type: "WORKPAPER_JSON_V2") adds wp.materiality. Absent on V1 — handled gracefully.
+  const materiality = wp.materiality ?? null;
 
   const opC = opinionColorDocx(opinion.overall ?? "");
   const children: any[] = [];
