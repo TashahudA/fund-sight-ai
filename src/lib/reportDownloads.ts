@@ -1242,7 +1242,7 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
           tc(
             [
               p([t("Evidence Source", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
-              p([t(san_evsrc(f.evidence_source), { bold: true, size: 18, color: DGRAY })], { before: 0, after: 0 }),
+              p([t(String(f.evidence_source ?? "").trim() || "—", { bold: true, size: 18, color: DGRAY })], { before: 0, after: 0 }),
             ],
             1880,
             { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
