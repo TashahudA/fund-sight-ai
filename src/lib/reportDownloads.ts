@@ -1307,7 +1307,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               ),
             ],
             4680,
-            { bg: BLUEBG },
+            { bg: LGRAY },
           ),
           tc(
             [
@@ -1325,7 +1325,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               }),
             ],
             4680,
-            { bg: opC.bg, bord: B(opC.text) },
+            { bg: opC.bg, bord: B(BORDER) },
           ),
         ]),
       ],
