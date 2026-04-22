@@ -26,39 +26,23 @@ import { saveAs } from "file-saver";
 // ─────────────────────────────────────────────────────────────────────────────
 
 // PDF colours [R,G,B]
-const PDF_NAVY: [number, number, number] = [28, 43, 69];
+const PDF_BLACK: [number, number, number] = [0, 0, 0];
+const PDF_NAVY: [number, number, number] = [31, 52, 88];
 const PDF_DGRAY: [number, number, number] = [51, 51, 51];
-const PDF_MGRAY: [number, number, number] = [102, 102, 102];
-const PDF_LGRAY: [number, number, number] = [242, 242, 242];
-const PDF_BGRAY: [number, number, number] = [220, 220, 220];
-const PDF_BORDER: [number, number, number] = [204, 204, 204];
+const PDF_MGRAY: [number, number, number] = [120, 120, 120];
+const PDF_LGRAY: [number, number, number] = [240, 240, 240];
 const PDF_WHITE: [number, number, number] = [255, 255, 255];
-const PDF_GREEN: [number, number, number] = [26, 92, 53];
-const PDF_GREEN_BG: [number, number, number] = [234, 242, 236];
-const PDF_ORANGE: [number, number, number] = [123, 63, 0];
-const PDF_ORN_BG: [number, number, number] = [253, 243, 231];
-const PDF_RED: [number, number, number] = [123, 17, 17];
-const PDF_RED_BG: [number, number, number] = [253, 240, 240];
-const PDF_BLUE: [number, number, number] = [26, 58, 107];
-const PDF_BLUE_BG: [number, number, number] = [237, 242, 250];
-const PDF_AMBER_BG: [number, number, number] = [255, 248, 220];
+const PDF_BORDER: [number, number, number] = [180, 180, 180];
 
 // DOCX colours (hex)
-const NAVY = "1C2B45";
+const NAVY = "1F3458";
 const DGRAY = "333333";
-const MGRAY = "666666";
-const LGRAY = "F2F2F2";
+const MGRAY = "787878";
+const LGRAY = "F0F0F0";
 const WHITE = "FFFFFF";
-const GREEN = "1A5C35";
-const GREENBG = "EAF2EC";
-const ORANGE = "7B3F00";
-const ORNBG = "FDF3E7";
-const RED = "7B1111";
-const REDBG = "FDF0F0";
-const BLUE = "1A3A6B";
-const BLUEBG = "EDF2FA";
-const AMBERBG = "FFFBDC";
-const BORD = "CCCCCC";
+const BORDER = "B4B4B4";
+// Alias retained so untouched generic DOCX builder keeps compiling.
+const BORD = BORDER;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Status / risk helpers
@@ -66,12 +50,13 @@ const BORD = "CCCCCC";
 
 function statusColorDocx(status: string): { text: string; label: string; bg: string } {
   const s = (status ?? "").toLowerCase();
-  if (s === "pass") return { text: GREEN, label: "PASS", bg: GREENBG };
-  if (s === "fail") return { text: RED, label: "FAIL", bg: REDBG };
-  if (s === "needs_info") return { text: ORANGE, label: "INFO REQ", bg: ORNBG };
-  if (s === "pass_with_review") return { text: ORANGE, label: "REVIEW", bg: ORNBG };
-  if (s === "refer_to_auditor") return { text: BLUE, label: "REFER", bg: BLUEBG };
-  return { text: MGRAY, label: "N/A", bg: LGRAY };
+  const label =
+    s === "pass"             ? "PASS"     :
+    s === "fail"             ? "FAIL"     :
+    s === "needs_info"       ? "INFO REQ" :
+    s === "pass_with_review" ? "REVIEW"   :
+    s === "refer_to_auditor" ? "REFER"    : "N/A";
+  return { text: DGRAY, label, bg: WHITE };
 }
 
 function statusColorPdf(status: string): {
@@ -80,44 +65,29 @@ function statusColorPdf(status: string): {
   bg: [number, number, number];
 } {
   const s = (status ?? "").toLowerCase();
-  if (s === "pass") return { text: PDF_GREEN, label: "PASS", bg: PDF_GREEN_BG };
-  if (s === "fail") return { text: PDF_RED, label: "FAIL", bg: PDF_RED_BG };
-  if (s === "needs_info") return { text: PDF_ORANGE, label: "INFO REQ", bg: PDF_ORN_BG };
-  if (s === "pass_with_review") return { text: PDF_ORANGE, label: "REVIEW", bg: PDF_ORN_BG };
-  if (s === "refer_to_auditor") return { text: PDF_BLUE, label: "REFER", bg: PDF_BLUE_BG };
-  return { text: PDF_MGRAY, label: "N/A", bg: PDF_LGRAY };
+  const label =
+    s === "pass"             ? "PASS"     :
+    s === "fail"             ? "FAIL"     :
+    s === "needs_info"       ? "INFO REQ" :
+    s === "pass_with_review" ? "REVIEW"   :
+    s === "refer_to_auditor" ? "REFER"    : "N/A";
+  return { text: PDF_DGRAY, label, bg: PDF_WHITE };
 }
 
-function riskColorDocx(risk: string): { text: string; bg: string } {
-  const r = (risk ?? "").toUpperCase();
-  if (r === "HIGH") return { text: RED, bg: REDBG };
-  if (r === "MEDIUM") return { text: ORANGE, bg: ORNBG };
-  if (r === "LOW") return { text: GREEN, bg: GREENBG };
-  return { text: MGRAY, bg: LGRAY };
+function riskColorDocx(_risk: string): { text: string; bg: string } {
+  return { text: DGRAY, bg: WHITE };
 }
 
-function riskColorPdf(risk: string): { text: [number, number, number]; bg: [number, number, number] } {
-  const r = (risk ?? "").toUpperCase();
-  if (r === "HIGH") return { text: PDF_RED, bg: PDF_RED_BG };
-  if (r === "MEDIUM") return { text: PDF_ORANGE, bg: PDF_ORN_BG };
-  if (r === "LOW") return { text: PDF_GREEN, bg: PDF_GREEN_BG };
-  return { text: PDF_MGRAY, bg: PDF_LGRAY };
+function riskColorPdf(_risk: string): { text: [number, number, number]; bg: [number, number, number] } {
+  return { text: PDF_DGRAY, bg: PDF_WHITE };
 }
 
-function opinionColorDocx(o: string): { text: string; bg: string } {
-  const v = (o ?? "").toLowerCase();
-  if (/unqualified|unmodified/.test(v)) return { text: GREEN, bg: GREENBG };
-  if (/adverse|disclaim/.test(v)) return { text: RED, bg: REDBG };
-  if (/qualified|modified/.test(v)) return { text: ORANGE, bg: ORNBG };
-  return { text: DGRAY, bg: LGRAY };
+function opinionColorDocx(_o: string): { text: string; bg: string } {
+  return { text: NAVY, bg: LGRAY };
 }
 
-function opinionColorPdf(o: string): { text: [number, number, number]; bg: [number, number, number] } {
-  const v = (o ?? "").toLowerCase();
-  if (/unqualified|unmodified/.test(v)) return { text: PDF_GREEN, bg: PDF_GREEN_BG };
-  if (/adverse|disclaim/.test(v)) return { text: PDF_RED, bg: PDF_RED_BG };
-  if (/qualified|modified/.test(v)) return { text: PDF_ORANGE, bg: PDF_ORN_BG };
-  return { text: PDF_DGRAY, bg: PDF_LGRAY };
+function opinionColorPdf(_o: string): { text: [number, number, number]; bg: [number, number, number] } {
+  return { text: PDF_NAVY, bg: PDF_LGRAY };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -173,7 +143,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     doc.setDrawColor(...PDF_BORDER);
     doc.setLineWidth(0.2);
     doc.line(ML, fy - 4, PW - MR, fy - 4);
-    doc.setFont("times", "normal");
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(...PDF_MGRAY);
     doc.text(san(fund), ML, fy);
@@ -190,17 +160,21 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   const sectionDiv = (label: string, title: string) => {
     need(10);
-    doc.setFillColor(...PDF_NAVY);
-    doc.rect(ML, y, 14, 8, "F");
-    doc.setFont("times", "bold");
+    // Thin navy horizontal rule
+    doc.setDrawColor(...PDF_NAVY);
+    doc.setLineWidth(0.3);
+    doc.line(ML, y, ML + CW, y);
+    y += 4;
+    // Letter (bold 9pt navy) + title (bold 10pt dark grey) on one line
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...PDF_NAVY);
+    doc.text(san(label), ML, y);
+    const labelW = doc.getTextWidth(san(label));
     doc.setFontSize(10);
-    doc.setTextColor(...PDF_WHITE);
-    doc.text(san(label), ML + 7, y + 5.5, { align: "center" });
-    doc.setFillColor(46, 68, 112);
-    doc.rect(ML + 14, y, CW - 14, 8, "F");
-    doc.setFontSize(11);
-    doc.text(san(title), ML + 18, y + 5.5);
-    y += 11;
+    doc.setTextColor(...PDF_DGRAY);
+    doc.text(san(title), ML + labelW + 3, y);
+    y += 3;
     (doc as any).__lastY = y;
   };
 
@@ -217,7 +191,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
       for (let li = 0; li < lines.length; li++) {
         need(4.5);
         if (li === 0) {
-          doc.setFont("times", "normal");
+          doc.setFont("helvetica", "normal");
           doc.setFontSize(8);
           doc.setTextColor(...labelColor);
           doc.text("-", ML + 2, y);
@@ -231,41 +205,60 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   };
 
   // ── section label bar ─────────────────────────────────────────────────────
+  // Bold dark-grey label followed by a thin light-grey rule. No fill.
+  // Signature kept stable so call sites don't change; bg/text args ignored.
   const labelBar = (
     label: string,
-    bgColor: [number, number, number],
-    textColor: [number, number, number] = PDF_WHITE,
+    _bgColor: [number, number, number],
+    _textColor: [number, number, number] = PDF_WHITE,
   ) => {
     need(6);
-    doc.setFillColor(...bgColor);
-    doc.rect(ML, y, CW, 5.5, "F");
-    doc.setFont("times", "bold");
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.setTextColor(...textColor);
-    doc.text(san(label), ML + 2, y + 3.8);
-    y += 5.5;
+    doc.setTextColor(...PDF_DGRAY);
+    doc.text(san(label).toUpperCase(), ML, y + 3.5);
+    y += 4.5;
+    doc.setDrawColor(...PDF_BORDER);
+    doc.setLineWidth(0.15);
+    doc.line(ML, y, ML + CW, y);
+    y += 1.5;
     (doc as any).__lastY = y;
   };
 
   // ─────────────────────────────────────────────────────────────────────────
   // COVER
   // ─────────────────────────────────────────────────────────────────────────
+  // Top navy rule (1mm thick)
   doc.setFillColor(...PDF_NAVY);
-  doc.rect(0, 0, PW, 60, "F");
-  doc.setFont("times", "bold");
-  doc.setFontSize(20);
-  doc.setTextColor(...PDF_WHITE);
-  doc.text("AUDIT WORKING PAPERS", PW / 2, 22, { align: "center" });
-  doc.setFont("times", "normal");
+  doc.rect(0, 12, PW, 1, "F");
+
+  // Title block, left-aligned
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(...PDF_NAVY);
+  doc.text("AUDIT WORKING PAPERS", ML, 32);
+
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(13);
-  doc.text(san(fund), PW / 2, 36, { align: "center" });
+  doc.setTextColor(...PDF_DGRAY);
+  doc.text(san(fund), ML, 40);
+
   doc.setFontSize(10);
-  doc.text(`Year ended 30 June ${san(year)}`, PW / 2, 46, { align: "center" });
+  doc.setTextColor(...PDF_MGRAY);
+  doc.text(`Year ended 30 June ${san(year)}`, ML, 45);
+
+  let coverBottom = 45;
   if (meta.fundABN) {
-    doc.setFontSize(8);
-    doc.text(`ABN ${san(meta.fundABN)}`, PW / 2, 54, { align: "center" });
+    doc.setFontSize(9);
+    doc.text(`ABN ${san(meta.fundABN)}`, ML, 49);
+    coverBottom = 49;
   }
-  y = 68;
+
+  // Bottom navy rule
+  doc.setFillColor(...PDF_NAVY);
+  doc.rect(0, coverBottom + 3, PW, 1, "F");
+
+  y = coverBottom + 10;
 
   // Cover 2-col: Fund Details | Opinion Summary
   const halfW = CW / 2 - 2;
@@ -279,48 +272,48 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   ];
   const boxH = 8 + fundRows.length * 5.5 + 4;
 
-  doc.setFillColor(...PDF_BLUE_BG);
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML, boxTop, halfW, boxH, "F");
   doc.setDrawColor(...PDF_BORDER);
   doc.setLineWidth(0.2);
   doc.rect(ML, boxTop, halfW, boxH);
 
-  doc.setFillColor(...opC.bg);
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML + halfW + 4, boxTop, halfW, boxH, "F");
-  doc.setDrawColor(...opC.text);
-  doc.setLineWidth(0.4);
+  doc.setDrawColor(...PDF_BORDER);
+  doc.setLineWidth(0.2);
   doc.rect(ML + halfW + 4, boxTop, halfW, boxH);
 
   let bx = ML + 2;
   let by = boxTop + 6;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...PDF_NAVY);
   doc.text("Fund Details", bx, by);
   by += 5;
   for (const fr of fundRows) {
-    doc.setFont("times", "bold");
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
     doc.setTextColor(...PDF_DGRAY);
     doc.text(fr.label, bx, by);
-    doc.setFont("times", "normal");
+    doc.setFont("helvetica", "normal");
     doc.text(fr.value, bx + 30, by);
     by += 5.2;
   }
 
   bx = ML + halfW + 6;
   by = boxTop + 6;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...PDF_NAVY);
   doc.text("Audit Opinion Summary", bx, by);
   by += 5;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
   doc.setTextColor(...opC.text);
   doc.text(`Overall: ${(opinion.overall ?? "PENDING").toUpperCase()}`, bx, by);
   by += 5;
-  doc.setFont("times", "italic");
+  doc.setFont("helvetica", "italic");
   doc.setFontSize(7.5);
   doc.setTextColor(...PDF_MGRAY);
   const reasonSnippet = doc.splitTextToSize(san(opinion.reasoning ?? ""), halfW - 6);
@@ -340,7 +333,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   sectionDiv("A", "Part A — Financial Audit Working Papers  (ASA 330 / GS 009 Part A)");
   gap(3);
-  doc.setFont("times", "italic");
+  doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
   const objA = doc.splitTextToSize(
@@ -357,7 +350,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   gap(3);
 
   if (!partAFindings.length) {
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
     doc.setTextColor(...PDF_MGRAY);
     doc.text("No Part A findings recorded.", ML, y);
@@ -377,7 +370,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   sectionDiv("B", "Part B — Compliance Engagement Working Papers  (ASAE 3100 / GS 009 Part B)");
   gap(3);
-  doc.setFont("times", "italic");
+  doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
   const objB = doc.splitTextToSize(
@@ -394,7 +387,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   gap(3);
 
   if (!partBFindings.length) {
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
     doc.setTextColor(...PDF_MGRAY);
     doc.text("No Part B findings recorded.", ML, y);
@@ -414,7 +407,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   sectionDiv("C", "Deterministic Checks — Code Verified");
   gap(3);
-  doc.setFont("times", "italic");
+  doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
   doc.text("Results computed arithmetically. Do not override with AI assessment.", ML, y);
@@ -428,11 +421,10 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
       continue;
     }
     const isBold = /PASS|FAIL|BREACH|MATERIALITY/.test(trimmed);
-    const isBad = /BREACH|FAIL/.test(trimmed);
     const lns = doc.splitTextToSize(san(trimmed), CW);
-    doc.setFont("times", isBold ? "bold" : "normal");
+    doc.setFont("helvetica", isBold ? "bold" : "normal");
     doc.setFontSize(8.5);
-    doc.setTextColor(...(isBad ? PDF_RED : PDF_DGRAY));
+    doc.setTextColor(...PDF_DGRAY);
     for (const l of lns) {
       need(4.5);
       doc.text(l, ML, y);
@@ -448,9 +440,9 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   gap(3);
 
   if (!contraventions.length) {
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
-    doc.setTextColor(...PDF_GREEN);
+    doc.setTextColor(...PDF_MGRAY);
     doc.text("No contraventions identified.", ML, y);
     y += 5;
   } else {
@@ -464,7 +456,6 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     drawTableHeader(doc, ML, CW, y, dCols);
     y += 6;
     contraventions.forEach((c: any, i: number) => {
-      const sevColor = c.severity === "material" ? PDF_RED : PDF_ORANGE;
       y = drawTableRow(
         doc,
         ML,
@@ -473,9 +464,9 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
         dCols,
         [
           { text: String(i + 1), bold: true },
-          { text: san(c.section), bold: true, color: PDF_NAVY },
+          { text: san(c.section), bold: true },
           { text: san(c.area) },
-          { text: (c.severity ?? "").toUpperCase(), bold: true, color: sevColor },
+          { text: (c.severity ?? "").toUpperCase(), bold: true },
           { text: san(c.description) },
         ],
         i % 2 === 0 ? PDF_WHITE : PDF_LGRAY,
@@ -494,9 +485,9 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   gap(3);
 
   if (!rfis.length) {
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
-    doc.setTextColor(...PDF_GREEN);
+    doc.setTextColor(...PDF_MGRAY);
     doc.text("No RFIs raised.", ML, y);
     y += 5;
   } else {
@@ -510,8 +501,6 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     drawTableHeader(doc, ML, CW, y, eCols);
     y += 6;
     rfis.forEach((r: any, i: number) => {
-      const pc = r.priority === "HIGH" ? PDF_RED : r.priority === "MEDIUM" ? PDF_ORANGE : PDF_MGRAY;
-      const stC = r.status === "RESOLVED" ? PDF_GREEN : PDF_ORANGE;
       y = drawTableRow(
         doc,
         ML,
@@ -520,10 +509,10 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
         eCols,
         [
           { text: String(i + 1), bold: true },
-          { text: san(r.priority), bold: true, color: pc },
+          { text: san(r.priority), bold: true },
           { text: san(r.description) },
-          { text: san(r.title), bold: true, color: PDF_NAVY },
-          { text: san(r.status), bold: true, color: stC },
+          { text: san(r.title), bold: true },
+          { text: san(r.status), bold: true },
         ],
         i % 2 === 0 ? PDF_WHITE : PDF_LGRAY,
         PH,
@@ -548,16 +537,16 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   const opBoxH = 16 + reasonLines.length * 4.5;
   need(opBoxH);
 
-  doc.setFillColor(...opC.bg);
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML, y, CW, opBoxH, "F");
-  doc.setDrawColor(...opC.text);
-  doc.setLineWidth(0.5);
+  doc.setDrawColor(...PDF_BORDER);
+  doc.setLineWidth(0.2);
   doc.rect(ML, y, CW, opBoxH);
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.setTextColor(...opC.text);
+  doc.setTextColor(...PDF_NAVY);
   doc.text(`Overall Opinion:  ${opLabel}`, ML + 3, y + 9);
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(...PDF_DGRAY);
   let oy = y + 15;
@@ -602,7 +591,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   const soH = Math.max(leftH, rightH);
   need(soH);
 
-  doc.setFillColor(...PDF_BLUE_BG);
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML, y, leftW, soH, "F");
   doc.setDrawColor(...PDF_BORDER);
   doc.setLineWidth(0.2);
@@ -613,12 +602,12 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   let lx = ML + 3,
     ly = y + 6;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...PDF_NAVY);
   doc.text("Auditor Declaration", lx, ly);
   ly += 5;
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(...PDF_DGRAY);
   doc.text("I confirm that I have:", lx, ly);
@@ -638,12 +627,12 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   let rx = ML + leftW + 7,
     ry = y + 6;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...PDF_NAVY);
   doc.text("Retention Notice", rx, ry);
   ry += 5;
-  doc.setFont("times", "italic");
+  doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
   for (const l of retLine1) {
@@ -651,7 +640,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     ry += 4.2;
   }
   ry += 3;
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   for (const l of retLine2) {
     doc.text(l, rx, ry);
     ry += 4.2;
@@ -662,7 +651,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   for (let pg = 1; pg <= pageCount; pg++) {
     doc.setPage(pg);
     const fy2 = PH - 8;
-    doc.setFont("times", "normal");
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(...PDF_MGRAY);
     doc.text(`Page ${pg} of ${pageCount}`, PW - MR, fy2, { align: "right" });
@@ -693,7 +682,6 @@ function renderFindingPdf(
 ): number {
   const st = statusColorPdf(f.status);
   const rc = riskColorPdf(f.risk_level || "MEDIUM");
-  const shade = idx % 2 === 0 ? PDF_WHITE : PDF_LGRAY;
 
   // ── Header row ─────────────────────────────────────────────────────────────
   need(14);
@@ -702,55 +690,55 @@ function renderFindingPdf(
 
   let ly: number = (doc as any).__lastY ?? y;
 
-  doc.setFillColor(...shade);
-  doc.rect(ML, ly, CW, 13, "F");
-  doc.setDrawColor(...PDF_BORDER);
-  doc.setLineWidth(0.3);
-  doc.rect(ML, ly, CW, 13);
-
-  // Area name + WP ref
-  doc.setFont("times", "bold");
-  doc.setFontSize(9.5);
-  doc.setTextColor(...PDF_NAVY);
-  doc.text(san(f.area), ML + 2, ly + 5.5);
-  doc.setFont("times", "normal");
-  doc.setFontSize(7.5);
+  // No background fill, no bounding box. Plain text header with thin underline.
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...PDF_DGRAY);
+  doc.text(san(f.area), ML, ly + 5);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
-  doc.text(wpRef, ML + 2, ly + 10);
+  doc.text(wpRef, ML, ly + 10);
 
   // SIS reference
   const refX = ML + CW * 0.42;
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
   doc.text("SIS / Std Reference", refX, ly + 4.5);
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
-  doc.setTextColor(...PDF_NAVY);
+  doc.setTextColor(...PDF_DGRAY);
   doc.text(san(f.reference || "N/A"), refX, ly + 9.5);
 
   // Risk level
   const riskX = ML + CW * 0.62;
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
   doc.text("Inherent Risk (ASA 315)", riskX, ly + 4.5);
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(...rc.text);
   doc.text((f.risk_level || "MEDIUM").toUpperCase(), riskX, ly + 9.5);
 
   // Status
   const resX = ML + CW * 0.82;
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
   doc.text("Result", resX, ly + 4.5);
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(...st.text);
   doc.text(st.label, resX, ly + 9.5);
 
-  ly += 14;
+  ly += 12;
+  // Single thin underline beneath the header
+  doc.setDrawColor(...PDF_BORDER);
+  doc.setLineWidth(0.2);
+  doc.line(ML, ly, ML + CW, ly);
+  ly += 2;
   (doc as any).__lastY = ly;
 
   // ── Section 1: Assertions ─────────────────────────────────────────────────
@@ -763,15 +751,15 @@ function renderFindingPdf(
 
   // ── Section 2: Procedures ─────────────────────────────────────────────────
   if (f.procedures?.length) {
-    labelBar("2. PROCEDURES PERFORMED (ASA 330)", [68, 90, 130]);
+    labelBar("2. PROCEDURES PERFORMED (ASA 330)", PDF_NAVY);
     ly = (doc as any).__lastY ?? ly;
-    bulletList(f.procedures, PDF_NAVY, PDF_DGRAY);
+    bulletList(f.procedures, PDF_MGRAY, PDF_DGRAY);
     ly = (doc as any).__lastY ?? ly;
   } else {
-    labelBar("2. PROCEDURES PERFORMED (ASA 330)", [68, 90, 130]);
+    labelBar("2. PROCEDURES PERFORMED (ASA 330)", PDF_NAVY);
     ly = (doc as any).__lastY ?? ly;
     need(4.5);
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
     doc.setTextColor(...PDF_MGRAY);
     doc.text("To be completed by auditor.", ML + 3, ly);
@@ -781,15 +769,15 @@ function renderFindingPdf(
 
   // ── Section 3: Evidence obtained ─────────────────────────────────────────
   if (f.evidence?.length) {
-    labelBar("3. EVIDENCE OBTAINED (ASA 500)", [50, 110, 80]);
+    labelBar("3. EVIDENCE OBTAINED (ASA 500)", PDF_NAVY);
     ly = (doc as any).__lastY ?? ly;
-    bulletList(f.evidence, PDF_GREEN, PDF_DGRAY);
+    bulletList(f.evidence, PDF_MGRAY, PDF_DGRAY);
     ly = (doc as any).__lastY ?? ly;
   } else {
-    labelBar("3. EVIDENCE OBTAINED (ASA 500)", [50, 110, 80]);
+    labelBar("3. EVIDENCE OBTAINED (ASA 500)", PDF_NAVY);
     ly = (doc as any).__lastY ?? ly;
     need(4.5);
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
     doc.setTextColor(...PDF_MGRAY);
     doc.text("To be completed by auditor.", ML + 3, ly);
@@ -798,14 +786,14 @@ function renderFindingPdf(
   }
 
   // ── Section 4: Exceptions ────────────────────────────────────────────────
-  labelBar("4. EXCEPTIONS / DEVIATIONS (ASA 230 para 16)", [150, 80, 30]);
+  labelBar("4. EXCEPTIONS / DEVIATIONS (ASA 230 para 16)", PDF_NAVY);
   ly = (doc as any).__lastY ?? ly;
   if (f.exceptions?.length) {
-    bulletList(f.exceptions, PDF_RED, PDF_RED);
+    bulletList(f.exceptions, PDF_MGRAY, PDF_DGRAY);
     ly = (doc as any).__lastY ?? ly;
   } else {
     need(4.5);
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
     doc.setTextColor(...PDF_MGRAY);
     doc.text("No exceptions noted.", ML + 3, ly);
@@ -823,22 +811,22 @@ function renderFindingPdf(
   need(concH + 6);
   ly = (doc as any).__lastY ?? ly;
 
-  doc.setFillColor(...st.bg);
+  // Light grey background, navy accent strip on the left edge.
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML, ly, CW, concH, "F");
-  doc.setDrawColor(...PDF_BORDER);
-  doc.setLineWidth(0.2);
-  doc.rect(ML, ly, CW, concH);
+  doc.setFillColor(...PDF_NAVY);
+  doc.rect(ML, ly, 1, concH, "F");
   const concY0 = ly;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
   doc.setTextColor(...PDF_MGRAY);
-  doc.text("5. AUDITOR CONCLUSION (ASA 230)", ML + 2, concY0 + 4);
-  doc.setFont("times", !f.reviewAction ? "italic" : "normal");
+  doc.text("5. AUDITOR CONCLUSION (ASA 230)", ML + 4, concY0 + 4);
+  doc.setFont("helvetica", !f.reviewAction ? "italic" : "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(...PDF_DGRAY);
   let cy = concY0 + 9;
   for (const cl of concLines) {
-    doc.text(cl, ML + 2, cy);
+    doc.text(cl, ML + 4, cy);
     cy += 4.2;
   }
 
@@ -849,7 +837,7 @@ function renderFindingPdf(
   doc.setDrawColor(...PDF_BORDER);
   doc.setLineWidth(0.15);
   doc.line(ML, soY, ML + CW, soY);
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(...PDF_MGRAY);
   if (f.reviewedBy || f.reviewedAt) {
@@ -874,11 +862,14 @@ function renderFindingPdf(
 type ColDef = { label: string; w: number };
 
 function drawTableHeader(doc: jsPDF, ML: number, CW: number, y: number, cols: ColDef[]) {
-  doc.setFillColor(...PDF_NAVY);
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML, y, CW, 6, "F");
-  doc.setFont("times", "bold");
+  doc.setDrawColor(...PDF_BORDER);
+  doc.setLineWidth(0.15);
+  doc.rect(ML, y, CW, 6);
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
-  doc.setTextColor(...PDF_WHITE);
+  doc.setTextColor(...PDF_DGRAY);
   let cx = ML + 1;
   for (const col of cols) {
     doc.text(col.label, cx, y + 4.2);
@@ -899,7 +890,7 @@ function drawTableRow(
 ): number {
   const colWidths = cols.map((c) => c.w * CW);
   const wrapped = cells.map((cell, i) => {
-    doc.setFont("times", cell.bold ? "bold" : "normal");
+    doc.setFont("helvetica", cell.bold ? "bold" : "normal");
     doc.setFontSize(8);
     return doc.splitTextToSize(cell.text, colWidths[i] - 3);
   });
@@ -921,9 +912,9 @@ function drawTableRow(
 
   let cx = ML + 1;
   for (let i = 0; i < cells.length; i++) {
-    doc.setFont("times", cells[i].bold ? "bold" : "normal");
+    doc.setFont("helvetica", cells[i].bold ? "bold" : "normal");
     doc.setFontSize(8);
-    doc.setTextColor(...(cells[i].color ?? PDF_DGRAY));
+    doc.setTextColor(...PDF_DGRAY);
     let ty = y + 4;
     for (const ln of wrapped[i]) {
       doc.text(ln, cx, ty);
@@ -1084,40 +1075,22 @@ const tc = (children: any, width: number, opts: any = {}) =>
 const tr = (cells: TableCell[]) => new TableRow({ children: cells });
 
 const sectionDiv = (label: string, title: string) =>
-  new Table({
-    width: { size: 9360, type: WidthType.DXA },
-    columnWidths: [480, 8880],
-    rows: [
-      tr([
-        tc(p([t(label, { bold: true, size: 20, color: WHITE })], { before: 0, after: 0 }, AlignmentType.CENTER), 480, {
-          bord: NB(),
-          bg: NAVY,
-          m: { top: 100, bottom: 100, left: 60, right: 60 },
-          va: VerticalAlign.CENTER,
-        }),
-        tc([p([t(title, { bold: true, size: 21, color: WHITE })], { before: 0, after: 0 })], 8880, {
-          bord: NB(),
-          bg: "2E4470",
-          m: { top: 100, bottom: 100, left: 180, right: 100 },
-        }),
-      ]),
+  new Paragraph({
+    children: [
+      new TextRun({ text: label + "  ", bold: true, size: 20, color: NAVY, font: "Arial" }),
+      new TextRun({ text: title, bold: true, size: 20, color: DGRAY, font: "Arial" }),
     ],
+    spacing: { before: 280, after: 80 },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: NAVY, space: 1 } },
   });
 
-// Sub-section label row — used within finding blocks
-const subLabelRow = (label: string, bgHex: string, colWidth = 9360) =>
-  new Table({
-    width: { size: colWidth, type: WidthType.DXA },
-    columnWidths: [colWidth],
-    rows: [
-      tr([
-        tc([p([t(label, { bold: true, size: 16, color: WHITE })], { before: 0, after: 0 })], colWidth, {
-          bord: NB(),
-          bg: bgHex,
-          m: { top: 60, bottom: 60, left: 120, right: 60 },
-        }),
-      ]),
-    ],
+// Sub-section label row — plain bold paragraph with thin bottom rule.
+// Signature kept stable (bgHex/colWidth ignored) so call sites don't change.
+const subLabelRow = (label: string, _bgHex: string, _colWidth = 9360) =>
+  new Paragraph({
+    children: [new TextRun({ text: label, bold: true, size: 16, color: DGRAY, font: "Arial" })],
+    spacing: { before: 120, after: 60 },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER, space: 1 } },
   });
 
 // Bullet list helper for DOCX
@@ -1133,7 +1106,7 @@ const bulletItems = (items: string[], color = DGRAY, size = 18): Paragraph[] => 
   );
 };
 
-const warningPara = (msg: string) => p([t(msg, { size: 17, italic: true, color: RED })], { before: 60, after: 60 });
+const warningPara = (msg: string) => p([t(msg, { size: 17, italic: true, color: MGRAY })], { before: 60, after: 60 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ASA 230 Finding block — DOCX
@@ -1159,19 +1132,19 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
         tr([
           tc(
             [
-              p([t(f.area, { bold: true, size: 20, color: NAVY })], { before: 0, after: 20 }),
+              p([t(f.area, { bold: true, size: 20, color: DGRAY })], { before: 0, after: 20 }),
               p([t(wpRef, { size: 15, color: MGRAY, italic: true })], { before: 0, after: 0 }),
             ],
             3600,
-            { bg: shade },
+            { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
           tc(
             [
               p([t("SIS / Std Reference", { size: 14, color: MGRAY })], { before: 0, after: 20 }),
-              p([t(f.reference || "N/A", { bold: true, size: 18, color: NAVY })], { before: 0, after: 0 }),
+              p([t(f.reference || "N/A", { bold: true, size: 18, color: DGRAY })], { before: 0, after: 0 }),
             ],
             1680,
-            { bg: shade },
+            { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
           tc(
             [
@@ -1182,7 +1155,7 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
               }),
             ],
             1880,
-            { bg: shade },
+            { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
           tc(
             [
@@ -1190,7 +1163,7 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
               p([t(st.label, { bold: true, size: 18, color: st.text })], { before: 0, after: 0 }),
             ],
             2200,
-            { bg: shade },
+            { bg: WHITE, bord: { top: NB().top, left: NB().left, right: NB().right, bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER } } },
           ),
         ]),
       ],
@@ -1215,8 +1188,8 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
     // ── 4. Exceptions ────────────────────────────────────────────────────────
     subLabelRow("4. EXCEPTIONS / DEVIATIONS (ASA 230 para 16)", "96501E"),
     ...(f.exceptions?.length
-      ? bulletItems(f.exceptions, RED, 18)
-      : [p([t("No exceptions noted.", { size: 18, italic: true, color: GREEN })], { before: 60, after: 60 })]),
+      ? bulletItems(f.exceptions, DGRAY, 18)
+      : [p([t("No exceptions noted.", { size: 18, italic: true, color: MGRAY })], { before: 60, after: 60 })]),
 
     // ── 5. Conclusion + sign-off ─────────────────────────────────────────────
     new Table({
@@ -1233,7 +1206,15 @@ function findingBlock(f: any, idx: number): (Table | Paragraph)[] {
               p([t(conclusionText, { size: 18, italic: !f.reviewAction })], { before: 0, after: 0 }),
             ],
             7000,
-            { bg: st.bg, bord: B(st.text) },
+            {
+              bg: LGRAY,
+              bord: {
+                top: { style: BorderStyle.NONE, size: 0, color: WHITE },
+                bottom: { style: BorderStyle.NONE, size: 0, color: WHITE },
+                right: { style: BorderStyle.NONE, size: 0, color: WHITE },
+                left: { style: BorderStyle.SINGLE, size: 12, color: NAVY },
+              },
+            },
           ),
           tc(
             [
