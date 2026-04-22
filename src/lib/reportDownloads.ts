@@ -1436,6 +1436,48 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
 
   // ── PART A ─────────────────────────────────────────────────────────────────
   children.push(new Paragraph({ children: [new PageBreak()] }));
+  // ── SECTION M — Materiality (V2 only; skipped if absent) ──────────────────
+  if (materiality) {
+    children.push(sectionDiv("M", "Materiality Determination (ASA 320 / GS 009)"));
+    children.push(gap(120));
+    const matRows: Array<[string, string]> = [
+      ["Benchmark", "Total assets (GS 009 — primary measure of SMSF fund size)"],
+      [
+        "Benchmark value",
+        materiality.benchmark_value != null
+          ? `$${Number(materiality.benchmark_value).toLocaleString()}`
+          : "Per financial statements",
+      ],
+      ["Overall materiality (2%)", `$${Number(materiality.overall ?? 0).toLocaleString()}`],
+      ["Performance materiality (75%)", `$${Number(materiality.performance ?? 0).toLocaleString()}`],
+      ["Clearly trivial threshold (5%)", `$${Number(materiality.trivial ?? 0).toLocaleString()}`],
+    ];
+    children.push(
+      new Table({
+        width: { size: 9360, type: WidthType.DXA },
+        columnWidths: [3600, 5760],
+        rows: matRows.map(([lbl, val]) =>
+          tr([
+            tc(p([t(lbl, { bold: true, size: 18 })], { before: 0, after: 0 }), 3600, { bg: LGRAY }),
+            tc(p([t(val, { size: 18 })], { before: 0, after: 0 }), 5760, { bg: LGRAY }),
+          ]),
+        ),
+      }),
+    );
+    const trivialStr = `$${Number(materiality.trivial ?? 0).toLocaleString()}`;
+    children.push(
+      p(
+        [
+          t(
+            `Differences below ${trivialStr} will not be reported unless indicative of fraud or systematic error. (ASA 450)`,
+            { size: 17, italic: true, color: MGRAY },
+          ),
+        ],
+        { before: 100, after: 120 },
+      ),
+    );
+    children.push(new Paragraph({ children: [new PageBreak()] }));
+  }
   children.push(sectionDiv("A", "Part A — Financial Audit Working Papers  (ASA 330 / GS 009 Part A)"));
   children.push(gap(120));
   children.push(
