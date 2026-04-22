@@ -185,6 +185,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
       doc.addPage();
       y = ML;
     }
+    (doc as any).__lastY = y;
   };
 
   const sectionDiv = (label: string, title: string) => {
@@ -200,10 +201,12 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     doc.setFontSize(11);
     doc.text(san(title), ML + 18, y + 5.5);
     y += 11;
+    (doc as any).__lastY = y;
   };
 
   const gap = (mm = 4) => {
     y += mm;
+    (doc as any).__lastY = y;
   };
 
   // ── bullet list helper ────────────────────────────────────────────────────
@@ -224,6 +227,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
         y += 4.2;
       }
     }
+    (doc as any).__lastY = y;
   };
 
   // ── section label bar ─────────────────────────────────────────────────────
@@ -240,6 +244,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     doc.setTextColor(...textColor);
     doc.text(san(label), ML + 2, y + 3.8);
     y += 5.5;
+    (doc as any).__lastY = y;
   };
 
   // ─────────────────────────────────────────────────────────────────────────
