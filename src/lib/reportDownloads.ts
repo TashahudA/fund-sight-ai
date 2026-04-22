@@ -220,22 +220,37 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   // ─────────────────────────────────────────────────────────────────────────
   // COVER
   // ─────────────────────────────────────────────────────────────────────────
+  // Top navy rule (1mm thick)
   doc.setFillColor(...PDF_NAVY);
-  doc.rect(0, 0, PW, 60, "F");
-  doc.setFont("times", "bold");
-  doc.setFontSize(20);
-  doc.setTextColor(...PDF_WHITE);
-  doc.text("AUDIT WORKING PAPERS", PW / 2, 22, { align: "center" });
-  doc.setFont("times", "normal");
+  doc.rect(0, 12, PW, 1, "F");
+
+  // Title block, left-aligned
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(...PDF_NAVY);
+  doc.text("AUDIT WORKING PAPERS", ML, 32);
+
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(13);
-  doc.text(san(fund), PW / 2, 36, { align: "center" });
+  doc.setTextColor(...PDF_DGRAY);
+  doc.text(san(fund), ML, 40);
+
   doc.setFontSize(10);
-  doc.text(`Year ended 30 June ${san(year)}`, PW / 2, 46, { align: "center" });
+  doc.setTextColor(...PDF_MGRAY);
+  doc.text(`Year ended 30 June ${san(year)}`, ML, 45);
+
+  let coverBottom = 45;
   if (meta.fundABN) {
-    doc.setFontSize(8);
-    doc.text(`ABN ${san(meta.fundABN)}`, PW / 2, 54, { align: "center" });
+    doc.setFontSize(9);
+    doc.text(`ABN ${san(meta.fundABN)}`, ML, 49);
+    coverBottom = 49;
   }
-  y = 68;
+
+  // Bottom navy rule
+  doc.setFillColor(...PDF_NAVY);
+  doc.rect(0, coverBottom + 3, PW, 1, "F");
+
+  y = coverBottom + 10;
 
   // Cover 2-col: Fund Details | Opinion Summary
   const halfW = CW / 2 - 2;
@@ -249,48 +264,48 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   ];
   const boxH = 8 + fundRows.length * 5.5 + 4;
 
-  doc.setFillColor(...PDF_BLUE_BG);
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML, boxTop, halfW, boxH, "F");
   doc.setDrawColor(...PDF_BORDER);
   doc.setLineWidth(0.2);
   doc.rect(ML, boxTop, halfW, boxH);
 
-  doc.setFillColor(...opC.bg);
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML + halfW + 4, boxTop, halfW, boxH, "F");
-  doc.setDrawColor(...opC.text);
-  doc.setLineWidth(0.4);
+  doc.setDrawColor(...PDF_BORDER);
+  doc.setLineWidth(0.2);
   doc.rect(ML + halfW + 4, boxTop, halfW, boxH);
 
   let bx = ML + 2;
   let by = boxTop + 6;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...PDF_NAVY);
   doc.text("Fund Details", bx, by);
   by += 5;
   for (const fr of fundRows) {
-    doc.setFont("times", "bold");
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
     doc.setTextColor(...PDF_DGRAY);
     doc.text(fr.label, bx, by);
-    doc.setFont("times", "normal");
+    doc.setFont("helvetica", "normal");
     doc.text(fr.value, bx + 30, by);
     by += 5.2;
   }
 
   bx = ML + halfW + 6;
   by = boxTop + 6;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...PDF_NAVY);
   doc.text("Audit Opinion Summary", bx, by);
   by += 5;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
   doc.setTextColor(...opC.text);
   doc.text(`Overall: ${(opinion.overall ?? "PENDING").toUpperCase()}`, bx, by);
   by += 5;
-  doc.setFont("times", "italic");
+  doc.setFont("helvetica", "italic");
   doc.setFontSize(7.5);
   doc.setTextColor(...PDF_MGRAY);
   const reasonSnippet = doc.splitTextToSize(san(opinion.reasoning ?? ""), halfW - 6);
