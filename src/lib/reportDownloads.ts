@@ -700,7 +700,7 @@ function renderFindingPdf(
   // Working paper reference number
   const wpRef = `WP-${idx + 1 < 10 ? "0" : ""}${idx + 1}`;
 
-  let ly: number = y;
+  let ly: number = (doc as any).__lastY ?? y;
 
   doc.setFillColor(...shade);
   doc.rect(ML, ly, CW, 13, "F");
