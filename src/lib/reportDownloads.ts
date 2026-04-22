@@ -143,7 +143,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     doc.setDrawColor(...PDF_BORDER);
     doc.setLineWidth(0.2);
     doc.line(ML, fy - 4, PW - MR, fy - 4);
-    doc.setFont("times", "normal");
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(...PDF_MGRAY);
     doc.text(san(fund), ML, fy);
@@ -160,17 +160,21 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
 
   const sectionDiv = (label: string, title: string) => {
     need(10);
-    doc.setFillColor(...PDF_NAVY);
-    doc.rect(ML, y, 14, 8, "F");
-    doc.setFont("times", "bold");
+    // Thin navy horizontal rule
+    doc.setDrawColor(...PDF_NAVY);
+    doc.setLineWidth(0.3);
+    doc.line(ML, y, ML + CW, y);
+    y += 4;
+    // Letter (bold 9pt navy) + title (bold 10pt dark grey) on one line
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...PDF_NAVY);
+    doc.text(san(label), ML, y);
+    const labelW = doc.getTextWidth(san(label));
     doc.setFontSize(10);
-    doc.setTextColor(...PDF_WHITE);
-    doc.text(san(label), ML + 7, y + 5.5, { align: "center" });
-    doc.setFillColor(46, 68, 112);
-    doc.rect(ML + 14, y, CW - 14, 8, "F");
-    doc.setFontSize(11);
-    doc.text(san(title), ML + 18, y + 5.5);
-    y += 11;
+    doc.setTextColor(...PDF_DGRAY);
+    doc.text(san(title), ML + labelW + 3, y);
+    y += 3;
     (doc as any).__lastY = y;
   };
 
@@ -187,7 +191,7 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
       for (let li = 0; li < lines.length; li++) {
         need(4.5);
         if (li === 0) {
-          doc.setFont("times", "normal");
+          doc.setFont("helvetica", "normal");
           doc.setFontSize(8);
           doc.setTextColor(...labelColor);
           doc.text("-", ML + 2, y);
@@ -201,19 +205,23 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   };
 
   // ── section label bar ─────────────────────────────────────────────────────
+  // Bold dark-grey label followed by a thin light-grey rule. No fill.
+  // Signature kept stable so call sites don't change; bg/text args ignored.
   const labelBar = (
     label: string,
-    bgColor: [number, number, number],
-    textColor: [number, number, number] = PDF_WHITE,
+    _bgColor: [number, number, number],
+    _textColor: [number, number, number] = PDF_WHITE,
   ) => {
     need(6);
-    doc.setFillColor(...bgColor);
-    doc.rect(ML, y, CW, 5.5, "F");
-    doc.setFont("times", "bold");
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.setTextColor(...textColor);
-    doc.text(san(label), ML + 2, y + 3.8);
-    y += 5.5;
+    doc.setTextColor(...PDF_DGRAY);
+    doc.text(san(label).toUpperCase(), ML, y + 3.5);
+    y += 4.5;
+    doc.setDrawColor(...PDF_BORDER);
+    doc.setLineWidth(0.15);
+    doc.line(ML, y, ML + CW, y);
+    y += 1.5;
     (doc as any).__lastY = y;
   };
 
