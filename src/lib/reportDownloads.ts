@@ -680,6 +680,22 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
     ly += 4.8;
   }
   ly += 3;
+  // Independence statement (APES 110)
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(8);
+  doc.setTextColor(...PDF_MGRAY);
+  const indepLines = doc.splitTextToSize(
+    "Independence: The auditor confirms that, to the best of their knowledge and belief, the engagement team has complied with the independence requirements of APES 110 Code of Ethics for Professional Accountants throughout the conduct of this engagement. No relationships, interests, or circumstances have been identified that would compromise independence in accordance with APES 110.",
+    leftW - 6,
+  );
+  for (const l of indepLines) {
+    doc.text(l, lx, ly);
+    ly += 4;
+  }
+  ly += 3;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(...PDF_DGRAY);
   for (const row of signRows) {
     doc.text(row, lx, ly);
     doc.setDrawColor(...PDF_BORDER);
