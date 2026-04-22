@@ -1044,7 +1044,7 @@ const p = (
 const t = (text: string, opts: { bold?: boolean; size?: number; color?: string; italic?: boolean } = {}) =>
   new TextRun({
     text,
-    font: "Times New Roman",
+    font: "Arial",
     size: opts.size ?? 20,
     bold: opts.bold ?? false,
     color: opts.color ?? DGRAY,
@@ -1307,7 +1307,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               ),
             ],
             4680,
-            { bg: BLUEBG },
+            { bg: LGRAY },
           ),
           tc(
             [
@@ -1325,7 +1325,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               }),
             ],
             4680,
-            { bg: opC.bg, bord: B(opC.text) },
+            { bg: opC.bg, bord: B(BORDER) },
           ),
         ]),
       ],
@@ -1418,7 +1418,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
           t(trimmed, {
             size: 18,
             bold: isBold,
-            color: /BREACH|FAIL/.test(trimmed) ? RED : DGRAY,
+            color: DGRAY,
           }),
         ],
         { before: 0, after: 40 },
@@ -1432,7 +1432,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   children.push(gap(100));
   if (!contraventions.length) {
     children.push(
-      p([t("No contraventions identified.", { size: 18, italic: true, color: GREEN })], { before: 0, after: 0 }),
+      p([t("No contraventions identified.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
     );
   } else {
     children.push(
@@ -1459,12 +1459,11 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
           ),
           ...contraventions.map((c: any, i: number) => {
             const bg = i % 2 === 0 ? WHITE : LGRAY;
-            const sev = c.severity === "material" ? RED : ORANGE;
             return tr([
               tc(p([t(`${i + 1}`, { bold: true, size: 18 })]), 400, { bg }),
               tc(p([t(c.section, { size: 17, bold: true, color: NAVY })]), 1400, { bg }),
               tc(p([t(c.area, { size: 17 })]), 1600, { bg }),
-              tc(p([t(c.severity.toUpperCase(), { bold: true, size: 17, color: sev })]), 1200, { bg }),
+              tc(p([t(c.severity.toUpperCase(), { bold: true, size: 17, color: DGRAY })]), 1200, { bg }),
               tc(p([t(c.description, { size: 17 })]), 4760, { bg }),
             ]);
           }),
@@ -1478,7 +1477,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   children.push(sectionDiv("E", "Requests for Information (RFIs)"));
   children.push(gap(100));
   if (!rfis.length) {
-    children.push(p([t("No RFIs raised.", { size: 18, italic: true, color: GREEN })], { before: 0, after: 0 }));
+    children.push(p([t("No RFIs raised.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }));
   } else {
     children.push(
       new Table({
@@ -1504,14 +1503,12 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
           ),
           ...rfis.map((r: any, i: number) => {
             const bg = i % 2 === 0 ? WHITE : LGRAY;
-            const pc = r.priority === "HIGH" ? RED : r.priority === "MEDIUM" ? ORANGE : MGRAY;
-            const stC = r.status === "RESOLVED" ? GREEN : ORANGE;
             return tr([
               tc(p([t(`${i + 1}`, { bold: true, size: 18 })]), 400, { bg }),
-              tc(p([t(r.priority, { bold: true, size: 17, color: pc })]), 900, { bg }),
+              tc(p([t(r.priority, { bold: true, size: 17, color: DGRAY })]), 900, { bg }),
               tc(p([t(r.description, { size: 17 })]), 4860, { bg }),
               tc(p([t(r.title, { bold: true, size: 17, color: NAVY })]), 1800, { bg }),
-              tc(p([t(r.status, { bold: true, size: 17, color: stC })]), 1400, { bg }),
+              tc(p([t(r.status, { bold: true, size: 17, color: DGRAY })]), 1400, { bg }),
             ]);
           }),
         ],
@@ -1585,7 +1582,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               p([t("Signature:  _______________________________", { size: 18 })], { before: 0, after: 0 }),
             ],
             4680,
-            { bg: BLUEBG },
+            { bg: LGRAY },
           ),
           tc(
             [
@@ -1623,7 +1620,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   // ── Build ──────────────────────────────────────────────────────────────────
   const docx = new Document({
     styles: {
-      default: { document: { run: { font: "Times New Roman", size: 20, color: DGRAY } } },
+      default: { document: { run: { font: "Arial", size: 20, color: DGRAY } } },
     },
     numbering: {
       config: [
@@ -1652,42 +1649,16 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
         headers: {
           default: new Header({
             children: [
-              new Table({
-                width: { size: 9360, type: WidthType.DXA },
-                columnWidths: [6500, 2860],
-                rows: [
-                  tr([
-                    tc(
-                      [
-                        p([t("Audit Working Papers", { bold: true, size: 18, color: NAVY })], { before: 0, after: 20 }),
-                        p(
-                          [
-                            t(
-                              `${meta.fundName}  |  ABN ${meta.fundABN}  |  Year ended 30 June ${meta.financialYear}  |  ${meta.standard || "ASA 230 / GS 009"}`,
-                              { size: 15, color: MGRAY },
-                            ),
-                          ],
-                          { before: 0, after: 0 },
-                        ),
-                      ],
-                      6500,
-                      { bord: NB() },
-                    ),
-                    tc(
-                      [
-                        p(
-                          [t("CONFIDENTIAL", { bold: true, size: 14, color: RED })],
-                          { before: 0, after: 0 },
-                          AlignmentType.RIGHT,
-                        ),
-                      ],
-                      2860,
-                      { bord: NB(), va: VerticalAlign.CENTER },
-                    ),
-                  ]),
+              new Paragraph({
+                children: [
+                  t(
+                    `${meta.fundName}  |  ABN ${meta.fundABN}  |  Year ended 30 June ${meta.financialYear}`,
+                    { size: 15, color: MGRAY },
+                  ),
                 ],
+                spacing: { before: 0, after: 60 },
+                border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: NAVY, space: 1 } },
               }),
-              hRule(NAVY, 8),
             ],
           }),
         },
@@ -1702,9 +1673,9 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                   new TextRun({ text: "\t", size: 14 }),
                   t("Prepared by registered SMSF auditor", { size: 14, color: MGRAY }),
                   new TextRun({ text: "   Page ", size: 14, color: MGRAY }),
-                  new TextRun({ children: [PageNumber.CURRENT], size: 14, font: "Times New Roman", color: MGRAY }),
+                  new TextRun({ children: [PageNumber.CURRENT], size: 14, font: "Arial", color: MGRAY }),
                   new TextRun({ text: " of ", size: 14, color: MGRAY }),
-                  new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 14, font: "Times New Roman", color: MGRAY }),
+                  new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 14, font: "Arial", color: MGRAY }),
                 ],
               }),
             ],
@@ -1758,7 +1729,7 @@ async function buildGenericDocx(content: string, fileBaseName: string) {
       children.push(
         new Paragraph({
           spacing: { before: 280, after: 120 },
-          children: [new TextRun({ text: trimmed, bold: true, font: "Times New Roman", size: 22, color: NAVY })],
+          children: [new TextRun({ text: trimmed, bold: true, font: "Arial", size: 22, color: NAVY })],
         }),
       );
       i++;
@@ -1803,7 +1774,7 @@ async function buildGenericDocx(content: string, fileBaseName: string) {
                                 text: cells[ci] || "",
                                 bold: ri === 0,
                                 color: ri === 0 ? WHITE : DGRAY,
-                                font: "Times New Roman",
+                                font: "Arial",
                                 size: 19,
                               }),
                             ],
@@ -1822,14 +1793,14 @@ async function buildGenericDocx(content: string, fileBaseName: string) {
     children.push(
       new Paragraph({
         spacing: { after: 100 },
-        children: [new TextRun({ text: raw, font: "Times New Roman", size: 20, color: DGRAY })],
+        children: [new TextRun({ text: raw, font: "Arial", size: 20, color: DGRAY })],
       }),
     );
     i++;
   }
 
   const docx = new Document({
-    styles: { default: { document: { run: { font: "Times New Roman", size: 20, color: DGRAY } } } },
+    styles: { default: { document: { run: { font: "Arial", size: 20, color: DGRAY } } } },
     sections: [
       {
         properties: {
