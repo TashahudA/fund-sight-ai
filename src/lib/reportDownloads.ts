@@ -1459,12 +1459,11 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
           ),
           ...contraventions.map((c: any, i: number) => {
             const bg = i % 2 === 0 ? WHITE : LGRAY;
-            const sev = c.severity === "material" ? RED : ORANGE;
             return tr([
               tc(p([t(`${i + 1}`, { bold: true, size: 18 })]), 400, { bg }),
               tc(p([t(c.section, { size: 17, bold: true, color: NAVY })]), 1400, { bg }),
               tc(p([t(c.area, { size: 17 })]), 1600, { bg }),
-              tc(p([t(c.severity.toUpperCase(), { bold: true, size: 17, color: sev })]), 1200, { bg }),
+              tc(p([t(c.severity.toUpperCase(), { bold: true, size: 17, color: DGRAY })]), 1200, { bg }),
               tc(p([t(c.description, { size: 17 })]), 4760, { bg }),
             ]);
           }),
@@ -1478,7 +1477,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   children.push(sectionDiv("E", "Requests for Information (RFIs)"));
   children.push(gap(100));
   if (!rfis.length) {
-    children.push(p([t("No RFIs raised.", { size: 18, italic: true, color: GREEN })], { before: 0, after: 0 }));
+    children.push(p([t("No RFIs raised.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }));
   } else {
     children.push(
       new Table({
@@ -1504,14 +1503,12 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
           ),
           ...rfis.map((r: any, i: number) => {
             const bg = i % 2 === 0 ? WHITE : LGRAY;
-            const pc = r.priority === "HIGH" ? RED : r.priority === "MEDIUM" ? ORANGE : MGRAY;
-            const stC = r.status === "RESOLVED" ? GREEN : ORANGE;
             return tr([
               tc(p([t(`${i + 1}`, { bold: true, size: 18 })]), 400, { bg }),
-              tc(p([t(r.priority, { bold: true, size: 17, color: pc })]), 900, { bg }),
+              tc(p([t(r.priority, { bold: true, size: 17, color: DGRAY })]), 900, { bg }),
               tc(p([t(r.description, { size: 17 })]), 4860, { bg }),
               tc(p([t(r.title, { bold: true, size: 17, color: NAVY })]), 1800, { bg }),
-              tc(p([t(r.status, { bold: true, size: 17, color: stC })]), 1400, { bg }),
+              tc(p([t(r.status, { bold: true, size: 17, color: DGRAY })]), 1400, { bg }),
             ]);
           }),
         ],
