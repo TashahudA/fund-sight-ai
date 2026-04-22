@@ -122,6 +122,8 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   const deterministicBlock = wp.deterministicBlock ?? "";
   const contraventions = wp.contraventions ?? [];
   const rfis = wp.rfis ?? [];
+  // V2 payload (__type: "WORKPAPER_JSON_V2") adds wp.materiality. Absent on V1 — handled gracefully.
+  const materiality = wp.materiality ?? null;
 
   const fund = meta.fundName || fundName;
   const year = meta.financialYear || financialYear;
