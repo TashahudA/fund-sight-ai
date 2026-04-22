@@ -327,6 +327,64 @@ function buildWorkpaperPdf(content: string, fundName: string, financialYear: str
   y = boxTop + boxH + 6;
 
   // ─────────────────────────────────────────────────────────────────────────
+  // SECTION M — Materiality (V2 only; skipped if absent)
+  // ─────────────────────────────────────────────────────────────────────────
+  if (materiality) {
+    addPageFooter();
+    doc.addPage();
+    y = ML;
+
+    sectionDiv("M", "Materiality Determination (ASA 320 / GS 009)");
+    gap(4);
+
+    const matRows: Array<[string, string]> = [
+      ["Benchmark", "Total assets (GS 009 — primary measure of SMSF fund size)"],
+      [
+        "Benchmark value",
+        materiality.benchmark_value != null
+          ? `$${Number(materiality.benchmark_value).toLocaleString()}`
+          : "Per financial statements",
+      ],
+      ["Overall materiality (2%)", `$${Number(materiality.overall ?? 0).toLocaleString()}`],
+      ["Performance materiality (75%)", `$${Number(materiality.performance ?? 0).toLocaleString()}`],
+      ["Clearly trivial threshold (5%)", `$${Number(materiality.trivial ?? 0).toLocaleString()}`],
+    ];
+    const matBoxH = 6 + matRows.length * 6 + 4;
+    need(matBoxH);
+    doc.setFillColor(...PDF_LGRAY);
+    doc.rect(ML, y, CW, matBoxH, "F");
+    doc.setDrawColor(...PDF_BORDER);
+    doc.setLineWidth(0.2);
+    doc.rect(ML, y, CW, matBoxH);
+    let myy = y + 6;
+    for (const [lbl, val] of matRows) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...PDF_DGRAY);
+      doc.text(san(lbl), ML + 3, myy);
+      doc.setFont("helvetica", "normal");
+      doc.text(san(val), ML + 70, myy);
+      myy += 6;
+    }
+    y += matBoxH + 4;
+
+    const trivialStr = `$${Number(materiality.trivial ?? 0).toLocaleString()}`;
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(...PDF_MGRAY);
+    const noteLines = doc.splitTextToSize(
+      `Differences below ${trivialStr} will not be reported unless indicative of fraud or systematic error. (ASA 450)`,
+      CW,
+    );
+    for (const l of noteLines) {
+      need(4);
+      doc.text(l, ML, y);
+      y += 4;
+    }
+    gap(2);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // PART A
   // ─────────────────────────────────────────────────────────────────────────
   addPageFooter();
