@@ -682,7 +682,6 @@ function renderFindingPdf(
 ): number {
   const st = statusColorPdf(f.status);
   const rc = riskColorPdf(f.risk_level || "MEDIUM");
-  const shade = idx % 2 === 0 ? PDF_WHITE : PDF_LGRAY;
 
   // ── Header row ─────────────────────────────────────────────────────────────
   need(14);
@@ -691,55 +690,55 @@ function renderFindingPdf(
 
   let ly: number = (doc as any).__lastY ?? y;
 
-  doc.setFillColor(...shade);
-  doc.rect(ML, ly, CW, 13, "F");
-  doc.setDrawColor(...PDF_BORDER);
-  doc.setLineWidth(0.3);
-  doc.rect(ML, ly, CW, 13);
-
-  // Area name + WP ref
-  doc.setFont("times", "bold");
-  doc.setFontSize(9.5);
-  doc.setTextColor(...PDF_NAVY);
-  doc.text(san(f.area), ML + 2, ly + 5.5);
-  doc.setFont("times", "normal");
-  doc.setFontSize(7.5);
+  // No background fill, no bounding box. Plain text header with thin underline.
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...PDF_DGRAY);
+  doc.text(san(f.area), ML, ly + 5);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
   doc.setTextColor(...PDF_MGRAY);
-  doc.text(wpRef, ML + 2, ly + 10);
+  doc.text(wpRef, ML, ly + 10);
 
   // SIS reference
   const refX = ML + CW * 0.42;
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
   doc.text("SIS / Std Reference", refX, ly + 4.5);
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
-  doc.setTextColor(...PDF_NAVY);
+  doc.setTextColor(...PDF_DGRAY);
   doc.text(san(f.reference || "N/A"), refX, ly + 9.5);
 
   // Risk level
   const riskX = ML + CW * 0.62;
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
   doc.text("Inherent Risk (ASA 315)", riskX, ly + 4.5);
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(...rc.text);
   doc.text((f.risk_level || "MEDIUM").toUpperCase(), riskX, ly + 9.5);
 
   // Status
   const resX = ML + CW * 0.82;
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...PDF_MGRAY);
   doc.text("Result", resX, ly + 4.5);
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(...st.text);
   doc.text(st.label, resX, ly + 9.5);
 
-  ly += 14;
+  ly += 12;
+  // Single thin underline beneath the header
+  doc.setDrawColor(...PDF_BORDER);
+  doc.setLineWidth(0.2);
+  doc.line(ML, ly, ML + CW, ly);
+  ly += 2;
   (doc as any).__lastY = ly;
 
   // ── Section 1: Assertions ─────────────────────────────────────────────────
@@ -752,15 +751,15 @@ function renderFindingPdf(
 
   // ── Section 2: Procedures ─────────────────────────────────────────────────
   if (f.procedures?.length) {
-    labelBar("2. PROCEDURES PERFORMED (ASA 330)", [68, 90, 130]);
+    labelBar("2. PROCEDURES PERFORMED (ASA 330)", PDF_NAVY);
     ly = (doc as any).__lastY ?? ly;
-    bulletList(f.procedures, PDF_NAVY, PDF_DGRAY);
+    bulletList(f.procedures, PDF_MGRAY, PDF_DGRAY);
     ly = (doc as any).__lastY ?? ly;
   } else {
-    labelBar("2. PROCEDURES PERFORMED (ASA 330)", [68, 90, 130]);
+    labelBar("2. PROCEDURES PERFORMED (ASA 330)", PDF_NAVY);
     ly = (doc as any).__lastY ?? ly;
     need(4.5);
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
     doc.setTextColor(...PDF_MGRAY);
     doc.text("To be completed by auditor.", ML + 3, ly);
@@ -770,15 +769,15 @@ function renderFindingPdf(
 
   // ── Section 3: Evidence obtained ─────────────────────────────────────────
   if (f.evidence?.length) {
-    labelBar("3. EVIDENCE OBTAINED (ASA 500)", [50, 110, 80]);
+    labelBar("3. EVIDENCE OBTAINED (ASA 500)", PDF_NAVY);
     ly = (doc as any).__lastY ?? ly;
-    bulletList(f.evidence, PDF_GREEN, PDF_DGRAY);
+    bulletList(f.evidence, PDF_MGRAY, PDF_DGRAY);
     ly = (doc as any).__lastY ?? ly;
   } else {
-    labelBar("3. EVIDENCE OBTAINED (ASA 500)", [50, 110, 80]);
+    labelBar("3. EVIDENCE OBTAINED (ASA 500)", PDF_NAVY);
     ly = (doc as any).__lastY ?? ly;
     need(4.5);
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
     doc.setTextColor(...PDF_MGRAY);
     doc.text("To be completed by auditor.", ML + 3, ly);
@@ -787,14 +786,14 @@ function renderFindingPdf(
   }
 
   // ── Section 4: Exceptions ────────────────────────────────────────────────
-  labelBar("4. EXCEPTIONS / DEVIATIONS (ASA 230 para 16)", [150, 80, 30]);
+  labelBar("4. EXCEPTIONS / DEVIATIONS (ASA 230 para 16)", PDF_NAVY);
   ly = (doc as any).__lastY ?? ly;
   if (f.exceptions?.length) {
-    bulletList(f.exceptions, PDF_RED, PDF_RED);
+    bulletList(f.exceptions, PDF_MGRAY, PDF_DGRAY);
     ly = (doc as any).__lastY ?? ly;
   } else {
     need(4.5);
-    doc.setFont("times", "italic");
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
     doc.setTextColor(...PDF_MGRAY);
     doc.text("No exceptions noted.", ML + 3, ly);
@@ -812,22 +811,22 @@ function renderFindingPdf(
   need(concH + 6);
   ly = (doc as any).__lastY ?? ly;
 
-  doc.setFillColor(...st.bg);
+  // Light grey background, navy accent strip on the left edge.
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML, ly, CW, concH, "F");
-  doc.setDrawColor(...PDF_BORDER);
-  doc.setLineWidth(0.2);
-  doc.rect(ML, ly, CW, concH);
+  doc.setFillColor(...PDF_NAVY);
+  doc.rect(ML, ly, 1, concH, "F");
   const concY0 = ly;
-  doc.setFont("times", "bold");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
   doc.setTextColor(...PDF_MGRAY);
-  doc.text("5. AUDITOR CONCLUSION (ASA 230)", ML + 2, concY0 + 4);
-  doc.setFont("times", !f.reviewAction ? "italic" : "normal");
+  doc.text("5. AUDITOR CONCLUSION (ASA 230)", ML + 4, concY0 + 4);
+  doc.setFont("helvetica", !f.reviewAction ? "italic" : "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(...PDF_DGRAY);
   let cy = concY0 + 9;
   for (const cl of concLines) {
-    doc.text(cl, ML + 2, cy);
+    doc.text(cl, ML + 4, cy);
     cy += 4.2;
   }
 
@@ -838,7 +837,7 @@ function renderFindingPdf(
   doc.setDrawColor(...PDF_BORDER);
   doc.setLineWidth(0.15);
   doc.line(ML, soY, ML + CW, soY);
-  doc.setFont("times", "normal");
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(...PDF_MGRAY);
   if (f.reviewedBy || f.reviewedAt) {
