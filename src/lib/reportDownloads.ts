@@ -26,39 +26,23 @@ import { saveAs } from "file-saver";
 // ─────────────────────────────────────────────────────────────────────────────
 
 // PDF colours [R,G,B]
-const PDF_NAVY: [number, number, number] = [28, 43, 69];
+const PDF_BLACK: [number, number, number] = [0, 0, 0];
+const PDF_NAVY: [number, number, number] = [31, 52, 88];
 const PDF_DGRAY: [number, number, number] = [51, 51, 51];
-const PDF_MGRAY: [number, number, number] = [102, 102, 102];
-const PDF_LGRAY: [number, number, number] = [242, 242, 242];
-const PDF_BGRAY: [number, number, number] = [220, 220, 220];
-const PDF_BORDER: [number, number, number] = [204, 204, 204];
+const PDF_MGRAY: [number, number, number] = [120, 120, 120];
+const PDF_LGRAY: [number, number, number] = [240, 240, 240];
 const PDF_WHITE: [number, number, number] = [255, 255, 255];
-const PDF_GREEN: [number, number, number] = [26, 92, 53];
-const PDF_GREEN_BG: [number, number, number] = [234, 242, 236];
-const PDF_ORANGE: [number, number, number] = [123, 63, 0];
-const PDF_ORN_BG: [number, number, number] = [253, 243, 231];
-const PDF_RED: [number, number, number] = [123, 17, 17];
-const PDF_RED_BG: [number, number, number] = [253, 240, 240];
-const PDF_BLUE: [number, number, number] = [26, 58, 107];
-const PDF_BLUE_BG: [number, number, number] = [237, 242, 250];
-const PDF_AMBER_BG: [number, number, number] = [255, 248, 220];
+const PDF_BORDER: [number, number, number] = [180, 180, 180];
 
 // DOCX colours (hex)
-const NAVY = "1C2B45";
+const NAVY = "1F3458";
 const DGRAY = "333333";
-const MGRAY = "666666";
-const LGRAY = "F2F2F2";
+const MGRAY = "787878";
+const LGRAY = "F0F0F0";
 const WHITE = "FFFFFF";
-const GREEN = "1A5C35";
-const GREENBG = "EAF2EC";
-const ORANGE = "7B3F00";
-const ORNBG = "FDF3E7";
-const RED = "7B1111";
-const REDBG = "FDF0F0";
-const BLUE = "1A3A6B";
-const BLUEBG = "EDF2FA";
-const AMBERBG = "FFFBDC";
-const BORD = "CCCCCC";
+const BORDER = "B4B4B4";
+// Alias retained so untouched generic DOCX builder keeps compiling.
+const BORD = BORDER;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Status / risk helpers
@@ -66,12 +50,13 @@ const BORD = "CCCCCC";
 
 function statusColorDocx(status: string): { text: string; label: string; bg: string } {
   const s = (status ?? "").toLowerCase();
-  if (s === "pass") return { text: GREEN, label: "PASS", bg: GREENBG };
-  if (s === "fail") return { text: RED, label: "FAIL", bg: REDBG };
-  if (s === "needs_info") return { text: ORANGE, label: "INFO REQ", bg: ORNBG };
-  if (s === "pass_with_review") return { text: ORANGE, label: "REVIEW", bg: ORNBG };
-  if (s === "refer_to_auditor") return { text: BLUE, label: "REFER", bg: BLUEBG };
-  return { text: MGRAY, label: "N/A", bg: LGRAY };
+  const label =
+    s === "pass"             ? "PASS"     :
+    s === "fail"             ? "FAIL"     :
+    s === "needs_info"       ? "INFO REQ" :
+    s === "pass_with_review" ? "REVIEW"   :
+    s === "refer_to_auditor" ? "REFER"    : "N/A";
+  return { text: DGRAY, label, bg: WHITE };
 }
 
 function statusColorPdf(status: string): {
@@ -80,44 +65,29 @@ function statusColorPdf(status: string): {
   bg: [number, number, number];
 } {
   const s = (status ?? "").toLowerCase();
-  if (s === "pass") return { text: PDF_GREEN, label: "PASS", bg: PDF_GREEN_BG };
-  if (s === "fail") return { text: PDF_RED, label: "FAIL", bg: PDF_RED_BG };
-  if (s === "needs_info") return { text: PDF_ORANGE, label: "INFO REQ", bg: PDF_ORN_BG };
-  if (s === "pass_with_review") return { text: PDF_ORANGE, label: "REVIEW", bg: PDF_ORN_BG };
-  if (s === "refer_to_auditor") return { text: PDF_BLUE, label: "REFER", bg: PDF_BLUE_BG };
-  return { text: PDF_MGRAY, label: "N/A", bg: PDF_LGRAY };
+  const label =
+    s === "pass"             ? "PASS"     :
+    s === "fail"             ? "FAIL"     :
+    s === "needs_info"       ? "INFO REQ" :
+    s === "pass_with_review" ? "REVIEW"   :
+    s === "refer_to_auditor" ? "REFER"    : "N/A";
+  return { text: PDF_DGRAY, label, bg: PDF_WHITE };
 }
 
-function riskColorDocx(risk: string): { text: string; bg: string } {
-  const r = (risk ?? "").toUpperCase();
-  if (r === "HIGH") return { text: RED, bg: REDBG };
-  if (r === "MEDIUM") return { text: ORANGE, bg: ORNBG };
-  if (r === "LOW") return { text: GREEN, bg: GREENBG };
-  return { text: MGRAY, bg: LGRAY };
+function riskColorDocx(_risk: string): { text: string; bg: string } {
+  return { text: DGRAY, bg: WHITE };
 }
 
-function riskColorPdf(risk: string): { text: [number, number, number]; bg: [number, number, number] } {
-  const r = (risk ?? "").toUpperCase();
-  if (r === "HIGH") return { text: PDF_RED, bg: PDF_RED_BG };
-  if (r === "MEDIUM") return { text: PDF_ORANGE, bg: PDF_ORN_BG };
-  if (r === "LOW") return { text: PDF_GREEN, bg: PDF_GREEN_BG };
-  return { text: PDF_MGRAY, bg: PDF_LGRAY };
+function riskColorPdf(_risk: string): { text: [number, number, number]; bg: [number, number, number] } {
+  return { text: PDF_DGRAY, bg: PDF_WHITE };
 }
 
-function opinionColorDocx(o: string): { text: string; bg: string } {
-  const v = (o ?? "").toLowerCase();
-  if (/unqualified|unmodified/.test(v)) return { text: GREEN, bg: GREENBG };
-  if (/adverse|disclaim/.test(v)) return { text: RED, bg: REDBG };
-  if (/qualified|modified/.test(v)) return { text: ORANGE, bg: ORNBG };
-  return { text: DGRAY, bg: LGRAY };
+function opinionColorDocx(_o: string): { text: string; bg: string } {
+  return { text: NAVY, bg: LGRAY };
 }
 
-function opinionColorPdf(o: string): { text: [number, number, number]; bg: [number, number, number] } {
-  const v = (o ?? "").toLowerCase();
-  if (/unqualified|unmodified/.test(v)) return { text: PDF_GREEN, bg: PDF_GREEN_BG };
-  if (/adverse|disclaim/.test(v)) return { text: PDF_RED, bg: PDF_RED_BG };
-  if (/qualified|modified/.test(v)) return { text: PDF_ORANGE, bg: PDF_ORN_BG };
-  return { text: PDF_DGRAY, bg: PDF_LGRAY };
+function opinionColorPdf(_o: string): { text: [number, number, number]; bg: [number, number, number] } {
+  return { text: PDF_NAVY, bg: PDF_LGRAY };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
