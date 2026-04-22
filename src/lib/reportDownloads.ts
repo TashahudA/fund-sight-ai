@@ -862,11 +862,14 @@ function renderFindingPdf(
 type ColDef = { label: string; w: number };
 
 function drawTableHeader(doc: jsPDF, ML: number, CW: number, y: number, cols: ColDef[]) {
-  doc.setFillColor(...PDF_NAVY);
+  doc.setFillColor(...PDF_LGRAY);
   doc.rect(ML, y, CW, 6, "F");
-  doc.setFont("times", "bold");
+  doc.setDrawColor(...PDF_BORDER);
+  doc.setLineWidth(0.15);
+  doc.rect(ML, y, CW, 6);
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
-  doc.setTextColor(...PDF_WHITE);
+  doc.setTextColor(...PDF_DGRAY);
   let cx = ML + 1;
   for (const col of cols) {
     doc.text(col.label, cx, y + 4.2);
@@ -887,7 +890,7 @@ function drawTableRow(
 ): number {
   const colWidths = cols.map((c) => c.w * CW);
   const wrapped = cells.map((cell, i) => {
-    doc.setFont("times", cell.bold ? "bold" : "normal");
+    doc.setFont("helvetica", cell.bold ? "bold" : "normal");
     doc.setFontSize(8);
     return doc.splitTextToSize(cell.text, colWidths[i] - 3);
   });
@@ -909,9 +912,9 @@ function drawTableRow(
 
   let cx = ML + 1;
   for (let i = 0; i < cells.length; i++) {
-    doc.setFont("times", cells[i].bold ? "bold" : "normal");
+    doc.setFont("helvetica", cells[i].bold ? "bold" : "normal");
     doc.setFontSize(8);
-    doc.setTextColor(...(cells[i].color ?? PDF_DGRAY));
+    doc.setTextColor(...PDF_DGRAY);
     let ty = y + 4;
     for (const ln of wrapped[i]) {
       doc.text(ln, cx, ty);
