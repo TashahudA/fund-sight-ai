@@ -1044,7 +1044,7 @@ const p = (
 const t = (text: string, opts: { bold?: boolean; size?: number; color?: string; italic?: boolean } = {}) =>
   new TextRun({
     text,
-    font: "Times New Roman",
+    font: "Arial",
     size: opts.size ?? 20,
     bold: opts.bold ?? false,
     color: opts.color ?? DGRAY,
@@ -1620,7 +1620,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   // ── Build ──────────────────────────────────────────────────────────────────
   const docx = new Document({
     styles: {
-      default: { document: { run: { font: "Times New Roman", size: 20, color: DGRAY } } },
+      default: { document: { run: { font: "Arial", size: 20, color: DGRAY } } },
     },
     numbering: {
       config: [
@@ -1673,9 +1673,9 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                   new TextRun({ text: "\t", size: 14 }),
                   t("Prepared by registered SMSF auditor", { size: 14, color: MGRAY }),
                   new TextRun({ text: "   Page ", size: 14, color: MGRAY }),
-                  new TextRun({ children: [PageNumber.CURRENT], size: 14, font: "Times New Roman", color: MGRAY }),
+                  new TextRun({ children: [PageNumber.CURRENT], size: 14, font: "Arial", color: MGRAY }),
                   new TextRun({ text: " of ", size: 14, color: MGRAY }),
-                  new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 14, font: "Times New Roman", color: MGRAY }),
+                  new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 14, font: "Arial", color: MGRAY }),
                 ],
               }),
             ],
@@ -1729,7 +1729,7 @@ async function buildGenericDocx(content: string, fileBaseName: string) {
       children.push(
         new Paragraph({
           spacing: { before: 280, after: 120 },
-          children: [new TextRun({ text: trimmed, bold: true, font: "Times New Roman", size: 22, color: NAVY })],
+          children: [new TextRun({ text: trimmed, bold: true, font: "Arial", size: 22, color: NAVY })],
         }),
       );
       i++;
@@ -1774,7 +1774,7 @@ async function buildGenericDocx(content: string, fileBaseName: string) {
                                 text: cells[ci] || "",
                                 bold: ri === 0,
                                 color: ri === 0 ? WHITE : DGRAY,
-                                font: "Times New Roman",
+                                font: "Arial",
                                 size: 19,
                               }),
                             ],
@@ -1793,14 +1793,14 @@ async function buildGenericDocx(content: string, fileBaseName: string) {
     children.push(
       new Paragraph({
         spacing: { after: 100 },
-        children: [new TextRun({ text: raw, font: "Times New Roman", size: 20, color: DGRAY })],
+        children: [new TextRun({ text: raw, font: "Arial", size: 20, color: DGRAY })],
       }),
     );
     i++;
   }
 
   const docx = new Document({
-    styles: { default: { document: { run: { font: "Times New Roman", size: 20, color: DGRAY } } } },
+    styles: { default: { document: { run: { font: "Arial", size: 20, color: DGRAY } } } },
     sections: [
       {
         properties: {
