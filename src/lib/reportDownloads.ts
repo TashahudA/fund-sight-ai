@@ -1582,7 +1582,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               p([t("Signature:  _______________________________", { size: 18 })], { before: 0, after: 0 }),
             ],
             4680,
-            { bg: BLUEBG },
+            { bg: LGRAY },
           ),
           tc(
             [
@@ -1649,42 +1649,16 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
         headers: {
           default: new Header({
             children: [
-              new Table({
-                width: { size: 9360, type: WidthType.DXA },
-                columnWidths: [6500, 2860],
-                rows: [
-                  tr([
-                    tc(
-                      [
-                        p([t("Audit Working Papers", { bold: true, size: 18, color: NAVY })], { before: 0, after: 20 }),
-                        p(
-                          [
-                            t(
-                              `${meta.fundName}  |  ABN ${meta.fundABN}  |  Year ended 30 June ${meta.financialYear}  |  ${meta.standard || "ASA 230 / GS 009"}`,
-                              { size: 15, color: MGRAY },
-                            ),
-                          ],
-                          { before: 0, after: 0 },
-                        ),
-                      ],
-                      6500,
-                      { bord: NB() },
-                    ),
-                    tc(
-                      [
-                        p(
-                          [t("CONFIDENTIAL", { bold: true, size: 14, color: RED })],
-                          { before: 0, after: 0 },
-                          AlignmentType.RIGHT,
-                        ),
-                      ],
-                      2860,
-                      { bord: NB(), va: VerticalAlign.CENTER },
-                    ),
-                  ]),
+              new Paragraph({
+                children: [
+                  t(
+                    `${meta.fundName}  |  ABN ${meta.fundABN}  |  Year ended 30 June ${meta.financialYear}`,
+                    { size: 15, color: MGRAY },
+                  ),
                 ],
+                spacing: { before: 0, after: 60 },
+                border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: NAVY, space: 1 } },
               }),
-              hRule(NAVY, 8),
             ],
           }),
         },
