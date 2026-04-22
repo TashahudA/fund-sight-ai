@@ -1583,6 +1583,9 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   children.push(gap(160));
   children.push(sectionDiv("D", "Contraventions Register  (s129/s130 SISA)"));
   children.push(gap(100));
+  // Section D: contraventions[] is the single source of truth.
+  // Railway guarantees this array is populated whenever opinion_part_b is qualified.
+  // "No contraventions identified." is only shown when the array is genuinely empty.
   if (!contraventions.length) {
     children.push(
       p([t("No contraventions identified.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
