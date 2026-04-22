@@ -1075,40 +1075,22 @@ const tc = (children: any, width: number, opts: any = {}) =>
 const tr = (cells: TableCell[]) => new TableRow({ children: cells });
 
 const sectionDiv = (label: string, title: string) =>
-  new Table({
-    width: { size: 9360, type: WidthType.DXA },
-    columnWidths: [480, 8880],
-    rows: [
-      tr([
-        tc(p([t(label, { bold: true, size: 20, color: WHITE })], { before: 0, after: 0 }, AlignmentType.CENTER), 480, {
-          bord: NB(),
-          bg: NAVY,
-          m: { top: 100, bottom: 100, left: 60, right: 60 },
-          va: VerticalAlign.CENTER,
-        }),
-        tc([p([t(title, { bold: true, size: 21, color: WHITE })], { before: 0, after: 0 })], 8880, {
-          bord: NB(),
-          bg: "2E4470",
-          m: { top: 100, bottom: 100, left: 180, right: 100 },
-        }),
-      ]),
+  new Paragraph({
+    children: [
+      new TextRun({ text: label + "  ", bold: true, size: 20, color: NAVY, font: "Arial" }),
+      new TextRun({ text: title, bold: true, size: 20, color: DGRAY, font: "Arial" }),
     ],
+    spacing: { before: 280, after: 80 },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: NAVY, space: 1 } },
   });
 
-// Sub-section label row — used within finding blocks
-const subLabelRow = (label: string, bgHex: string, colWidth = 9360) =>
-  new Table({
-    width: { size: colWidth, type: WidthType.DXA },
-    columnWidths: [colWidth],
-    rows: [
-      tr([
-        tc([p([t(label, { bold: true, size: 16, color: WHITE })], { before: 0, after: 0 })], colWidth, {
-          bord: NB(),
-          bg: bgHex,
-          m: { top: 60, bottom: 60, left: 120, right: 60 },
-        }),
-      ]),
-    ],
+// Sub-section label row — plain bold paragraph with thin bottom rule.
+// Signature kept stable (bgHex/colWidth ignored) so call sites don't change.
+const subLabelRow = (label: string, _bgHex: string, _colWidth = 9360) =>
+  new Paragraph({
+    children: [new TextRun({ text: label, bold: true, size: 16, color: DGRAY, font: "Arial" })],
+    spacing: { before: 120, after: 60 },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER, space: 1 } },
   });
 
 // Bullet list helper for DOCX
@@ -1124,7 +1106,7 @@ const bulletItems = (items: string[], color = DGRAY, size = 18): Paragraph[] => 
   );
 };
 
-const warningPara = (msg: string) => p([t(msg, { size: 17, italic: true, color: RED })], { before: 60, after: 60 });
+const warningPara = (msg: string) => p([t(msg, { size: 17, italic: true, color: MGRAY })], { before: 60, after: 60 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ASA 230 Finding block — DOCX
