@@ -834,11 +834,19 @@ function renderFindingPdf(
   (doc as any).__lastY = ly;
 
   // ── Section 1: Assertions ─────────────────────────────────────────────────
+  labelBar("1. ASSERTIONS TESTED (ASA 315)", PDF_NAVY);
+  ly = (doc as any).__lastY ?? ly;
   if (f.assertions?.length) {
-    labelBar("1. ASSERTIONS TESTED (ASA 315)", PDF_NAVY);
-    ly = (doc as any).__lastY ?? ly;
     bulletList(f.assertions, PDF_MGRAY, PDF_DGRAY);
     ly = (doc as any).__lastY ?? ly;
+  } else {
+    need(4.5);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(...PDF_MGRAY);
+    doc.text("No assertions documented.", ML + 3, ly);
+    ly += 4.5;
+    (doc as any).__lastY = ly;
   }
 
   // ── Section 2: Procedures ─────────────────────────────────────────────────
