@@ -39,9 +39,10 @@ interface RFITabProps {
   className?: string;
   onCountChange?: () => void;
   onAutoComplete?: () => void;
+  onResolved?: () => void;
 }
 
-export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RFITabProps) {
+export function RFITab({ auditId, className, onCountChange, onAutoComplete, onResolved }: RFITabProps) {
   const { user, profile } = useAuth();
   const displayName = profile?.full_name || user?.email || "You";
   const [rfis, setRfis] = useState<RFI[]>([]);
@@ -137,6 +138,10 @@ export function RFITab({ auditId, className, onCountChange, onAutoComplete }: RF
       setResolutionSuggested(null);
       await fetchRfis();
       onCountChange?.();
+      // Refresh ai_findings so the resolution badge appears immediately on findings
+      try {
+        onResolved?.();
+      } catch { /* fail silently */ }
     } catch (err: any) {
       toast({ title: "Error resolving RFI", description: err.message, variant: "destructive" });
     }

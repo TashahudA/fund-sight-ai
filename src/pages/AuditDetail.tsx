@@ -954,7 +954,13 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
         {/* RFIs Tab */}
         <TabsContent value="rfis">
-          <RFITab auditId={audit.id} className="min-h-[600px] h-[calc(100vh-14rem)]" onCountChange={fetchCounts} onAutoComplete={async () => { await fetchAudit(); await fetchCounts(); }} />
+          <RFITab
+            auditId={audit.id}
+            className="min-h-[600px] h-[calc(100vh-14rem)]"
+            onCountChange={fetchCounts}
+            onAutoComplete={async () => { await fetchAudit(); await fetchCounts(); }}
+            onResolved={async () => { try { await fetchAudit(); } catch { /* silent */ } }}
+          />
         </TabsContent>
 
         {/* Reports Tab */}

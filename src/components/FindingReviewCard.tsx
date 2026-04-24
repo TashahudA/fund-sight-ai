@@ -22,6 +22,10 @@ interface AiFinding {
   confidence?: "high" | "medium" | "low";
   judgment_flag?: JudgmentFlag | null;
   remediated?: boolean;
+  rfi_resolution?: {
+    resolved_by?: string | null;
+    resolved_at?: string | null;
+  } | null;
 }
 
 export interface ReviewAction {
@@ -213,6 +217,17 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
 
       <p className={`text-sm text-muted-foreground leading-relaxed ${isRemediated ? "line-through" : ""}`}>{f.detail}</p>
       <p className="text-xs text-muted-foreground">{f.reference}</p>
+
+      {f.rfi_resolution && (
+        <div className="pt-1">
+          <span className="inline-flex items-center gap-1 rounded-full border border-status-pass-border bg-status-pass-bg px-2 py-0.5 text-[11px] font-medium text-status-pass">
+            ✓ RFI resolved by {f.rfi_resolution.resolved_by || "—"}
+            {f.rfi_resolution.resolved_at
+              ? ` on ${new Date(f.rfi_resolution.resolved_at).toLocaleDateString("en-GB")}`
+              : ""}
+          </span>
+        </div>
+      )}
 
       {f.judgment_flag && (
         <Collapsible>
