@@ -578,7 +578,16 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="flex flex-col md:flex-row items-center" style={{ gap: "64px" }}>
+            <div
+              className="flex flex-col md:flex-row items-center"
+              style={{
+                gap: "64px",
+                background: "#f5f5f5",
+                borderRadius: "24px",
+                padding: "64px",
+                boxShadow: "0 2px 40px rgba(0,0,0,0.06)",
+              }}
+            >
               {/* Left: Australia SVG */}
               <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <div style={{ position: "relative", width: "420px", maxWidth: "100%" }}>
@@ -586,12 +595,12 @@ export default function Landing() {
                     aria-label="Australia"
                     dangerouslySetInnerHTML={{ __html: auSvgProcessed }}
                   />
-                  {/* Sydney pin overlay — absolutely positioned at 72% / 62% */}
+                  {/* Sydney pin overlay — absolutely positioned at 75% / 57% */}
                   <div
                     style={{
                       position: "absolute",
-                      left: "72%",
-                      top: "62%",
+                      left: "75%",
+                      top: "57%",
                       width: 0,
                       height: 0,
                       pointerEvents: "none",
