@@ -797,6 +797,12 @@ export default function Landing() {
 
         .feature-img-card:hover { transform: translateY(-4px); box-shadow: 0 32px 80px rgba(0,0,0,0.14); }
 
+        @keyframes auPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.85; }
+        }
+        .au-pulse { animation: auPulse 3s ease-in-out infinite; transform-origin: center; }
+
         .contact-input:focus {
           border-color: #111111 !important;
           box-shadow: 0 0 0 3px rgba(0,0,0,0.06) !important;
