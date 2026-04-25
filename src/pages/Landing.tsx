@@ -221,6 +221,73 @@ export default function Landing() {
 
   const currentStep = howItWorksTabs[activeTab];
 
+  // Leaflet map for data sovereignty section
+  const mapRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const ensureLeaflet = async (): Promise<any> => {
+      const w = window as any;
+      if (w.L) return w.L;
+      if (!document.querySelector('link[data-leaflet]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        link.setAttribute('data-leaflet', 'true');
+        document.head.appendChild(link);
+      }
+      if (!document.querySelector('script[data-leaflet]')) {
+        await new Promise<void>((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+          s.async = true;
+          s.setAttribute('data-leaflet', 'true');
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error('Leaflet failed to load'));
+          document.head.appendChild(s);
+        });
+      } else {
+        await new Promise<void>((resolve) => {
+          const check = () => ((window as any).L ? resolve() : setTimeout(check, 50));
+          check();
+        });
+      }
+      return (window as any).L;
+    };
+
+    (async () => {
+      try {
+        const L = await ensureLeaflet();
+        if (cancelled || !mapRef.current || (mapRef.current as any)._leaflet_id) return;
+        const map = L.map(mapRef.current, {
+          center: [-25.2744, 133.7751],
+          zoom: 3,
+          zoomControl: false,
+          attributionControl: false,
+          scrollWheelZoom: false,
+          dragging: false,
+          doubleClickZoom: false,
+          touchZoom: false,
+          boxZoom: false,
+          keyboard: false,
+        });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          subdomains: 'abcd',
+          maxZoom: 19,
+        }).addTo(map);
+        const sydneyIcon = L.divIcon({
+          className: 'sydney-pin-wrap',
+          html: '<div class="sydney-ripple"></div><div class="sydney-dot"></div>',
+          iconSize: [10, 10],
+          iconAnchor: [5, 5],
+        });
+        L.marker([-33.8688, 151.2093], { icon: sydneyIcon }).addTo(map);
+      } catch {
+        /* fail silently */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <div className="min-h-screen landing-root" style={{ background: "#ffffff", overflow: "hidden" }}>
       {/* Manrope font — scoped to landing page only */}
@@ -553,56 +620,63 @@ export default function Landing() {
       {/* ==== DATA SOVEREIGNTY ==== */}
       <section id="sovereignty" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "1100px" }}>
-          <RevealSection className="text-center" style={{ marginBottom: "20px" }}>
-            <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "36px", color: "#111111", letterSpacing: "-0.02em", margin: 0 }}>
-              Your data never leaves Australia.
-            </h2>
-          </RevealSection>
-          <RevealSection className="text-center" style={{ marginBottom: "60px" }}>
-            <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", margin: 0 }}>
-              Built here. Stored here. Owned by Australians.
-            </p>
-          </RevealSection>
+          <RevealSection>
+            <div style={{
+              background: "#f5f5f5",
+              borderRadius: "24px",
+              padding: "64px",
+              boxShadow: "0 2px 40px rgba(0,0,0,0.06)",
+            }}>
+              <div className="text-center" style={{ marginBottom: "20px" }}>
+                <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "36px", color: "#111111", letterSpacing: "-0.02em", margin: 0 }}>
+                  Your data never leaves Australia.
+                </h2>
+              </div>
+              <div className="text-center" style={{ marginBottom: "60px" }}>
+                <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", margin: 0 }}>
+                  Built here. Stored here. Owned by Australians.
+                </p>
+              </div>
 
-          <div className="flex flex-col md:flex-row items-center" style={{ gap: "64px" }}>
-            {/* Left: Australia shape */}
-            <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-              <svg
-                className="au-pulse"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 612 540"
-                style={{ width: "420px", maxWidth: "100%", height: "auto", display: "block" }}
-                aria-label="Outline of Australia"
-              >
-                <path
-                  fill="#111111"
-                  d="M295 70 c8 -6 22 -4 32 2 c10 6 18 4 30 -2 c14 -6 28 -4 36 6 c8 8 18 8 30 6 c14 -2 26 4 30 14 c4 10 14 14 26 14 c14 0 26 6 32 18 c6 12 18 18 32 20 c14 2 24 12 28 24 c4 14 14 22 28 26 c14 4 22 14 22 28 c0 14 6 26 18 32 c12 6 18 18 16 32 c-2 14 4 26 14 34 c10 8 12 22 6 34 c-6 12 -4 26 6 36 c8 10 8 24 0 34 c-8 12 -8 26 0 38 c8 12 6 26 -4 36 c-10 10 -14 24 -10 38 c4 14 -2 28 -14 34 c-12 6 -20 18 -20 32 c0 14 -10 24 -24 26 c-14 2 -24 12 -28 26 c-4 14 -16 22 -30 22 c-14 0 -26 8 -32 20 c-6 12 -18 18 -32 16 c-14 -2 -26 4 -34 14 c-8 10 -22 14 -34 8 c-12 -6 -26 -4 -36 4 c-10 8 -24 8 -34 0 c-12 -8 -26 -8 -38 -2 c-12 6 -26 4 -36 -6 c-10 -10 -24 -12 -36 -6 c-12 6 -26 2 -34 -8 c-8 -10 -22 -14 -34 -10 c-14 4 -28 -2 -34 -14 c-6 -12 -18 -20 -32 -20 c-14 0 -26 -8 -30 -22 c-4 -14 -14 -24 -28 -26 c-14 -2 -24 -12 -26 -26 c-2 -14 -10 -26 -22 -30 c-14 -4 -22 -16 -22 -30 c0 -14 -8 -26 -20 -30 c-12 -4 -18 -16 -16 -30 c2 -14 -4 -28 -14 -34 c-12 -8 -16 -22 -10 -34 c6 -12 4 -26 -4 -36 c-10 -10 -10 -24 -2 -34 c8 -12 10 -26 4 -38 c-6 -12 -2 -26 8 -34 c10 -8 14 -22 10 -36 c-4 -14 2 -28 14 -34 c12 -6 20 -18 20 -32 c0 -14 10 -24 24 -26 c14 -2 24 -12 28 -26 c4 -14 16 -22 30 -22 c14 0 26 -8 32 -20 c6 -12 18 -18 32 -16 c14 2 26 -4 34 -14 c8 -10 22 -14 34 -8 z M470 470 c-6 8 -4 20 4 26 c10 6 22 4 28 -4 c8 -10 6 -22 -4 -28 c-10 -6 -22 -4 -28 6 z"
-                />
-              </svg>
-              <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "12px", color: "#999999", letterSpacing: "0.15em", textAlign: "center", marginTop: "20px" }}>
-                SYDNEY · MELBOURNE · BRISBANE
-              </p>
-            </div>
-
-            {/* Right: Trust points */}
-            <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", gap: "32px", width: "100%" }}>
-              {[
-                { h: "Stored in Australia.", b: "Every document, every audit, every finding. Hosted on Australian servers. Nothing crosses borders." },
-                { h: "Encrypted end to end.", b: "AES-256 encryption in transit and at rest. Bank grade security on every file." },
-                { h: "Proudly Australian.", b: "Built by an Australian team. Supported by an Australian team. Every line of code written onshore." },
-                { h: "Your data, your rules.", b: "Export everything in one click. Delete everything in one click. No lock in. No exit fees." },
-              ].map((p, i) => (
-                <div key={i}>
-                  <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "16px", color: "#111111", margin: 0, marginBottom: "6px" }}>
-                    {p.h}
-                  </h3>
-                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "14px", color: "#666666", lineHeight: 1.6, margin: 0 }}>
-                    {p.b}
-                  </p>
+              <div className="flex flex-col md:flex-row items-center" style={{ gap: "64px" }}>
+                {/* Left: Map */}
+                <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                  <div
+                    ref={mapRef}
+                    className="au-map"
+                    style={{
+                      width: "480px",
+                      maxWidth: "100%",
+                      height: "420px",
+                      borderRadius: "12px",
+                      overflow: "hidden",
+                      filter: "grayscale(100%) contrast(1.1)",
+                      background: "#eaeaea",
+                    }}
+                  />
                 </div>
-              ))}
+
+                {/* Right: Trust points */}
+                <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", gap: "32px", width: "100%" }}>
+                  {[
+                    { h: "Stored in Australia.", b: "Every document, every audit, every finding. Hosted on Australian servers. Nothing crosses borders." },
+                    { h: "Encrypted end to end.", b: "AES-256 encryption in transit and at rest. Bank grade security on every file." },
+                    { h: "Proudly Australian.", b: "Built by an Australian team. Supported by an Australian team. Every line of code written onshore." },
+                    { h: "Your data, your rules.", b: "Export everything in one click. Delete everything in one click. No lock in. No exit fees." },
+                  ].map((p, i) => (
+                    <div key={i}>
+                      <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "16px", color: "#111111", margin: 0, marginBottom: "6px" }}>
+                        {p.h}
+                      </h3>
+                      <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "14px", color: "#666666", lineHeight: 1.6, margin: 0 }}>
+                        {p.b}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
+          </RevealSection>
         </div>
       </section>
 
@@ -797,11 +871,31 @@ export default function Landing() {
 
         .feature-img-card:hover { transform: translateY(-4px); box-shadow: 0 32px 80px rgba(0,0,0,0.14); }
 
-        @keyframes auPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.85; }
+        .au-map .leaflet-container { background: #f5f5f5 !important; outline: none; }
+        .au-map .leaflet-control-attribution,
+        .au-map .leaflet-control-container { display: none !important; }
+
+        .sydney-pin-wrap { position: relative; width: 10px; height: 10px; }
+        .sydney-dot {
+          position: absolute; top: 0; left: 0;
+          width: 10px; height: 10px;
+          background: #111111; border-radius: 50%;
+          z-index: 2;
         }
-        .au-pulse { animation: auPulse 3s ease-in-out infinite; transform-origin: center; }
+        .sydney-ripple {
+          position: absolute; top: 50%; left: 50%;
+          width: 10px; height: 10px;
+          margin-top: -5px; margin-left: -5px;
+          border-radius: 50%;
+          background: #111111;
+          opacity: 0.6;
+          animation: sydneyRipple 2s ease-out infinite;
+          z-index: 1;
+        }
+        @keyframes sydneyRipple {
+          0%   { transform: scale(1); opacity: 0.5; }
+          100% { transform: scale(5); opacity: 0; }
+        }
 
         .contact-input:focus {
           border-color: #111111 !important;
