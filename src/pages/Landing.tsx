@@ -79,9 +79,9 @@ function FAQAccordion() {
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */
 const howItWorksTabs = [
-  { num: "01", tab: "Upload", title: "Drop in the fund pack", desc: "Financial statements, workpapers, bank statements, tax returns — drag them all in. Auditron reads every page.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png" },
-  { num: "02", tab: "Analyse", title: "AI checks every SIS Act area", desc: "Contribution caps, pension minimums, in-house assets, related party transactions. Checked automatically. Referenced to source.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.27.20%20pm.png" },
-  { num: "03", tab: "Review", title: "Findings ready for sign-off", desc: "Specific dollar amounts. Exact document references. RFIs already drafted. Your job is to review and sign.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.29.00%20pm.png" },
+  { num: "01", tab: "Upload", title: "Upload the fund pack", desc: "Financial statements, bank statements, investment reports, trustee minutes. Every document type. Every format. Auditron handles it all.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png" },
+  { num: "02", tab: "Analysis", title: "Every SIS Act area checked automatically", desc: "Contribution caps, pension minimums, in-house assets, related party transactions. Every finding referenced to its exact source document. Nothing missed. Nothing assumed.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.27.20%20pm.png" },
+  { num: "03", tab: "Review and sign", title: "95% done. You do the rest.", desc: "Every finding is reviewable. Every RFI editable. Every opinion adjustable. You make the calls. You sign the file. Professional judgement stays exactly where it belongs — with you.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.29.00%20pm.png" },
 ];
 
 const features = [
@@ -397,7 +397,7 @@ export default function Landing() {
               HOW IT WORKS
             </p>
             <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
-              From upload to opinion in 3 steps
+              From upload to sign-off in 3 steps.
             </h2>
           </RevealSection>
 
