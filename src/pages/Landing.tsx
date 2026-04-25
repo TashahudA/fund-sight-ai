@@ -81,7 +81,7 @@ function FAQAccordion() {
 const howItWorksTabs = [
   { num: "01", tab: "Upload", title: "Upload the fund pack", desc: "Financial statements, bank statements, investment reports, trustee minutes. Every document type. Every format. Auditron handles it all.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png" },
   { num: "02", tab: "Analysis", title: "Every SIS Act area checked automatically", desc: "Contribution caps, pension minimums, in-house assets, related party transactions. Every finding referenced to its exact source document. Nothing missed. Nothing assumed.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.27.20%20pm.png" },
-  { num: "03", tab: "Review and sign", title: "95% done. You do the rest.", desc: "Every finding is reviewable. Every RFI editable. Every opinion adjustable. You make the calls. You sign the file. Professional judgement stays exactly where it belongs — with you.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.29.00%20pm.png" },
+  { num: "03", tab: "Review", title: "95% done. You do the rest.", desc: "Every finding is reviewable. Every RFI editable. Every opinion adjustable. You make the calls. You sign the file. Professional judgement stays exactly where it belongs — with you.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.29.00%20pm.png" },
 ];
 
 const features = [
