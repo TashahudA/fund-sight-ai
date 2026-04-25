@@ -567,27 +567,24 @@ export default function Landing() {
       <section id="sovereignty" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "1100px" }}>
           <RevealSection>
-            <div className="text-center" style={{ marginBottom: "20px" }}>
-              <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "36px", color: "#111111", letterSpacing: "-0.02em", margin: 0 }}>
-                Your data never leaves Australia.
-              </h2>
-            </div>
-            <div className="text-center" style={{ marginBottom: "60px" }}>
-              <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", margin: 0 }}>
-                Built here. Stored here. Owned by Australians.
-              </p>
-            </div>
+            <div style={{
+              background: "#f5f5f5",
+              borderRadius: "24px",
+              padding: "64px",
+              boxShadow: "0 2px 40px rgba(0,0,0,0.06)",
+            }}>
+              <div className="text-center" style={{ marginBottom: "20px" }}>
+                <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "36px", color: "#111111", letterSpacing: "-0.02em", margin: 0 }}>
+                  Your data never leaves Australia.
+                </h2>
+              </div>
+              <div className="text-center" style={{ marginBottom: "60px" }}>
+                <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", margin: 0 }}>
+                  Built here. Stored here. Owned by Australians.
+                </p>
+              </div>
 
-            <div
-              className="flex flex-col md:flex-row items-center"
-              style={{
-                gap: "64px",
-                background: "#f5f5f5",
-                borderRadius: "24px",
-                padding: "64px",
-                boxShadow: "0 2px 40px rgba(0,0,0,0.06)",
-              }}
-            >
+              <div className="flex flex-col md:flex-row items-center" style={{ gap: "64px" }}>
               {/* Left: Australia SVG */}
               <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <div style={{ position: "relative", width: "420px", maxWidth: "100%" }}>
@@ -595,12 +592,12 @@ export default function Landing() {
                     aria-label="Australia"
                     dangerouslySetInnerHTML={{ __html: auSvgProcessed }}
                   />
-                  {/* Sydney pin overlay — absolutely positioned at 75% / 57% */}
+                  {/* Sydney pin overlay — absolutely positioned at 78% / 48% */}
                   <div
                     style={{
                       position: "absolute",
-                      left: "75%",
-                      top: "57%",
+                      left: "78%",
+                      top: "48%",
                       width: 0,
                       height: 0,
                       pointerEvents: "none",
@@ -647,6 +644,7 @@ export default function Landing() {
                     </p>
                   </div>
                 ))}
+              </div>
               </div>
             </div>
           </RevealSection>
