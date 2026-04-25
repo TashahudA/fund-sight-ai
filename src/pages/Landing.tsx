@@ -550,6 +550,62 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ==== DATA SOVEREIGNTY ==== */}
+      <section id="sovereignty" style={{ background: "#ffffff", padding: "120px 24px" }}>
+        <div className="mx-auto" style={{ maxWidth: "1100px" }}>
+          <RevealSection className="text-center" style={{ marginBottom: "20px" }}>
+            <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "36px", color: "#111111", letterSpacing: "-0.02em", margin: 0 }}>
+              Your data never leaves Australia.
+            </h2>
+          </RevealSection>
+          <RevealSection className="text-center" style={{ marginBottom: "60px" }}>
+            <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", margin: 0 }}>
+              Built here. Stored here. Owned by Australians.
+            </p>
+          </RevealSection>
+
+          <div className="flex flex-col md:flex-row items-center" style={{ gap: "64px" }}>
+            {/* Left: Australia shape */}
+            <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <svg
+                className="au-pulse"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 612 540"
+                style={{ width: "420px", maxWidth: "100%", height: "auto", display: "block" }}
+                aria-label="Outline of Australia"
+              >
+                <path
+                  fill="#111111"
+                  d="M295 70 c8 -6 22 -4 32 2 c10 6 18 4 30 -2 c14 -6 28 -4 36 6 c8 8 18 8 30 6 c14 -2 26 4 30 14 c4 10 14 14 26 14 c14 0 26 6 32 18 c6 12 18 18 32 20 c14 2 24 12 28 24 c4 14 14 22 28 26 c14 4 22 14 22 28 c0 14 6 26 18 32 c12 6 18 18 16 32 c-2 14 4 26 14 34 c10 8 12 22 6 34 c-6 12 -4 26 6 36 c8 10 8 24 0 34 c-8 12 -8 26 0 38 c8 12 6 26 -4 36 c-10 10 -14 24 -10 38 c4 14 -2 28 -14 34 c-12 6 -20 18 -20 32 c0 14 -10 24 -24 26 c-14 2 -24 12 -28 26 c-4 14 -16 22 -30 22 c-14 0 -26 8 -32 20 c-6 12 -18 18 -32 16 c-14 -2 -26 4 -34 14 c-8 10 -22 14 -34 8 c-12 -6 -26 -4 -36 4 c-10 8 -24 8 -34 0 c-12 -8 -26 -8 -38 -2 c-12 6 -26 4 -36 -6 c-10 -10 -24 -12 -36 -6 c-12 6 -26 2 -34 -8 c-8 -10 -22 -14 -34 -10 c-14 4 -28 -2 -34 -14 c-6 -12 -18 -20 -32 -20 c-14 0 -26 -8 -30 -22 c-4 -14 -14 -24 -28 -26 c-14 -2 -24 -12 -26 -26 c-2 -14 -10 -26 -22 -30 c-14 -4 -22 -16 -22 -30 c0 -14 -8 -26 -20 -30 c-12 -4 -18 -16 -16 -30 c2 -14 -4 -28 -14 -34 c-12 -8 -16 -22 -10 -34 c6 -12 4 -26 -4 -36 c-10 -10 -10 -24 -2 -34 c8 -12 10 -26 4 -38 c-6 -12 -2 -26 8 -34 c10 -8 14 -22 10 -36 c-4 -14 2 -28 14 -34 c12 -6 20 -18 20 -32 c0 -14 10 -24 24 -26 c14 -2 24 -12 28 -26 c4 -14 16 -22 30 -22 c14 0 26 -8 32 -20 c6 -12 18 -18 32 -16 c14 2 26 -4 34 -14 c8 -10 22 -14 34 -8 z M470 470 c-6 8 -4 20 4 26 c10 6 22 4 28 -4 c8 -10 6 -22 -4 -28 c-10 -6 -22 -4 -28 6 z"
+                />
+              </svg>
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "12px", color: "#999999", letterSpacing: "0.15em", textAlign: "center", marginTop: "20px" }}>
+                SYDNEY · MELBOURNE · BRISBANE
+              </p>
+            </div>
+
+            {/* Right: Trust points */}
+            <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", gap: "32px", width: "100%" }}>
+              {[
+                { h: "Stored in Australia.", b: "Every document, every audit, every finding. Hosted on Australian servers. Nothing crosses borders." },
+                { h: "Encrypted end to end.", b: "AES-256 encryption in transit and at rest. Bank grade security on every file." },
+                { h: "Proudly Australian.", b: "Built by an Australian team. Supported by an Australian team. Every line of code written onshore." },
+                { h: "Your data, your rules.", b: "Export everything in one click. Delete everything in one click. No lock in. No exit fees." },
+              ].map((p, i) => (
+                <div key={i}>
+                  <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "16px", color: "#111111", margin: 0, marginBottom: "6px" }}>
+                    {p.h}
+                  </h3>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "14px", color: "#666666", lineHeight: 1.6, margin: 0 }}>
+                    {p.b}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ==== PRICING ==== */}
       <section id="pricing" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "680px" }}>
@@ -740,6 +796,12 @@ export default function Landing() {
         .btn-hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
 
         .feature-img-card:hover { transform: translateY(-4px); box-shadow: 0 32px 80px rgba(0,0,0,0.14); }
+
+        @keyframes auPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.85; }
+        }
+        .au-pulse { animation: auPulse 3s ease-in-out infinite; transform-origin: center; }
 
         .contact-input:focus {
           border-color: #111111 !important;
