@@ -148,27 +148,37 @@ function FeatureShowcaseSection() {
     setPausedUntil(Date.now() + 8000);
   };
 
-  const CIRCLE = 540;
-  const RADIUS = CIRCLE / 2; // 270
-  const ICON_RADIUS = 360; // distance from circle centre to icon-card centre
+  const CIRCLE = 500;
+  const RADIUS = CIRCLE / 2; // 250
+  const ICON_RADIUS = 310; // distance from circle centre to icon-card centre (60px outside the edge)
   const ACTIVE_BOX = 64;
   const INACTIVE_BOX = 56;
-  // Stage size needs to fit icon cards comfortably (icon centre at 360 + half of active card)
-  const STAGE = (ICON_RADIUS + ACTIVE_BOX / 2 + 8) * 2; // ~800px
+  // Stage size needs to fit icon cards comfortably (icon centre at 310 + half of active card + breathing room)
+  const STAGE = (ICON_RADIUS + ACTIVE_BOX / 2 + 12) * 2; // ~708px
+
+  // Five fixed positions, each rotated by 72deg starting from top
+  const positions = [
+    { rot: 0,   side: "left"  as const }, // top
+    { rot: 72,  side: "right" as const }, // top-right
+    { rot: 144, side: "right" as const }, // bottom-right
+    { rot: 216, side: "left"  as const }, // bottom-left
+    { rot: 288, side: "left"  as const }, // top-left
+  ];
 
   return (
     <section
       id="features"
       style={{
         background: "#FFFFFF",
-        padding: "80px 24px 40px",
-        minHeight: "100vh",
+        padding: "60px 24px",
+        maxHeight: "850px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        overflow: "hidden",
       }}
     >
-      <RevealSection className="text-center" style={{ marginBottom: "60px", width: "100%" }}>
+      <RevealSection className="text-center" style={{ marginBottom: "40px", width: "100%" }}>
         <h2
           style={{
             fontFamily: "'Manrope', 'Open Sans', sans-serif",
@@ -188,18 +198,20 @@ function FeatureShowcaseSection() {
         className="relative"
         style={{
           width: "100%",
-          maxWidth: `${STAGE + 720}px`, // room for side text on both sides
           height: `${STAGE}px`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        {/* Side text panels */}
+        {/* Side text panels — clamped inside the viewport with min 80px gutters */}
         {showcaseFeatures.map((f, i) => {
           const isActive = i === active;
           const wasPrev = i === prev && !isActive;
-          const onLeft = f.side === "left";
+          const onLeft = positions[i].side === "left";
+          const sideStyle: React.CSSProperties = onLeft
+            ? { left: "max(80px, calc(50% - " + (STAGE / 2 + 280) + "px))" }
+            : { right: "max(80px, calc(50% - " + (STAGE / 2 + 280) + "px))" };
           return (
             <div
               key={`text-${i}`}
@@ -207,8 +219,9 @@ function FeatureShowcaseSection() {
               style={{
                 position: "absolute",
                 top: "50%",
-                [onLeft ? "right" : "left"]: `calc(50% + ${STAGE / 2 + 40}px)`,
-                width: "320px",
+                ...sideStyle,
+                width: "260px",
+                maxWidth: "260px",
                 textAlign: "left",
                 opacity: isActive ? 1 : 0,
                 transform: `translateY(-50%) translateX(${
@@ -218,7 +231,7 @@ function FeatureShowcaseSection() {
                   ? "opacity 300ms ease-out 100ms, transform 300ms ease-out 100ms"
                   : "opacity 300ms ease, transform 300ms ease",
                 pointerEvents: isActive ? "auto" : "none",
-              } as React.CSSProperties}
+              }}
             >
               <p
                 style={{
@@ -293,8 +306,8 @@ function FeatureShowcaseSection() {
               left: "50%",
               top: `calc(50% - ${RADIUS}px + ${RADIUS * 2 * 0.45}px)`,
               transform: "translate(-50%, -50%)",
-              width: "380px",
-              height: "260px",
+              width: "360px",
+              height: "240px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -333,85 +346,96 @@ function FeatureShowcaseSection() {
             ))}
           </div>
 
-          {/* Spokes (SVG overlay covering whole stage) */}
-          <svg
-            width={STAGE}
-            height={STAGE}
-            viewBox={`0 0 ${STAGE} ${STAGE}`}
-            style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}
-          >
-            {showcaseFeatures.map((f, i) => {
-              const isActive = i === active;
-              const rad = (f.angle * Math.PI) / 180;
-              const cx = STAGE / 2;
-              const cy = STAGE / 2;
-              const box = isActive ? ACTIVE_BOX : INACTIVE_BOX;
-              // spoke: from circle edge to inner edge of icon card
-              const x1 = cx + RADIUS * Math.cos(rad);
-              const y1 = cy + RADIUS * Math.sin(rad);
-              const x2 = cx + (ICON_RADIUS - box / 2) * Math.cos(rad);
-              const y2 = cy + (ICON_RADIUS - box / 2) * Math.sin(rad);
-              return (
-                <line
-                  key={`spoke-${i}`}
-                  x1={x1}
-                  y1={y1}
-                  x2={x2}
-                  y2={y2}
-                  stroke={isActive ? "#111111" : "#BBBBBB"}
-                  strokeOpacity={isActive ? 1 : 0.4}
-                  strokeWidth={isActive ? 1.5 : 1}
-                  style={{ transition: "stroke 300ms ease, stroke-opacity 300ms ease, stroke-width 300ms ease" }}
-                />
-              );
-            })}
-          </svg>
-
-          {/* Icon cards */}
+          {/* Spokes — placed via the same rotate/translate technique as icon cards */}
           {showcaseFeatures.map((f, i) => {
             const isActive = i === active;
-            const rad = (f.angle * Math.PI) / 180;
-            const cx = STAGE / 2;
-            const cy = STAGE / 2;
-            const x = cx + ICON_RADIUS * Math.cos(rad);
-            const y = cy + ICON_RADIUS * Math.sin(rad);
+            const rot = positions[i].rot;
+            // spoke length: from circle edge (RADIUS) outward to inner edge of icon card
+            const box = isActive ? ACTIVE_BOX : INACTIVE_BOX;
+            const spokeLen = ICON_RADIUS - box / 2 - RADIUS;
+            return (
+              <div
+                key={`spoke-${i}`}
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  width: 0,
+                  height: 0,
+                  transform: `rotate(${rot}deg)`,
+                  pointerEvents: "none",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    bottom: `${RADIUS}px`,
+                    width: isActive ? "1.5px" : "1px",
+                    height: `${spokeLen}px`,
+                    background: isActive ? "#111111" : "#BBBBBB",
+                    opacity: isActive ? 1 : 0.4,
+                    transform: "translateX(-50%)",
+                    transition: "background 300ms ease, opacity 300ms ease, width 300ms ease, height 300ms ease",
+                  }}
+                />
+              </div>
+            );
+          })}
+
+          {/* Icon cards — rotate the wrapper, then counter-rotate the inner button so the icon stays upright */}
+          {showcaseFeatures.map((f, i) => {
+            const isActive = i === active;
+            const rot = positions[i].rot;
             const Icon = f.icon;
             const box = isActive ? ACTIVE_BOX : INACTIVE_BOX;
             return (
-              <button
+              <div
                 key={`icon-${i}`}
-                type="button"
-                onClick={() => handlePick(i)}
-                aria-label={f.label}
                 style={{
                   position: "absolute",
-                  left: `${x}px`,
-                  top: `${y}px`,
-                  width: `${box}px`,
-                  height: `${box}px`,
-                  transform: "translate(-50%, -50%)",
-                  borderRadius: isActive ? "14px" : "12px",
-                  background: isActive ? "#111111" : "#FFFFFF",
-                  border: isActive ? "none" : "1px solid #E8E8E8",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  opacity: isActive ? 1 : 0.6,
-                  boxShadow: isActive
-                    ? "0 12px 24px -8px rgba(0,0,0,0.25), 0 4px 8px -4px rgba(0,0,0,0.15)"
-                    : "none",
-                  transition:
-                    "width 300ms ease-out, height 300ms ease-out, background 300ms ease-out, border-radius 300ms ease-out, box-shadow 300ms ease-out, opacity 300ms ease-out, border-color 300ms ease-out",
-                  padding: 0,
+                  top: "50%",
+                  left: "50%",
+                  width: 0,
+                  height: 0,
+                  transform: `rotate(${rot}deg)`,
                 }}
               >
-                <Icon
-                  size={isActive ? 26 : 22}
-                  color={isActive ? "#FFFFFF" : "#999999"}
-                  strokeWidth={1.75}
-                />
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handlePick(i)}
+                  aria-label={f.label}
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    top: 0,
+                    width: `${box}px`,
+                    height: `${box}px`,
+                    // place card centre at -ICON_RADIUS along the rotated Y axis, then counter-rotate
+                    transform: `translate(-50%, -50%) translateY(-${ICON_RADIUS}px) rotate(-${rot}deg)`,
+                    borderRadius: isActive ? "14px" : "12px",
+                    background: isActive ? "#111111" : "#FFFFFF",
+                    border: isActive ? "none" : "1px solid #E8E8E8",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    opacity: isActive ? 1 : 0.6,
+                    boxShadow: isActive
+                      ? "0 12px 24px -8px rgba(0,0,0,0.25), 0 4px 8px -4px rgba(0,0,0,0.15)"
+                      : "none",
+                    transition:
+                      "width 300ms ease-out, height 300ms ease-out, background 300ms ease-out, border-radius 300ms ease-out, box-shadow 300ms ease-out, opacity 300ms ease-out, border-color 300ms ease-out, transform 300ms ease-out",
+                    padding: 0,
+                  }}
+                >
+                  <Icon
+                    size={isActive ? 26 : 22}
+                    color={isActive ? "#FFFFFF" : "#999999"}
+                    strokeWidth={1.75}
+                  />
+                </button>
+              </div>
             );
           })}
         </div>
