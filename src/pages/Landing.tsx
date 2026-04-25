@@ -817,31 +817,6 @@ export default function Landing() {
 
         .feature-img-card:hover { transform: translateY(-4px); box-shadow: 0 32px 80px rgba(0,0,0,0.14); }
 
-        .au-map .leaflet-container { background: #f5f5f5 !important; outline: none; }
-        .au-map .leaflet-control-attribution,
-        .au-map .leaflet-control-container { display: none !important; }
-
-        .sydney-pin-wrap { position: relative; width: 10px; height: 10px; }
-        .sydney-dot {
-          position: absolute; top: 0; left: 0;
-          width: 10px; height: 10px;
-          background: #111111; border-radius: 50%;
-          z-index: 2;
-        }
-        .sydney-ripple {
-          position: absolute; top: 50%; left: 50%;
-          width: 10px; height: 10px;
-          margin-top: -5px; margin-left: -5px;
-          border-radius: 50%;
-          background: #111111;
-          opacity: 0.6;
-          animation: sydneyRipple 2s ease-out infinite;
-          z-index: 1;
-        }
-        @keyframes sydneyRipple {
-          0%   { transform: scale(1); opacity: 0.5; }
-          100% { transform: scale(5); opacity: 0; }
-        }
 
         .contact-input:focus {
           border-color: #111111 !important;
