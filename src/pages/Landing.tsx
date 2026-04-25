@@ -85,10 +85,11 @@ const howItWorksTabs = [
 ];
 
 const features = [
-  { pill: "AI ANALYSIS", title: "Finds what auditors miss", desc: "Auditron reads every figure, every balance, every reference — then cross-checks them across all your documents simultaneously. No skimming. No assumptions.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png", imgSide: "right" as const },
-  { pill: "RFIs", title: "RFIs written like a senior auditor", desc: "Every RFI names the exact document, figure, and transaction that needs clarification. The actual questions your client needs to answer.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.23.30%20pm.png", imgSide: "left" as const },
-  { pill: "RISK FLAGS", title: "The risks hiding in plain sight", desc: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Material risks, not paperwork gaps.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png", imgSide: "right" as const },
-  { pill: "AUDIT OPINION", title: "Sign-off ready. Not just a summary.", desc: "Every audit produces an opinion — unqualified, qualified, or adverse — with detailed reasoning citing specific compliance areas and document references.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.24.12%20pm.png", imgSide: "left" as const },
+  { pill: "AI ANALYSIS", title: "Every figure read. Every document reconciled.", desc: "Financials, bank statements, investment reports, trust deeds, minutes. Read simultaneously and reconciled across every document. Every finding linked to its exact source. No skimming. No assumptions.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png", imgSide: "right" as const },
+  { pill: "RISK FLAGS", title: "The risks hiding in plain sight.", desc: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Material risks, not paperwork gaps.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png", imgSide: "left" as const },
+  { pill: "RFIs", title: "RFIs written like a senior auditor.", desc: "Every RFI names the exact document, figure, and transaction requiring clarification. Editable before anything goes out. Nothing sent without your approval.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.23.30%20pm.png", imgSide: "right" as const },
+  { pill: "AUDIT OPINION", title: "Sign-off ready. Not just a summary.", desc: "Every audit produces an opinion, unqualified, qualified, or adverse, with detailed reasoning citing specific compliance areas and document references.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.24.12%20pm.png", imgSide: "left" as const },
+  { pill: "AUDIT FILE", title: "A complete audit file. Ready for ATO review.", desc: "Planning document, working papers, findings, RFIs, audit report. All generated, all cross-referenced to source evidence. Everything your file needs to stand up to scrutiny. Nothing to stitch together.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png", imgSide: "right" as const },
 ];
 
 const pricingFeatures = [
@@ -504,7 +505,7 @@ export default function Landing() {
               FEATURES
             </p>
             <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
-              Built for how auditors actually work
+              Everything the audit needs. Nothing left to do yourself.
             </h2>
           </RevealSection>
 
