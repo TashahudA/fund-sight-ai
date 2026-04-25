@@ -308,10 +308,10 @@ export default function Landing() {
             </p>
 
             <h1 style={{ lineHeight: 1.05, marginBottom: "20px" }}>
-              <span className="hidden md:block" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "64px", color: "#111111", letterSpacing: "-0.03em" }}>
+              <span className="hidden md:block" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "64px", color: "#111111", letterSpacing: "-0.03em" }}>
                 95% of your audit done.<br />In under 10 minutes.
               </span>
-              <span className="block md:hidden" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "38px", color: "#111111", letterSpacing: "-0.03em" }}>
+              <span className="block md:hidden" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "38px", color: "#111111", letterSpacing: "-0.03em" }}>
                 95% of your audit done.<br />In under 10 minutes.
               </span>
             </h1>
