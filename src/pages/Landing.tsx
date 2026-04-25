@@ -297,7 +297,7 @@ export default function Landing() {
               letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: "20px",
               color: "#999999", display: "inline-block",
             }}>
-              AI-POWERED
+              AI-POWERED SMSF AUDITS
             </p>
 
             <h1 style={{ lineHeight: 1.0, marginBottom: "20px" }}>
@@ -338,6 +338,31 @@ export default function Landing() {
               >
                 See How It Works
               </button>
+            </div>
+
+            {/* Trust indicators */}
+            <div style={{
+              marginTop: "28px", display: "flex", alignItems: "center", justifyContent: "center",
+              gap: "20px", flexWrap: "wrap",
+              fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "14px", color: "#6B6B6B",
+            }}>
+              {[
+                "Built for ASIC-registered auditors",
+                "APES 110 & SIS Act aligned",
+                "Australian-hosted & encrypted",
+              ].map((label, i) => (
+                <div key={label} style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span aria-hidden="true" style={{
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      width: "18px", height: "18px", borderRadius: "9999px",
+                      background: "#f1f1f1", color: "#6B6B6B", fontSize: "11px", lineHeight: 1,
+                    }}>✓</span>
+                    <span>{label}</span>
+                  </div>
+                  {i < 2 && <span style={{ color: "#cfcfcf" }}>·</span>}
+                </div>
+              ))}
             </div>
           </div>
         </div>
