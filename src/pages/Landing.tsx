@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Check, Plus, ScanText, AlertTriangle, MessageSquare, FileCheck, FolderOpen } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Intersection Observer hook — fires once                            */
@@ -76,371 +76,12 @@ function FAQAccordion() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Features showcase — rebuilt from scratch                           */
+/*  Data                                                               */
 /* ------------------------------------------------------------------ */
-type FeatureItem = {
-  label: string;
-  icon: typeof ScanText;
-  headline: string;
-  body: string;
-  img: string;
-  textSide: "left" | "right";
-  rotation: number; // degrees clockwise from 12 o'clock
-};
-
-const FEATURES: FeatureItem[] = [
-  {
-    label: "AI ANALYSIS",
-    icon: ScanText,
-    headline: "Every figure read. Every document agreed.",
-    body: "Financials, bank statements, investment reports, trust deeds, minutes — read simultaneously and agreed across every document. Every finding linked to its exact source. No skimming. No assumptions.",
-    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png",
-    textSide: "left",
-    rotation: 0,
-  },
-  {
-    label: "RISK FLAGS",
-    icon: AlertTriangle,
-    headline: "The risks hiding in plain sight.",
-    body: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Material risks, not paperwork gaps.",
-    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png",
-    textSide: "right",
-    rotation: 72,
-  },
-  {
-    label: "RFIs",
-    icon: MessageSquare,
-    headline: "RFIs written like a senior auditor.",
-    body: "Every RFI names the exact document, figure, and transaction requiring clarification. Editable before anything goes out. Nothing sent without your approval.",
-    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.23.30%20pm.png",
-    textSide: "right",
-    rotation: 144,
-  },
-  {
-    label: "AUDIT OPINION",
-    icon: FileCheck,
-    headline: "Sign-off ready. Not just a summary.",
-    body: "Every audit produces an opinion — unqualified, qualified, or adverse — with detailed reasoning citing specific compliance areas and document references.",
-    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.24.12%20pm.png",
-    textSide: "left",
-    rotation: 216,
-  },
-  {
-    label: "AUDIT FILE",
-    icon: FolderOpen,
-    headline: "A complete audit file. Ready for ATO review.",
-    body: "Planning document, working papers, findings, RFIs, audit report — all generated, all cross-referenced to source evidence. Everything your file needs to stand up to scrutiny. Nothing to stitch together.",
-    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png",
-    textSide: "left",
-    rotation: 288,
-  },
-];
-
-function FeatureShowcaseSection() {
-  // Geometry
-  const CIRCLE = 500;
-  const R = CIRCLE / 2; // 250
-  const ICON_R = 300; // distance from centre to icon-card centre
-  const ACTIVE = 60;
-  const INACTIVE = 52;
-  // Stage must comfortably contain the outermost icon card
-  const STAGE = (ICON_R + ACTIVE / 2 + 12) * 2; // 684
-
-  const [active, setActive] = useState(0);
-  const [pausedUntil, setPausedUntil] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (Date.now() < pausedUntil) return;
-      setActive((a) => (a + 1) % FEATURES.length);
-    }, 4000);
-    return () => clearInterval(id);
-  }, [pausedUntil]);
-
-  const pick = (i: number) => {
-    setActive(i);
-    setPausedUntil(Date.now() + 8000);
-  };
-
-  return (
-    <section
-      id="features"
-      style={{
-        background: "#FFFFFF",
-        padding: "80px 24px",
-        maxHeight: "900px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        overflow: "hidden",
-      }}
-    >
-      {/* Section headline */}
-      <h2
-        style={{
-          fontFamily: "'Manrope', 'Open Sans', sans-serif",
-          fontWeight: 600,
-          fontSize: "36px",
-          color: "#111111",
-          lineHeight: 1.2,
-          maxWidth: "720px",
-          margin: "0 auto 60px",
-          textAlign: "center",
-        }}
-      >
-        Everything the audit needs. Nothing left to do yourself.
-      </h2>
-
-      {/* Showcase row: text | stage | text */}
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: `${STAGE}px`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {/* Feature text — one slot on each side; we render the active feature into the matching slot */}
-        {(["left", "right"] as const).map((slot) => {
-          const slotFeature = FEATURES[active].textSide === slot ? FEATURES[active] : null;
-          // Position: 60px gap from circle edge; clamp so it never overflows the viewport
-          const positionStyle: React.CSSProperties =
-            slot === "left"
-              ? { left: `max(24px, calc(50% - ${R + 60 + 280}px))` }
-              : { right: `max(24px, calc(50% - ${R + 60 + 280}px))` };
-          return (
-            <div
-              key={`slot-${slot}`}
-              aria-live="polite"
-              style={{
-                position: "absolute",
-                top: "50%",
-                ...positionStyle,
-                width: "280px",
-                maxWidth: "280px",
-                transform: `translateY(-50%) translateX(${slotFeature ? "0px" : slot === "left" ? "-20px" : "20px"})`,
-                opacity: slotFeature ? 1 : 0,
-                transition: "opacity 250ms ease, transform 250ms ease",
-                pointerEvents: slotFeature ? "auto" : "none",
-              }}
-            >
-              {slotFeature && (
-                <>
-                  <p
-                    style={{
-                      fontFamily: "'Manrope', 'Open Sans', sans-serif",
-                      fontSize: "11px",
-                      fontWeight: 500,
-                      color: "#888888",
-                      letterSpacing: "0.12em",
-                      textTransform: "uppercase",
-                      margin: 0,
-                    }}
-                  >
-                    {slotFeature.label}
-                  </p>
-                  <h3
-                    style={{
-                      fontFamily: "'Manrope', 'Open Sans', sans-serif",
-                      fontSize: "22px",
-                      fontWeight: 600,
-                      color: "#111111",
-                      lineHeight: 1.3,
-                      margin: "10px 0 0",
-                    }}
-                  >
-                    {slotFeature.headline}
-                  </h3>
-                  <p
-                    style={{
-                      fontFamily: "'Manrope', 'Open Sans', sans-serif",
-                      fontSize: "14px",
-                      fontWeight: 400,
-                      color: "#666666",
-                      lineHeight: 1.6,
-                      margin: "12px 0 0",
-                    }}
-                  >
-                    {slotFeature.body}
-                  </p>
-                </>
-              )}
-            </div>
-          );
-        })}
-
-        {/* Stage: circle, screenshot, spokes, icon cards */}
-        <div
-          style={{
-            position: "relative",
-            width: `${STAGE}px`,
-            height: `${STAGE}px`,
-            flexShrink: 0,
-          }}
-        >
-          {/* Circle */}
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: `${CIRCLE}px`,
-              height: `${CIRCLE}px`,
-              borderRadius: "50%",
-              background:
-                "radial-gradient(circle at 50% 35%, #F5F5F5 0%, #ECECEC 60%, #DCDCDC 100%)",
-              boxShadow: "inset 0 -30px 60px rgba(0,0,0,0.05)",
-            }}
-          />
-
-          {/* Product screenshot crossfade */}
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "360px",
-              height: "260px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {FEATURES.map((f, i) => (
-              <div
-                key={`img-${i}`}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: i === active ? 1 : 0,
-                  transition: "opacity 350ms ease",
-                  WebkitMaskImage:
-                    "linear-gradient(to bottom, black 65%, transparent 100%)",
-                  maskImage:
-                    "linear-gradient(to bottom, black 65%, transparent 100%)",
-                }}
-              >
-                <img
-                  src={f.img}
-                  alt={f.label}
-                  loading="lazy"
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                    width: "auto",
-                    height: "auto",
-                    objectFit: "contain",
-                    borderRadius: "10px",
-                    boxShadow: "0 16px 32px rgba(0,0,0,0.12)",
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Spokes — rotate a 0×0 anchor at the centre, then place a vertical line */}
-          {FEATURES.map((f, i) => {
-            const isActive = i === active;
-            const box = isActive ? ACTIVE : INACTIVE;
-            const spokeLen = ICON_R - box / 2 - R;
-            return (
-              <div
-                key={`spoke-${i}`}
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  width: 0,
-                  height: 0,
-                  transform: `rotate(${f.rotation}deg)`,
-                  pointerEvents: "none",
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    bottom: `${R}px`,
-                    width: "1px",
-                    height: `${Math.max(spokeLen, 0)}px`,
-                    background: isActive ? "#333333" : "#CCCCCC",
-                    opacity: isActive ? 1 : 0.4,
-                    transform: "translateX(-50%)",
-                    transition: "background 200ms ease, opacity 200ms ease",
-                  }}
-                />
-              </div>
-            );
-          })}
-
-          {/* Icon cards — same rotate-then-translate trick, with a counter-rotation so the icon is upright */}
-          {FEATURES.map((f, i) => {
-            const isActive = i === active;
-            const Icon = f.icon;
-            const box = isActive ? ACTIVE : INACTIVE;
-            return (
-              <div
-                key={`icon-${i}`}
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  width: 0,
-                  height: 0,
-                  transform: `rotate(${f.rotation}deg)`,
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => pick(i)}
-                  aria-label={f.label}
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    width: `${box}px`,
-                    height: `${box}px`,
-                    transform: `translate(-50%, -50%) translateY(-${ICON_R}px) rotate(-${f.rotation}deg)`,
-                    borderRadius: isActive ? "12px" : "10px",
-                    background: isActive ? "#111111" : "#F0F0F0",
-                    border: isActive ? "none" : "1px solid #E0E0E0",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    opacity: isActive ? 1 : 0.55,
-                    boxShadow: isActive ? "0 8px 20px rgba(0,0,0,0.2)" : "none",
-                    transition:
-                      "width 250ms ease, height 250ms ease, background 250ms ease, border-color 250ms ease, border-radius 250ms ease, box-shadow 250ms ease, opacity 250ms ease, transform 250ms ease",
-                    padding: 0,
-                  }}
-                >
-                  <Icon
-                    size={isActive ? 24 : 20}
-                    color={isActive ? "#FFFFFF" : "#999999"}
-                    strokeWidth={1.75}
-                  />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 const howItWorksTabs = [
   { num: "01", tab: "Upload", title: "Upload the fund pack", desc: "Financial statements, bank statements, investment reports, trustee minutes. Every document type. Every format. Auditron handles it all.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png" },
   { num: "02", tab: "Analysis", title: "Every SIS Act area checked automatically", desc: "Contribution caps, pension minimums, in-house assets, related party transactions. Every finding referenced to its exact source document. Nothing missed. Nothing assumed.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.27.20%20pm.png" },
-  { num: "03", tab: "Review", title: "95% done. You do the rest.", desc: "Every finding is reviewable. Every RFI editable. Every opinion adjustable. You make the calls. You sign the file. Professional judgement stays exactly where it belongs — with you.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.29.00%20pm.png" },
+  { num: "03", tab: "Review and sign", title: "95% done. You do the rest.", desc: "Every finding is reviewable. Every RFI editable. Every opinion adjustable. You make the calls. You sign the file. Professional judgement stays exactly where it belongs — with you.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.29.00%20pm.png" },
 ];
 
 const features = [
@@ -856,7 +497,57 @@ export default function Landing() {
       </section>
 
       {/* ==== FEATURES ==== */}
-      <FeatureShowcaseSection />
+      <section id="features" style={{ background: "#ffffff", padding: "120px 24px" }}>
+        <div className="mx-auto" style={{ maxWidth: "1100px" }}>
+          <RevealSection className="text-center" style={{ marginBottom: "64px" }}>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
+              FEATURES
+            </p>
+            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
+              Built for how auditors actually work
+            </h2>
+          </RevealSection>
+
+          {features.map((feat, i) => {
+            const imgLeft = feat.imgSide === "left";
+            return (
+              <RevealSection key={i}>
+                <div
+                  className={`flex flex-col ${imgLeft ? "md:flex-row-reverse" : "md:flex-row"} items-center`}
+                  style={{ gap: "48px", paddingTop: i === 0 ? "0" : "100px" }}
+                >
+                  {/* Text column — 40% */}
+                  <div style={{ flex: "0 0 40%", minWidth: "240px" }}>
+                    <span style={{
+                      fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "12px",
+                      color: "#666666", background: "#f0f0f0", borderRadius: "100px",
+                      padding: "4px 14px", display: "inline-block", marginBottom: "14px",
+                    }}>
+                      {feat.pill}
+                    </span>
+                    <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#111111", lineHeight: 1.2, letterSpacing: "-0.02em", marginBottom: "16px" }}>
+                      {feat.title}
+                    </h3>
+                    <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", lineHeight: 1.75, maxWidth: "380px" }}>
+                      {feat.desc}
+                    </p>
+                  </div>
+                  {/* Image column — 60% */}
+                  <div style={{ flex: "0 0 60%", minWidth: "280px", width: "100%" }}>
+                    <div className="feature-img-card" style={{
+                      borderRadius: "16px", overflow: "hidden",
+                      boxShadow: "0 16px 56px rgba(0,0,0,0.12)",
+                      transition: "all 0.3s ease",
+                    }}>
+                      <img src={feat.img} alt={feat.title} className="w-full" loading="lazy" style={{ objectFit: "contain", display: "block", width: "100%" }} />
+                    </div>
+                  </div>
+                </div>
+              </RevealSection>
+            );
+          })}
+        </div>
+      </section>
 
       {/* ==== PRICING ==== */}
       <section id="pricing" style={{ background: "#ffffff", padding: "120px 24px" }}>
