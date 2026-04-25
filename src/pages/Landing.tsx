@@ -1,6 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Check, Plus } from "lucide-react";
+import auSvgRaw from "@/assets/au.svg?raw";
+
+// Pre-process the uploaded Australia SVG: force fill #111111, remove stroke,
+// and set width/height for inline embedding.
+const auSvgProcessed = auSvgRaw
+  .replace(/<\?xml[^?]*\?>/g, "")
+  .replace(/<!--[\s\S]*?-->/g, "")
+  .replace(/\sfill="[^"]*"/gi, "")
+  .replace(/\sstroke="[^"]*"/gi, "")
+  .replace(/\sstroke-width="[^"]*"/gi, "")
+  .replace(/\swidth="[^"]*"/i, "")
+  .replace(/\sheight="[^"]*"/i, "")
+  .replace(/<svg\b/i, '<svg width="420" height="auto" style="display:block;fill:#111111;stroke:none;"');
 
 /* ------------------------------------------------------------------ */
 /*  Intersection Observer hook — fires once                            */
@@ -568,39 +581,44 @@ export default function Landing() {
             <div className="flex flex-col md:flex-row items-center" style={{ gap: "64px" }}>
               {/* Left: Australia SVG */}
               <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 1000 800"
-                  style={{ width: "480px", maxWidth: "100%", height: "auto", display: "block", background: "transparent" }}
-                  aria-label="Australia with Sydney location"
-                >
-                  {/* Mainland */}
-                  <path
-                    fill="#111111"
-                    d="M 380,140 L 420,120 L 480,115 L 540,125 L 600,145 L 650,160 L 700,190 L 740,230 L 760,270 L 770,320 L 760,370 L 740,410 L 720,450 L 700,490 L 680,530 L 650,560 L 610,580 L 570,590 L 530,600 L 490,620 L 460,650 L 440,680 L 420,660 L 400,630 L 380,600 L 360,570 L 340,540 L 320,500 L 300,460 L 290,420 L 285,380 L 290,340 L 300,300 L 320,260 L 340,220 L 360,175 Z"
+                <div style={{ position: "relative", width: "420px", maxWidth: "100%" }}>
+                  <div
+                    aria-label="Australia"
+                    dangerouslySetInnerHTML={{ __html: auSvgProcessed }}
                   />
-                  {/* Tasmania */}
-                  <path
-                    fill="#111111"
-                    d="M 490,710 L 510,700 L 525,715 L 520,735 L 505,745 L 490,735 Z"
-                  />
-                  {/* Sydney pin — outer ring */}
-                  <circle cx="720" cy="480" r="22" fill="none" stroke="#FFFFFF" strokeWidth="1" opacity="0.3">
-                    <animate attributeName="r" values="22;48.4;22" dur="2s" begin="0.5s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.3;0;0.3" dur="2s" begin="0.5s" repeatCount="indefinite" />
-                  </circle>
-                  {/* Sydney pin — middle ring */}
-                  <circle cx="720" cy="480" r="14" fill="none" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.6">
-                    <animate attributeName="r" values="14;25.2;14" dur="2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite" />
-                  </circle>
-                  {/* Sydney pin — inner dot */}
-                  <circle cx="720" cy="480" r="6" fill="#FFFFFF" />
-                  {/* Sydney label */}
-                  <text x="735" y="478" fill="#FFFFFF" fontFamily="Manrope, sans-serif" fontSize="11" fontWeight="500" dominantBaseline="middle">
-                    Sydney
-                  </text>
-                </svg>
+                  {/* Sydney pin overlay — absolutely positioned at 72% / 62% */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: "72%",
+                      top: "62%",
+                      width: 0,
+                      height: 0,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="120"
+                      height="60"
+                      viewBox="-30 -30 120 60"
+                      style={{ position: "absolute", left: "-30px", top: "-30px", overflow: "visible" }}
+                    >
+                      <circle cx="0" cy="0" r="22" fill="none" stroke="#FFFFFF" strokeWidth="1" opacity="0.3">
+                        <animate attributeName="r" values="22;48.4;22" dur="2s" begin="0.5s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.3;0;0.3" dur="2s" begin="0.5s" repeatCount="indefinite" />
+                      </circle>
+                      <circle cx="0" cy="0" r="14" fill="none" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.6">
+                        <animate attributeName="r" values="14;25.2;14" dur="2s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite" />
+                      </circle>
+                      <circle cx="0" cy="0" r="6" fill="#FFFFFF" />
+                      <text x="16" y="0" fill="#FFFFFF" fontFamily="Manrope, sans-serif" fontSize="11" fontWeight="500" dominantBaseline="middle">
+                        Sydney
+                      </text>
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               {/* Right: Trust points */}
