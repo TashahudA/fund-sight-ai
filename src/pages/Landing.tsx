@@ -143,20 +143,15 @@ function FeatureShowcaseSection() {
     setPausedUntil(Date.now() + 8000);
   };
 
-  const CIRCLE = 600;
+  const CIRCLE = 580;
   const RADIUS = CIRCLE / 2;
-  const ICON_OFFSET = 70; // distance from circle edge to icon centre
-
-  const current = showcaseFeatures[active];
+  const ICON_OFFSET = 64; // distance from circle edge to icon centre
 
   return (
     <section id="features" style={{ background: "#ffffff", padding: "120px 24px" }}>
       <div className="mx-auto" style={{ maxWidth: "1200px" }}>
-        <RevealSection className="text-center" style={{ marginBottom: "72px" }}>
-          <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
-            FEATURES
-          </p>
-          <h2 style={{ fontFamily: "'Manrope', 'Open Sans', sans-serif", fontWeight: 700, fontSize: "44px", color: "#111111", letterSpacing: "-0.02em", lineHeight: 1.15, maxWidth: "780px", margin: "0 auto" }}>
+        <RevealSection className="text-center" style={{ marginBottom: "56px" }}>
+          <h2 style={{ fontFamily: "'Manrope', 'Open Sans', sans-serif", fontWeight: 700, fontSize: "44px", color: "#111111", letterSpacing: "-0.02em", lineHeight: 1.2, maxWidth: "820px", margin: "0 auto" }}>
             Everything the audit needs. Nothing left to do yourself.
           </h2>
         </RevealSection>
@@ -217,11 +212,12 @@ function FeatureShowcaseSection() {
               width: `${CIRCLE}px`, height: `${CIRCLE}px`,
             }}
           >
-            {/* The circle */}
+            {/* The circle — soft gradient, slightly darker & blurred toward bottom */}
             <div
               style={{
                 position: "absolute", inset: 0, borderRadius: "50%",
-                background: "radial-gradient(circle at 50% 50%, #F2F2F2 0%, #F2F2F2 55%, #E5E5E5 100%)",
+                background: "radial-gradient(circle at 50% 38%, #F6F6F6 0%, #EFEFEF 55%, #E2E2E2 100%)",
+                boxShadow: "inset 0 -40px 60px -20px rgba(0,0,0,0.08)",
               }}
             />
 
@@ -235,22 +231,32 @@ function FeatureShowcaseSection() {
               }}
             >
               {showcaseFeatures.map((f, i) => (
-                <img
+                <div
                   key={`img-${i}`}
-                  src={f.img}
-                  alt={f.label}
-                  loading="lazy"
                   style={{
                     position: "absolute",
-                    maxWidth: "100%", maxHeight: "100%",
-                    width: "auto", height: "auto",
-                    objectFit: "contain",
-                    borderRadius: "12px",
-                    boxShadow: "0 16px 48px rgba(0,0,0,0.12)",
+                    width: "100%", height: "100%",
+                    display: "flex", alignItems: "center", justifyContent: "center",
                     opacity: i === active ? 1 : 0,
                     transition: "opacity 300ms ease",
+                    // soft fade at the bottom into the circle gradient
+                    WebkitMaskImage: "linear-gradient(to bottom, #000 0%, #000 78%, rgba(0,0,0,0) 100%)",
+                    maskImage: "linear-gradient(to bottom, #000 0%, #000 78%, rgba(0,0,0,0) 100%)",
                   }}
-                />
+                >
+                  <img
+                    src={f.img}
+                    alt={f.label}
+                    loading="lazy"
+                    style={{
+                      maxWidth: "100%", maxHeight: "100%",
+                      width: "auto", height: "auto",
+                      objectFit: "contain",
+                      borderRadius: "14px",
+                      boxShadow: "0 18px 44px rgba(0,0,0,0.10)",
+                    }}
+                  />
+                </div>
               ))}
             </div>
 
@@ -274,10 +280,10 @@ function FeatureShowcaseSection() {
                   >
                     <line
                       x1={x1} y1={y1} x2={x2} y2={y2}
-                      stroke={isActive ? "#111111" : "#AAAAAA"}
-                      strokeOpacity={isActive ? 1 : 0.4}
-                      strokeWidth={1.25}
-                      style={{ transition: "stroke 300ms ease, stroke-opacity 300ms ease" }}
+                      stroke="#111111"
+                      strokeOpacity={isActive ? 1 : 0.35}
+                      strokeWidth={1}
+                      style={{ transition: "stroke-opacity 300ms ease" }}
                     />
                   </svg>
                   <button
@@ -288,20 +294,22 @@ function FeatureShowcaseSection() {
                       position: "absolute",
                       left: `${x2}px`, top: `${y2}px`,
                       width: `${ICON_BOX}px`, height: `${ICON_BOX}px`,
-                      transform: `translate(-50%, -50%) scale(${isActive ? 1.12 : 1})`,
-                      borderRadius: "50%",
-                      background: "#ffffff",
-                      border: `1px solid ${isActive ? "#111111" : "#E5E5E5"}`,
+                      transform: `translate(-50%, -50%) translateY(${isActive ? -2 : 0}px)`,
+                      borderRadius: "12px",
+                      background: isActive ? "#111111" : "#EFEFEF",
+                      border: "none",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       cursor: "pointer",
                       pointerEvents: "auto",
-                      opacity: isActive ? 1 : 0.4,
-                      transition: "transform 300ms ease, opacity 300ms ease, border-color 300ms ease",
-                      boxShadow: isActive ? "0 6px 18px rgba(0,0,0,0.10)" : "none",
+                      opacity: isActive ? 1 : 0.35,
+                      transition: "transform 300ms ease, opacity 300ms ease, background 300ms ease, box-shadow 300ms ease",
+                      boxShadow: isActive
+                        ? "0 14px 28px -10px rgba(0,0,0,0.45), 0 4px 10px -2px rgba(0,0,0,0.18)"
+                        : "none",
                       padding: 0,
                     }}
                   >
-                    <Icon size={22} color={isActive ? "#111111" : "#AAAAAA"} strokeWidth={1.75} />
+                    <Icon size={22} color={isActive ? "#ffffff" : "#7A7A7A"} strokeWidth={1.75} />
                   </button>
                 </div>
               );
