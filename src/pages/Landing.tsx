@@ -86,7 +86,7 @@ const showcaseFeatures = [
     body: "Financials, bank statements, investment reports, trust deeds, minutes — read simultaneously and agreed across every document. Every finding linked to its exact source. No skimming. No assumptions.",
     img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png",
     side: "left" as const,
-    angle: -90, // top
+    angle: 270, // top
   },
   {
     label: "RISK FLAGS",
@@ -95,7 +95,7 @@ const showcaseFeatures = [
     body: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Material risks, not paperwork gaps.",
     img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png",
     side: "right" as const,
-    angle: -18, // top-right
+    angle: 342, // top-right
   },
   {
     label: "RFIs",
@@ -122,199 +122,298 @@ const showcaseFeatures = [
     body: "Planning document, working papers, findings, RFIs, audit report — all generated, all cross-referenced to source evidence. Everything your file needs to stand up to scrutiny. Nothing to stitch together.",
     img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png",
     side: "left" as const,
-    angle: -162, // top-left
+    angle: 198, // top-left
   },
 ];
 
 function FeatureShowcaseSection() {
   const [active, setActive] = useState(0);
+  const [prev, setPrev] = useState(0);
   const [pausedUntil, setPausedUntil] = useState(0);
 
   useEffect(() => {
     const id = setInterval(() => {
       if (Date.now() < pausedUntil) return;
-      setActive((a) => (a + 1) % showcaseFeatures.length);
+      setActive((a) => {
+        setPrev(a);
+        return (a + 1) % showcaseFeatures.length;
+      });
     }, 4000);
     return () => clearInterval(id);
   }, [pausedUntil]);
 
   const handlePick = (i: number) => {
+    setPrev(active);
     setActive(i);
     setPausedUntil(Date.now() + 8000);
   };
 
-  const CIRCLE = 580;
-  const RADIUS = CIRCLE / 2;
-  const ICON_OFFSET = 64; // distance from circle edge to icon centre
+  const CIRCLE = 540;
+  const RADIUS = CIRCLE / 2; // 270
+  const ICON_RADIUS = 360; // distance from circle centre to icon-card centre
+  const ACTIVE_BOX = 64;
+  const INACTIVE_BOX = 56;
+  // Stage size needs to fit icon cards comfortably (icon centre at 360 + half of active card)
+  const STAGE = (ICON_RADIUS + ACTIVE_BOX / 2 + 8) * 2; // ~800px
 
   return (
-    <section id="features" style={{ background: "#ffffff", padding: "120px 24px" }}>
-      <div className="mx-auto" style={{ maxWidth: "1200px" }}>
-        <RevealSection className="text-center" style={{ marginBottom: "56px" }}>
-          <h2 style={{ fontFamily: "'Manrope', 'Open Sans', sans-serif", fontWeight: 700, fontSize: "44px", color: "#111111", letterSpacing: "-0.02em", lineHeight: 1.2, maxWidth: "820px", margin: "0 auto" }}>
-            Everything the audit needs. Nothing left to do yourself.
-          </h2>
-        </RevealSection>
-
-        <div
-          className="relative mx-auto"
-          style={{ width: "100%", maxWidth: `${CIRCLE + ICON_OFFSET * 2 + 80}px`, height: `${CIRCLE + ICON_OFFSET * 2 + 80}px` }}
+    <section
+      id="features"
+      style={{
+        background: "#FFFFFF",
+        padding: "80px 24px 40px",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
+      <RevealSection className="text-center" style={{ marginBottom: "60px", width: "100%" }}>
+        <h2
+          style={{
+            fontFamily: "'Manrope', 'Open Sans', sans-serif",
+            fontWeight: 600,
+            fontSize: "40px",
+            color: "#111111",
+            lineHeight: 1.2,
+            maxWidth: "720px",
+            margin: "0 auto",
+          }}
         >
-          {/* Side text panels */}
-          {showcaseFeatures.map((f, i) => {
-            const isActive = i === active;
-            const onLeft = f.side === "left";
-            return (
-              <div
-                key={`text-${i}`}
-                aria-hidden={!isActive}
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  [onLeft ? "right" : "left"]: `calc(50% + ${RADIUS + ICON_OFFSET + 40}px)`,
-                  transform: "translateY(-50%)",
-                  width: "260px",
-                  textAlign: onLeft ? "right" : "left",
-                  opacity: isActive ? 1 : 0,
-                  transition: "opacity 300ms ease",
-                  pointerEvents: isActive ? "auto" : "none",
-                } as React.CSSProperties}
-              >
-                <p style={{
-                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
-                  fontWeight: 600, fontSize: "11px", color: "#111111",
-                  letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: "14px",
-                }}>
-                  {f.label}
-                </p>
-                <h3 style={{
-                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
-                  fontWeight: 600, fontSize: "22px", color: "#111111",
-                  lineHeight: 1.25, letterSpacing: "-0.01em", marginBottom: "14px",
-                }}>
-                  {f.headline}
-                </h3>
-                <p style={{
-                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
-                  fontWeight: 400, fontSize: "14px", color: "#666666", lineHeight: 1.7,
-                }}>
-                  {f.body}
-                </p>
-              </div>
-            );
-          })}
+          Everything the audit needs. Nothing left to do yourself.
+        </h2>
+      </RevealSection>
 
-          {/* Centre stage: circle + spokes + icons */}
+      <div
+        className="relative"
+        style={{
+          width: "100%",
+          maxWidth: `${STAGE + 720}px`, // room for side text on both sides
+          height: `${STAGE}px`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {/* Side text panels */}
+        {showcaseFeatures.map((f, i) => {
+          const isActive = i === active;
+          const wasPrev = i === prev && !isActive;
+          const onLeft = f.side === "left";
+          return (
+            <div
+              key={`text-${i}`}
+              aria-hidden={!isActive}
+              style={{
+                position: "absolute",
+                top: "50%",
+                [onLeft ? "right" : "left"]: `calc(50% + ${STAGE / 2 + 40}px)`,
+                width: "320px",
+                textAlign: "left",
+                opacity: isActive ? 1 : 0,
+                transform: `translateY(-50%) translateX(${
+                  isActive ? "0px" : wasPrev ? (onLeft ? "-20px" : "20px") : (onLeft ? "20px" : "-20px")
+                })`,
+                transition: isActive
+                  ? "opacity 300ms ease-out 100ms, transform 300ms ease-out 100ms"
+                  : "opacity 300ms ease, transform 300ms ease",
+                pointerEvents: isActive ? "auto" : "none",
+              } as React.CSSProperties}
+            >
+              <p
+                style={{
+                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
+                  fontWeight: 500,
+                  fontSize: "12px",
+                  color: "#111111",
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  margin: 0,
+                }}
+              >
+                {f.label}
+              </p>
+              <h3
+                style={{
+                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "24px",
+                  color: "#111111",
+                  lineHeight: 1.3,
+                  margin: "12px 0 0",
+                }}
+              >
+                {f.headline}
+              </h3>
+              <p
+                style={{
+                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "15px",
+                  color: "#666666",
+                  lineHeight: 1.6,
+                  margin: "16px 0 0",
+                }}
+              >
+                {f.body}
+              </p>
+            </div>
+          );
+        })}
+
+        {/* Centre stage */}
+        <div
+          style={{
+            position: "relative",
+            width: `${STAGE}px`,
+            height: `${STAGE}px`,
+            flexShrink: 0,
+          }}
+        >
+          {/* The circle — 3D sphere look */}
           <div
             style={{
-              position: "absolute", top: "50%", left: "50%",
+              position: "absolute",
+              top: "50%",
+              left: "50%",
               transform: "translate(-50%, -50%)",
-              width: `${CIRCLE}px`, height: `${CIRCLE}px`,
+              width: `${CIRCLE}px`,
+              height: `${CIRCLE}px`,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle at 50% 30%, #F5F5F5 0%, #EAEAEA 65%, #DCDCDC 100%)",
+              boxShadow: "inset 0 -40px 80px -20px rgba(0,0,0,0.06)",
+            }}
+          />
+
+          {/* Screenshot crossfade — centred horizontally; vertical centre at 45% of circle */}
+          <div
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: `calc(50% - ${RADIUS}px + ${RADIUS * 2 * 0.45}px)`,
+              transform: "translate(-50%, -50%)",
+              width: "380px",
+              height: "260px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            {/* The circle — soft gradient, slightly darker & blurred toward bottom */}
-            <div
-              style={{
-                position: "absolute", inset: 0, borderRadius: "50%",
-                background: "radial-gradient(circle at 50% 38%, #F6F6F6 0%, #EFEFEF 55%, #E2E2E2 100%)",
-                boxShadow: "inset 0 -40px 60px -20px rgba(0,0,0,0.08)",
-              }}
-            />
-
-            {/* Screenshot crossfade */}
-            <div
-              style={{
-                position: "absolute", top: "50%", left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: "420px", height: "300px",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}
-            >
-              {showcaseFeatures.map((f, i) => (
-                <div
-                  key={`img-${i}`}
+            {showcaseFeatures.map((f, i) => (
+              <div
+                key={`img-${i}`}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: i === active ? 1 : 0,
+                  transition: "opacity 400ms ease-in-out",
+                  WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+                  maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+                }}
+              >
+                <img
+                  src={f.img}
+                  alt={f.label}
+                  loading="lazy"
                   style={{
-                    position: "absolute",
-                    width: "100%", height: "100%",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    opacity: i === active ? 1 : 0,
-                    transition: "opacity 300ms ease",
-                    // soft fade at the bottom into the circle gradient
-                    WebkitMaskImage: "linear-gradient(to bottom, #000 0%, #000 78%, rgba(0,0,0,0) 100%)",
-                    maskImage: "linear-gradient(to bottom, #000 0%, #000 78%, rgba(0,0,0,0) 100%)",
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    width: "auto",
+                    height: "auto",
+                    objectFit: "contain",
+                    borderRadius: "14px",
+                    boxShadow: "0 20px 40px -15px rgba(0,0,0,0.15)",
                   }}
-                >
-                  <img
-                    src={f.img}
-                    alt={f.label}
-                    loading="lazy"
-                    style={{
-                      maxWidth: "100%", maxHeight: "100%",
-                      width: "auto", height: "auto",
-                      objectFit: "contain",
-                      borderRadius: "14px",
-                      boxShadow: "0 18px 44px rgba(0,0,0,0.10)",
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
+                />
+              </div>
+            ))}
+          </div>
 
-            {/* Spokes + icons */}
+          {/* Spokes (SVG overlay covering whole stage) */}
+          <svg
+            width={STAGE}
+            height={STAGE}
+            viewBox={`0 0 ${STAGE} ${STAGE}`}
+            style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}
+          >
             {showcaseFeatures.map((f, i) => {
               const isActive = i === active;
               const rad = (f.angle * Math.PI) / 180;
-              // spoke: from edge of circle outward by ICON_OFFSET
-              const x1 = RADIUS + RADIUS * Math.cos(rad);
-              const y1 = RADIUS + RADIUS * Math.sin(rad);
-              const x2 = RADIUS + (RADIUS + ICON_OFFSET) * Math.cos(rad);
-              const y2 = RADIUS + (RADIUS + ICON_OFFSET) * Math.sin(rad);
-              const Icon = f.icon;
-              const ICON_BOX = 56;
+              const cx = STAGE / 2;
+              const cy = STAGE / 2;
+              const box = isActive ? ACTIVE_BOX : INACTIVE_BOX;
+              // spoke: from circle edge to inner edge of icon card
+              const x1 = cx + RADIUS * Math.cos(rad);
+              const y1 = cy + RADIUS * Math.sin(rad);
+              const x2 = cx + (ICON_RADIUS - box / 2) * Math.cos(rad);
+              const y2 = cy + (ICON_RADIUS - box / 2) * Math.sin(rad);
               return (
-                <div key={`spoke-${i}`} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-                  <svg
-                    width="100%" height="100%"
-                    viewBox={`0 0 ${CIRCLE} ${CIRCLE}`}
-                    style={{ position: "absolute", inset: 0, overflow: "visible" }}
-                  >
-                    <line
-                      x1={x1} y1={y1} x2={x2} y2={y2}
-                      stroke="#111111"
-                      strokeOpacity={isActive ? 1 : 0.35}
-                      strokeWidth={1}
-                      style={{ transition: "stroke-opacity 300ms ease" }}
-                    />
-                  </svg>
-                  <button
-                    type="button"
-                    onClick={() => handlePick(i)}
-                    aria-label={f.label}
-                    style={{
-                      position: "absolute",
-                      left: `${x2}px`, top: `${y2}px`,
-                      width: `${ICON_BOX}px`, height: `${ICON_BOX}px`,
-                      transform: `translate(-50%, -50%) translateY(${isActive ? -2 : 0}px)`,
-                      borderRadius: "12px",
-                      background: isActive ? "#111111" : "#EFEFEF",
-                      border: "none",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      cursor: "pointer",
-                      pointerEvents: "auto",
-                      opacity: isActive ? 1 : 0.35,
-                      transition: "transform 300ms ease, opacity 300ms ease, background 300ms ease, box-shadow 300ms ease",
-                      boxShadow: isActive
-                        ? "0 14px 28px -10px rgba(0,0,0,0.45), 0 4px 10px -2px rgba(0,0,0,0.18)"
-                        : "none",
-                      padding: 0,
-                    }}
-                  >
-                    <Icon size={22} color={isActive ? "#ffffff" : "#7A7A7A"} strokeWidth={1.75} />
-                  </button>
-                </div>
+                <line
+                  key={`spoke-${i}`}
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke={isActive ? "#111111" : "#BBBBBB"}
+                  strokeOpacity={isActive ? 1 : 0.4}
+                  strokeWidth={isActive ? 1.5 : 1}
+                  style={{ transition: "stroke 300ms ease, stroke-opacity 300ms ease, stroke-width 300ms ease" }}
+                />
               );
             })}
-          </div>
+          </svg>
+
+          {/* Icon cards */}
+          {showcaseFeatures.map((f, i) => {
+            const isActive = i === active;
+            const rad = (f.angle * Math.PI) / 180;
+            const cx = STAGE / 2;
+            const cy = STAGE / 2;
+            const x = cx + ICON_RADIUS * Math.cos(rad);
+            const y = cy + ICON_RADIUS * Math.sin(rad);
+            const Icon = f.icon;
+            const box = isActive ? ACTIVE_BOX : INACTIVE_BOX;
+            return (
+              <button
+                key={`icon-${i}`}
+                type="button"
+                onClick={() => handlePick(i)}
+                aria-label={f.label}
+                style={{
+                  position: "absolute",
+                  left: `${x}px`,
+                  top: `${y}px`,
+                  width: `${box}px`,
+                  height: `${box}px`,
+                  transform: "translate(-50%, -50%)",
+                  borderRadius: isActive ? "14px" : "12px",
+                  background: isActive ? "#111111" : "#FFFFFF",
+                  border: isActive ? "none" : "1px solid #E8E8E8",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  opacity: isActive ? 1 : 0.6,
+                  boxShadow: isActive
+                    ? "0 12px 24px -8px rgba(0,0,0,0.25), 0 4px 8px -4px rgba(0,0,0,0.15)"
+                    : "none",
+                  transition:
+                    "width 300ms ease-out, height 300ms ease-out, background 300ms ease-out, border-radius 300ms ease-out, box-shadow 300ms ease-out, opacity 300ms ease-out, border-color 300ms ease-out",
+                  padding: 0,
+                }}
+              >
+                <Icon
+                  size={isActive ? 26 : 22}
+                  color={isActive ? "#FFFFFF" : "#999999"}
+                  strokeWidth={1.75}
+                />
+              </button>
+            );
+          })}
         </div>
       </div>
     </section>
