@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Check, Plus } from "lucide-react";
+import { Check, Plus, ScanText, AlertTriangle, MessageSquare, FileCheck, FolderOpen } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Intersection Observer hook — fires once                            */
@@ -497,57 +497,7 @@ export default function Landing() {
       </section>
 
       {/* ==== FEATURES ==== */}
-      <section id="features" style={{ background: "#ffffff", padding: "120px 24px" }}>
-        <div className="mx-auto" style={{ maxWidth: "1100px" }}>
-          <RevealSection className="text-center" style={{ marginBottom: "64px" }}>
-            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
-              FEATURES
-            </p>
-            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
-              Built for how auditors actually work
-            </h2>
-          </RevealSection>
-
-          {features.map((feat, i) => {
-            const imgLeft = feat.imgSide === "left";
-            return (
-              <RevealSection key={i}>
-                <div
-                  className={`flex flex-col ${imgLeft ? "md:flex-row-reverse" : "md:flex-row"} items-center`}
-                  style={{ gap: "48px", paddingTop: i === 0 ? "0" : "100px" }}
-                >
-                  {/* Text column — 40% */}
-                  <div style={{ flex: "0 0 40%", minWidth: "240px" }}>
-                    <span style={{
-                      fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "12px",
-                      color: "#666666", background: "#f0f0f0", borderRadius: "100px",
-                      padding: "4px 14px", display: "inline-block", marginBottom: "14px",
-                    }}>
-                      {feat.pill}
-                    </span>
-                    <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#111111", lineHeight: 1.2, letterSpacing: "-0.02em", marginBottom: "16px" }}>
-                      {feat.title}
-                    </h3>
-                    <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", lineHeight: 1.75, maxWidth: "380px" }}>
-                      {feat.desc}
-                    </p>
-                  </div>
-                  {/* Image column — 60% */}
-                  <div style={{ flex: "0 0 60%", minWidth: "280px", width: "100%" }}>
-                    <div className="feature-img-card" style={{
-                      borderRadius: "16px", overflow: "hidden",
-                      boxShadow: "0 16px 56px rgba(0,0,0,0.12)",
-                      transition: "all 0.3s ease",
-                    }}>
-                      <img src={feat.img} alt={feat.title} className="w-full" loading="lazy" style={{ objectFit: "contain", display: "block", width: "100%" }} />
-                    </div>
-                  </div>
-                </div>
-              </RevealSection>
-            );
-          })}
-        </div>
-      </section>
+      <FeatureShowcaseSection />
 
       {/* ==== PRICING ==== */}
       <section id="pricing" style={{ background: "#ffffff", padding: "120px 24px" }}>
