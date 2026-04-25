@@ -1,6 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Check, Plus } from "lucide-react";
+import auSvgRaw from "@/assets/au.svg?raw";
+
+// Pre-process the uploaded Australia SVG: force fill #111111, remove stroke,
+// and set width/height for inline embedding.
+const auSvgProcessed = auSvgRaw
+  .replace(/<\?xml[^?]*\?>/g, "")
+  .replace(/<!--[\s\S]*?-->/g, "")
+  .replace(/\sfill="[^"]*"/gi, "")
+  .replace(/\sstroke="[^"]*"/gi, "")
+  .replace(/\sstroke-width="[^"]*"/gi, "")
+  .replace(/<svg([^>]*)>/i, '<svg$1 style="width:420px;height:auto;display:block;fill:#111111;stroke:none;">');
 
 /* ------------------------------------------------------------------ */
 /*  Intersection Observer hook — fires once                            */
