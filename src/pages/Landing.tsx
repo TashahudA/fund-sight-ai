@@ -289,32 +289,28 @@ export default function Landing() {
       </nav>
 
       {/* ==== HERO ==== */}
-      <section className="relative z-10" style={{ minHeight: "100vh", paddingTop: "100px", background: "#ffffff" }}>
+      <section className="relative z-10" style={{ minHeight: "100vh", paddingTop: "120px", background: "#ffffff" }}>
         <div className="relative z-10 flex flex-col items-center justify-center px-6" style={{ minHeight: "calc(60vh - 100px)" }}>
           <div className="text-center" style={{ maxWidth: "800px" }}>
             <p className="ai-powered-shimmer" style={{
               fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "14px",
-              letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: "20px",
+              letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: "20px",
               color: "#999999", display: "inline-block",
             }}>
               AI-POWERED
             </p>
 
             <h1 style={{ lineHeight: 1.0, marginBottom: "20px" }}>
-              <span className="hidden md:block" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "76px", color: "#111111", letterSpacing: "-0.03em" }}>
-                SMSF <span className="auditing-glow">Auditing</span>
+              <span className="hidden md:block" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "87px", color: "#111111", letterSpacing: "-0.03em" }}>
+                95% of your audit done. In under 10 minutes.
               </span>
-              <span className="block md:hidden" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "44px", color: "#111111", letterSpacing: "-0.03em" }}>
-                SMSF <span className="auditing-glow">Auditing</span>
+              <span className="block md:hidden" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "51px", color: "#111111", letterSpacing: "-0.03em" }}>
+                95% of your audit done. In under 10 minutes.
               </span>
             </h1>
 
-            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "20px", color: "#333333", marginBottom: "12px" }}>
-              Auditron prepares the audit. You review it. You sign it.
-            </p>
-
-            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#888888", maxWidth: "480px", margin: "0 auto", lineHeight: 1.7 }}>
-              Upload your fund documents. Get AI-powered compliance findings, automated RFIs, and audit-ready reports — in 60 SECONDS
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#6B6B6B", maxWidth: "640px", margin: "0 auto", lineHeight: 1.7 }}>
+              Auditron runs the full audit. You review the findings and sign off.
             </p>
 
             <div style={{ marginTop: "36px", display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
@@ -323,7 +319,7 @@ export default function Landing() {
                 className="btn-hover-lift"
                 style={{
                   fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "15px",
-                  background: "#111111", color: "#ffffff", border: "none", borderRadius: "8px",
+                  background: "#111111", color: "#ffffff", border: "none", borderRadius: "6px",
                   height: "48px", padding: "0 32px", cursor: "pointer", transition: "all 0.2s ease",
                 }}
               >
