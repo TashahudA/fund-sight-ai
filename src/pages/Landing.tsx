@@ -554,59 +554,72 @@ export default function Landing() {
       <section id="sovereignty" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "1100px" }}>
           <RevealSection>
-            <div style={{
-              background: "#f5f5f5",
-              borderRadius: "24px",
-              padding: "64px",
-              boxShadow: "0 2px 40px rgba(0,0,0,0.06)",
-            }}>
-              <div className="text-center" style={{ marginBottom: "20px" }}>
-                <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "36px", color: "#111111", letterSpacing: "-0.02em", margin: 0 }}>
-                  Your data never leaves Australia.
-                </h2>
-              </div>
-              <div className="text-center" style={{ marginBottom: "60px" }}>
-                <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", margin: 0 }}>
-                  Built here. Stored here. Owned by Australians.
-                </p>
-              </div>
+            <div className="text-center" style={{ marginBottom: "20px" }}>
+              <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "36px", color: "#111111", letterSpacing: "-0.02em", margin: 0 }}>
+                Your data never leaves Australia.
+              </h2>
+            </div>
+            <div className="text-center" style={{ marginBottom: "60px" }}>
+              <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", margin: 0 }}>
+                Built here. Stored here. Owned by Australians.
+              </p>
+            </div>
 
-              <div className="flex flex-col md:flex-row items-center" style={{ gap: "64px" }}>
-                {/* Left: Map */}
-                <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                  <div
-                    ref={mapRef}
-                    className="au-map"
-                    style={{
-                      width: "480px",
-                      maxWidth: "100%",
-                      height: "420px",
-                      borderRadius: "12px",
-                      overflow: "hidden",
-                      filter: "grayscale(100%) contrast(1.1)",
-                      background: "#eaeaea",
-                    }}
+            <div className="flex flex-col md:flex-row items-center" style={{ gap: "64px" }}>
+              {/* Left: Australia SVG */}
+              <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 1000 800"
+                  style={{ width: "480px", maxWidth: "100%", height: "auto", display: "block", background: "transparent" }}
+                  aria-label="Australia with Sydney location"
+                >
+                  {/* Mainland */}
+                  <path
+                    fill="#111111"
+                    d="M 380,140 L 420,120 L 480,115 L 540,125 L 600,145 L 650,160 L 700,190 L 740,230 L 760,270 L 770,320 L 760,370 L 740,410 L 720,450 L 700,490 L 680,530 L 650,560 L 610,580 L 570,590 L 530,600 L 490,620 L 460,650 L 440,680 L 420,660 L 400,630 L 380,600 L 360,570 L 340,540 L 320,500 L 300,460 L 290,420 L 285,380 L 290,340 L 300,300 L 320,260 L 340,220 L 360,175 Z"
                   />
-                </div>
+                  {/* Tasmania */}
+                  <path
+                    fill="#111111"
+                    d="M 490,710 L 510,700 L 525,715 L 520,735 L 505,745 L 490,735 Z"
+                  />
+                  {/* Sydney pin — outer ring */}
+                  <circle cx="720" cy="480" r="22" fill="none" stroke="#FFFFFF" strokeWidth="1" opacity="0.3">
+                    <animate attributeName="r" values="22;48.4;22" dur="2s" begin="0.5s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.3;0;0.3" dur="2s" begin="0.5s" repeatCount="indefinite" />
+                  </circle>
+                  {/* Sydney pin — middle ring */}
+                  <circle cx="720" cy="480" r="14" fill="none" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.6">
+                    <animate attributeName="r" values="14;25.2;14" dur="2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite" />
+                  </circle>
+                  {/* Sydney pin — inner dot */}
+                  <circle cx="720" cy="480" r="6" fill="#FFFFFF" />
+                  {/* Sydney label */}
+                  <text x="735" y="478" fill="#FFFFFF" fontFamily="Manrope, sans-serif" fontSize="11" fontWeight="500" dominantBaseline="middle">
+                    Sydney
+                  </text>
+                </svg>
+              </div>
 
-                {/* Right: Trust points */}
-                <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", gap: "32px", width: "100%" }}>
-                  {[
-                    { h: "Stored in Australia.", b: "Every document, every audit, every finding. Hosted on Australian servers. Nothing crosses borders." },
-                    { h: "Encrypted end to end.", b: "AES-256 encryption in transit and at rest. Bank grade security on every file." },
-                    { h: "Proudly Australian.", b: "Built by an Australian team. Supported by an Australian team. Every line of code written onshore." },
-                    { h: "Your data, your rules.", b: "Export everything in one click. Delete everything in one click. No lock in. No exit fees." },
-                  ].map((p, i) => (
-                    <div key={i}>
-                      <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "16px", color: "#111111", margin: 0, marginBottom: "6px" }}>
-                        {p.h}
-                      </h3>
-                      <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "14px", color: "#666666", lineHeight: 1.6, margin: 0 }}>
-                        {p.b}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+              {/* Right: Trust points */}
+              <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", gap: "32px", width: "100%" }}>
+                {[
+                  { h: "Stored in Australia.", b: "Every document, every audit, every finding. Hosted on Australian servers. Nothing crosses borders." },
+                  { h: "Encrypted end to end.", b: "AES-256 encryption in transit and at rest. Bank grade security on every file." },
+                  { h: "Proudly Australian.", b: "Built by an Australian team. Supported by an Australian team. Every line of code written onshore." },
+                  { h: "Your data, your rules.", b: "Export everything in one click. Delete everything in one click. No lock in. No exit fees." },
+                ].map((p, i) => (
+                  <div key={i}>
+                    <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "16px", color: "#111111", margin: 0, marginBottom: "6px" }}>
+                      {p.h}
+                    </h3>
+                    <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "14px", color: "#666666", lineHeight: 1.6, margin: 0 }}>
+                      {p.b}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </RevealSection>
