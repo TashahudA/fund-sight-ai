@@ -76,17 +76,27 @@ function FAQAccordion() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Data                                                               */
+/*  Features showcase — rebuilt from scratch                           */
 /* ------------------------------------------------------------------ */
-const showcaseFeatures = [
+type FeatureItem = {
+  label: string;
+  icon: typeof ScanText;
+  headline: string;
+  body: string;
+  img: string;
+  textSide: "left" | "right";
+  rotation: number; // degrees clockwise from 12 o'clock
+};
+
+const FEATURES: FeatureItem[] = [
   {
     label: "AI ANALYSIS",
     icon: ScanText,
     headline: "Every figure read. Every document agreed.",
     body: "Financials, bank statements, investment reports, trust deeds, minutes — read simultaneously and agreed across every document. Every finding linked to its exact source. No skimming. No assumptions.",
     img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png",
-    side: "left" as const,
-    angle: 270, // top
+    textSide: "left",
+    rotation: 0,
   },
   {
     label: "RISK FLAGS",
@@ -94,8 +104,8 @@ const showcaseFeatures = [
     headline: "The risks hiding in plain sight.",
     body: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Material risks, not paperwork gaps.",
     img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png",
-    side: "right" as const,
-    angle: 342, // top-right
+    textSide: "right",
+    rotation: 72,
   },
   {
     label: "RFIs",
@@ -103,8 +113,8 @@ const showcaseFeatures = [
     headline: "RFIs written like a senior auditor.",
     body: "Every RFI names the exact document, figure, and transaction requiring clarification. Editable before anything goes out. Nothing sent without your approval.",
     img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.23.30%20pm.png",
-    side: "right" as const,
-    angle: 54, // bottom-right
+    textSide: "right",
+    rotation: 144,
   },
   {
     label: "AUDIT OPINION",
@@ -112,8 +122,8 @@ const showcaseFeatures = [
     headline: "Sign-off ready. Not just a summary.",
     body: "Every audit produces an opinion — unqualified, qualified, or adverse — with detailed reasoning citing specific compliance areas and document references.",
     img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.24.12%20pm.png",
-    side: "left" as const,
-    angle: 126, // bottom-left
+    textSide: "left",
+    rotation: 216,
   },
   {
     label: "AUDIT FILE",
@@ -121,82 +131,70 @@ const showcaseFeatures = [
     headline: "A complete audit file. Ready for ATO review.",
     body: "Planning document, working papers, findings, RFIs, audit report — all generated, all cross-referenced to source evidence. Everything your file needs to stand up to scrutiny. Nothing to stitch together.",
     img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png",
-    side: "left" as const,
-    angle: 198, // top-left
+    textSide: "left",
+    rotation: 288,
   },
 ];
 
 function FeatureShowcaseSection() {
+  // Geometry
+  const CIRCLE = 500;
+  const R = CIRCLE / 2; // 250
+  const ICON_R = 300; // distance from centre to icon-card centre
+  const ACTIVE = 60;
+  const INACTIVE = 52;
+  // Stage must comfortably contain the outermost icon card
+  const STAGE = (ICON_R + ACTIVE / 2 + 12) * 2; // 684
+
   const [active, setActive] = useState(0);
-  const [prev, setPrev] = useState(0);
   const [pausedUntil, setPausedUntil] = useState(0);
 
   useEffect(() => {
     const id = setInterval(() => {
       if (Date.now() < pausedUntil) return;
-      setActive((a) => {
-        setPrev(a);
-        return (a + 1) % showcaseFeatures.length;
-      });
+      setActive((a) => (a + 1) % FEATURES.length);
     }, 4000);
     return () => clearInterval(id);
   }, [pausedUntil]);
 
-  const handlePick = (i: number) => {
-    setPrev(active);
+  const pick = (i: number) => {
     setActive(i);
     setPausedUntil(Date.now() + 8000);
   };
-
-  const CIRCLE = 500;
-  const RADIUS = CIRCLE / 2; // 250
-  const ICON_RADIUS = 310; // distance from circle centre to icon-card centre (60px outside the edge)
-  const ACTIVE_BOX = 64;
-  const INACTIVE_BOX = 56;
-  // Stage size needs to fit icon cards comfortably (icon centre at 310 + half of active card + breathing room)
-  const STAGE = (ICON_RADIUS + ACTIVE_BOX / 2 + 12) * 2; // ~708px
-
-  // Five fixed positions, each rotated by 72deg starting from top
-  const positions = [
-    { rot: 0,   side: "left"  as const }, // top
-    { rot: 72,  side: "right" as const }, // top-right
-    { rot: 144, side: "right" as const }, // bottom-right
-    { rot: 216, side: "left"  as const }, // bottom-left
-    { rot: 288, side: "left"  as const }, // top-left
-  ];
 
   return (
     <section
       id="features"
       style={{
         background: "#FFFFFF",
-        padding: "60px 24px",
-        maxHeight: "850px",
+        padding: "80px 24px",
+        maxHeight: "900px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         overflow: "hidden",
       }}
     >
-      <RevealSection className="text-center" style={{ marginBottom: "40px", width: "100%" }}>
-        <h2
-          style={{
-            fontFamily: "'Manrope', 'Open Sans', sans-serif",
-            fontWeight: 600,
-            fontSize: "40px",
-            color: "#111111",
-            lineHeight: 1.2,
-            maxWidth: "720px",
-            margin: "0 auto",
-          }}
-        >
-          Everything the audit needs. Nothing left to do yourself.
-        </h2>
-      </RevealSection>
-
-      <div
-        className="relative"
+      {/* Section headline */}
+      <h2
         style={{
+          fontFamily: "'Manrope', 'Open Sans', sans-serif",
+          fontWeight: 600,
+          fontSize: "36px",
+          color: "#111111",
+          lineHeight: 1.2,
+          maxWidth: "720px",
+          margin: "0 auto 60px",
+          textAlign: "center",
+        }}
+      >
+        Everything the audit needs. Nothing left to do yourself.
+      </h2>
+
+      {/* Showcase row: text | stage | text */}
+      <div
+        style={{
+          position: "relative",
           width: "100%",
           height: `${STAGE}px`,
           display: "flex",
@@ -204,77 +202,76 @@ function FeatureShowcaseSection() {
           justifyContent: "center",
         }}
       >
-        {/* Side text panels — clamped inside the viewport with min 80px gutters */}
-        {showcaseFeatures.map((f, i) => {
-          const isActive = i === active;
-          const wasPrev = i === prev && !isActive;
-          const onLeft = positions[i].side === "left";
-          const sideStyle: React.CSSProperties = onLeft
-            ? { left: "max(80px, calc(50% - " + (STAGE / 2 + 280) + "px))" }
-            : { right: "max(80px, calc(50% - " + (STAGE / 2 + 280) + "px))" };
+        {/* Feature text — one slot on each side; we render the active feature into the matching slot */}
+        {(["left", "right"] as const).map((slot) => {
+          const slotFeature = FEATURES[active].textSide === slot ? FEATURES[active] : null;
+          // Position: 60px gap from circle edge; clamp so it never overflows the viewport
+          const positionStyle: React.CSSProperties =
+            slot === "left"
+              ? { left: `max(24px, calc(50% - ${R + 60 + 280}px))` }
+              : { right: `max(24px, calc(50% - ${R + 60 + 280}px))` };
           return (
             <div
-              key={`text-${i}`}
-              aria-hidden={!isActive}
+              key={`slot-${slot}`}
+              aria-live="polite"
               style={{
                 position: "absolute",
                 top: "50%",
-                ...sideStyle,
-                width: "260px",
-                maxWidth: "260px",
-                textAlign: "left",
-                opacity: isActive ? 1 : 0,
-                transform: `translateY(-50%) translateX(${
-                  isActive ? "0px" : wasPrev ? (onLeft ? "-20px" : "20px") : (onLeft ? "20px" : "-20px")
-                })`,
-                transition: isActive
-                  ? "opacity 300ms ease-out 100ms, transform 300ms ease-out 100ms"
-                  : "opacity 300ms ease, transform 300ms ease",
-                pointerEvents: isActive ? "auto" : "none",
+                ...positionStyle,
+                width: "280px",
+                maxWidth: "280px",
+                transform: `translateY(-50%) translateX(${slotFeature ? "0px" : slot === "left" ? "-20px" : "20px"})`,
+                opacity: slotFeature ? 1 : 0,
+                transition: "opacity 250ms ease, transform 250ms ease",
+                pointerEvents: slotFeature ? "auto" : "none",
               }}
             >
-              <p
-                style={{
-                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  color: "#111111",
-                  letterSpacing: "0.15em",
-                  textTransform: "uppercase",
-                  margin: 0,
-                }}
-              >
-                {f.label}
-              </p>
-              <h3
-                style={{
-                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "24px",
-                  color: "#111111",
-                  lineHeight: 1.3,
-                  margin: "12px 0 0",
-                }}
-              >
-                {f.headline}
-              </h3>
-              <p
-                style={{
-                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
-                  fontWeight: 400,
-                  fontSize: "15px",
-                  color: "#666666",
-                  lineHeight: 1.6,
-                  margin: "16px 0 0",
-                }}
-              >
-                {f.body}
-              </p>
+              {slotFeature && (
+                <>
+                  <p
+                    style={{
+                      fontFamily: "'Manrope', 'Open Sans', sans-serif",
+                      fontSize: "11px",
+                      fontWeight: 500,
+                      color: "#888888",
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      margin: 0,
+                    }}
+                  >
+                    {slotFeature.label}
+                  </p>
+                  <h3
+                    style={{
+                      fontFamily: "'Manrope', 'Open Sans', sans-serif",
+                      fontSize: "22px",
+                      fontWeight: 600,
+                      color: "#111111",
+                      lineHeight: 1.3,
+                      margin: "10px 0 0",
+                    }}
+                  >
+                    {slotFeature.headline}
+                  </h3>
+                  <p
+                    style={{
+                      fontFamily: "'Manrope', 'Open Sans', sans-serif",
+                      fontSize: "14px",
+                      fontWeight: 400,
+                      color: "#666666",
+                      lineHeight: 1.6,
+                      margin: "12px 0 0",
+                    }}
+                  >
+                    {slotFeature.body}
+                  </p>
+                </>
+              )}
             </div>
           );
         })}
 
-        {/* Centre stage */}
+        {/* Stage: circle, screenshot, spokes, icon cards */}
         <div
           style={{
             position: "relative",
@@ -283,7 +280,7 @@ function FeatureShowcaseSection() {
             flexShrink: 0,
           }}
         >
-          {/* The circle — 3D sphere look */}
+          {/* Circle */}
           <div
             style={{
               position: "absolute",
@@ -294,26 +291,26 @@ function FeatureShowcaseSection() {
               height: `${CIRCLE}px`,
               borderRadius: "50%",
               background:
-                "radial-gradient(circle at 50% 30%, #F5F5F5 0%, #EAEAEA 65%, #DCDCDC 100%)",
-              boxShadow: "inset 0 -40px 80px -20px rgba(0,0,0,0.06)",
+                "radial-gradient(circle at 50% 35%, #F5F5F5 0%, #ECECEC 60%, #DCDCDC 100%)",
+              boxShadow: "inset 0 -30px 60px rgba(0,0,0,0.05)",
             }}
           />
 
-          {/* Screenshot crossfade — centred horizontally; vertical centre at 45% of circle */}
+          {/* Product screenshot crossfade */}
           <div
             style={{
               position: "absolute",
+              top: "50%",
               left: "50%",
-              top: `calc(50% - ${RADIUS}px + ${RADIUS * 2 * 0.45}px)`,
               transform: "translate(-50%, -50%)",
               width: "360px",
-              height: "240px",
+              height: "260px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            {showcaseFeatures.map((f, i) => (
+            {FEATURES.map((f, i) => (
               <div
                 key={`img-${i}`}
                 style={{
@@ -323,9 +320,11 @@ function FeatureShowcaseSection() {
                   alignItems: "center",
                   justifyContent: "center",
                   opacity: i === active ? 1 : 0,
-                  transition: "opacity 400ms ease-in-out",
-                  WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
-                  maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+                  transition: "opacity 350ms ease",
+                  WebkitMaskImage:
+                    "linear-gradient(to bottom, black 65%, transparent 100%)",
+                  maskImage:
+                    "linear-gradient(to bottom, black 65%, transparent 100%)",
                 }}
               >
                 <img
@@ -338,21 +337,19 @@ function FeatureShowcaseSection() {
                     width: "auto",
                     height: "auto",
                     objectFit: "contain",
-                    borderRadius: "14px",
-                    boxShadow: "0 20px 40px -15px rgba(0,0,0,0.15)",
+                    borderRadius: "10px",
+                    boxShadow: "0 16px 32px rgba(0,0,0,0.12)",
                   }}
                 />
               </div>
             ))}
           </div>
 
-          {/* Spokes — placed via the same rotate/translate technique as icon cards */}
-          {showcaseFeatures.map((f, i) => {
+          {/* Spokes — rotate a 0×0 anchor at the centre, then place a vertical line */}
+          {FEATURES.map((f, i) => {
             const isActive = i === active;
-            const rot = positions[i].rot;
-            // spoke length: from circle edge (RADIUS) outward to inner edge of icon card
-            const box = isActive ? ACTIVE_BOX : INACTIVE_BOX;
-            const spokeLen = ICON_RADIUS - box / 2 - RADIUS;
+            const box = isActive ? ACTIVE : INACTIVE;
+            const spokeLen = ICON_R - box / 2 - R;
             return (
               <div
                 key={`spoke-${i}`}
@@ -362,33 +359,32 @@ function FeatureShowcaseSection() {
                   left: "50%",
                   width: 0,
                   height: 0,
-                  transform: `rotate(${rot}deg)`,
+                  transform: `rotate(${f.rotation}deg)`,
                   pointerEvents: "none",
                 }}
               >
                 <div
                   style={{
                     position: "absolute",
-                    left: "50%",
-                    bottom: `${RADIUS}px`,
-                    width: isActive ? "1.5px" : "1px",
-                    height: `${spokeLen}px`,
-                    background: isActive ? "#111111" : "#BBBBBB",
+                    left: 0,
+                    bottom: `${R}px`,
+                    width: "1px",
+                    height: `${Math.max(spokeLen, 0)}px`,
+                    background: isActive ? "#333333" : "#CCCCCC",
                     opacity: isActive ? 1 : 0.4,
                     transform: "translateX(-50%)",
-                    transition: "background 300ms ease, opacity 300ms ease, width 300ms ease, height 300ms ease",
+                    transition: "background 200ms ease, opacity 200ms ease",
                   }}
                 />
               </div>
             );
           })}
 
-          {/* Icon cards — rotate the wrapper, then counter-rotate the inner button so the icon stays upright */}
-          {showcaseFeatures.map((f, i) => {
+          {/* Icon cards — same rotate-then-translate trick, with a counter-rotation so the icon is upright */}
+          {FEATURES.map((f, i) => {
             const isActive = i === active;
-            const rot = positions[i].rot;
             const Icon = f.icon;
-            const box = isActive ? ACTIVE_BOX : INACTIVE_BOX;
+            const box = isActive ? ACTIVE : INACTIVE;
             return (
               <div
                 key={`icon-${i}`}
@@ -398,39 +394,36 @@ function FeatureShowcaseSection() {
                   left: "50%",
                   width: 0,
                   height: 0,
-                  transform: `rotate(${rot}deg)`,
+                  transform: `rotate(${f.rotation}deg)`,
                 }}
               >
                 <button
                   type="button"
-                  onClick={() => handlePick(i)}
+                  onClick={() => pick(i)}
                   aria-label={f.label}
                   style={{
                     position: "absolute",
-                    left: "50%",
+                    left: 0,
                     top: 0,
                     width: `${box}px`,
                     height: `${box}px`,
-                    // place card centre at -ICON_RADIUS along the rotated Y axis, then counter-rotate
-                    transform: `translate(-50%, -50%) translateY(-${ICON_RADIUS}px) rotate(-${rot}deg)`,
-                    borderRadius: isActive ? "14px" : "12px",
-                    background: isActive ? "#111111" : "#FFFFFF",
-                    border: isActive ? "none" : "1px solid #E8E8E8",
+                    transform: `translate(-50%, -50%) translateY(-${ICON_R}px) rotate(-${f.rotation}deg)`,
+                    borderRadius: isActive ? "12px" : "10px",
+                    background: isActive ? "#111111" : "#F0F0F0",
+                    border: isActive ? "none" : "1px solid #E0E0E0",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     cursor: "pointer",
-                    opacity: isActive ? 1 : 0.6,
-                    boxShadow: isActive
-                      ? "0 12px 24px -8px rgba(0,0,0,0.25), 0 4px 8px -4px rgba(0,0,0,0.15)"
-                      : "none",
+                    opacity: isActive ? 1 : 0.55,
+                    boxShadow: isActive ? "0 8px 20px rgba(0,0,0,0.2)" : "none",
                     transition:
-                      "width 300ms ease-out, height 300ms ease-out, background 300ms ease-out, border-radius 300ms ease-out, box-shadow 300ms ease-out, opacity 300ms ease-out, border-color 300ms ease-out, transform 300ms ease-out",
+                      "width 250ms ease, height 250ms ease, background 250ms ease, border-color 250ms ease, border-radius 250ms ease, box-shadow 250ms ease, opacity 250ms ease, transform 250ms ease",
                     padding: 0,
                   }}
                 >
                   <Icon
-                    size={isActive ? 26 : 22}
+                    size={isActive ? 24 : 20}
                     color={isActive ? "#FFFFFF" : "#999999"}
                     strokeWidth={1.75}
                   />
