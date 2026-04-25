@@ -221,7 +221,14 @@ export default function Landing() {
   const currentStep = howItWorksTabs[activeTab];
 
   return (
-    <div className="min-h-screen" style={{ background: "#ffffff", overflow: "hidden" }}>
+    <div className="min-h-screen landing-root" style={{ background: "#ffffff", overflow: "hidden" }}>
+      {/* Manrope font — scoped to landing page only */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+        .landing-root, .landing-root * {
+          font-family: 'Manrope', 'Open Sans', sans-serif !important;
+        }
+      `}</style>
 
       {/* ==== NAVBAR — FLOATING PILL ==== */}
       <nav
@@ -300,12 +307,12 @@ export default function Landing() {
               AI-POWERED SMSF AUDITS
             </p>
 
-            <h1 style={{ lineHeight: 1.0, marginBottom: "20px" }}>
-              <span className="hidden md:block" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "87px", color: "#111111", letterSpacing: "-0.03em" }}>
-                95% of your audit done. In under 10 minutes.
+            <h1 style={{ lineHeight: 1.05, marginBottom: "20px" }}>
+              <span className="hidden md:block" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "64px", color: "#111111", letterSpacing: "-0.03em" }}>
+                95% of your audit done.<br />In under 10 minutes.
               </span>
-              <span className="block md:hidden" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "51px", color: "#111111", letterSpacing: "-0.03em" }}>
-                95% of your audit done. In under 10 minutes.
+              <span className="block md:hidden" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "38px", color: "#111111", letterSpacing: "-0.03em" }}>
+                95% of your audit done.<br />In under 10 minutes.
               </span>
             </h1>
 
@@ -339,36 +346,11 @@ export default function Landing() {
                 See How It Works
               </button>
             </div>
-
-            {/* Trust indicators */}
-            <div style={{
-              marginTop: "28px", display: "flex", alignItems: "center", justifyContent: "center",
-              gap: "20px", flexWrap: "wrap",
-              fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "14px", color: "#6B6B6B",
-            }}>
-              {[
-                "Built for ASIC-registered auditors",
-                "APES 110 & SIS Act aligned",
-                "Australian-hosted & encrypted",
-              ].map((label, i) => (
-                <div key={label} style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span aria-hidden="true" style={{
-                      display: "inline-flex", alignItems: "center", justifyContent: "center",
-                      width: "18px", height: "18px", borderRadius: "9999px",
-                      background: "#f1f1f1", color: "#6B6B6B", fontSize: "11px", lineHeight: 1,
-                    }}>✓</span>
-                    <span>{label}</span>
-                  </div>
-                  {i < 2 && <span style={{ color: "#cfcfcf" }}>·</span>}
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 
         {/* VIDEO MOCKUP */}
-        <div className="relative z-10 px-6" style={{ marginTop: "56px", paddingBottom: "0" }}>
+        <div className="relative z-10 px-6" style={{ marginTop: "20px", paddingBottom: "0" }}>
           <div className="mx-auto" style={{ maxWidth: "1000px" }}>
             <div style={{
               transform: `perspective(1200px) rotateX(${videoRotate}deg)`,
