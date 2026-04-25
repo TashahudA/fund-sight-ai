@@ -78,6 +78,241 @@ function FAQAccordion() {
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */
+const showcaseFeatures = [
+  {
+    label: "AI ANALYSIS",
+    icon: ScanText,
+    headline: "Every figure read. Every document agreed.",
+    body: "Financials, bank statements, investment reports, trust deeds, minutes — read simultaneously and agreed across every document. Every finding linked to its exact source. No skimming. No assumptions.",
+    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%203.13.54%20pm.png",
+    side: "left" as const,
+    angle: -90, // top
+  },
+  {
+    label: "RISK FLAGS",
+    icon: AlertTriangle,
+    headline: "The risks hiding in plain sight.",
+    body: "Sundry debtor balances that could be disguised loans. Interest-free related party transactions. In-house assets hiding in receivables. Material risks, not paperwork gaps.",
+    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-19%20at%204.04.42%20pm.png",
+    side: "right" as const,
+    angle: -18, // top-right
+  },
+  {
+    label: "RFIs",
+    icon: MessageSquare,
+    headline: "RFIs written like a senior auditor.",
+    body: "Every RFI names the exact document, figure, and transaction requiring clarification. Editable before anything goes out. Nothing sent without your approval.",
+    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.23.30%20pm.png",
+    side: "right" as const,
+    angle: 54, // bottom-right
+  },
+  {
+    label: "AUDIT OPINION",
+    icon: FileCheck,
+    headline: "Sign-off ready. Not just a summary.",
+    body: "Every audit produces an opinion — unqualified, qualified, or adverse — with detailed reasoning citing specific compliance areas and document references.",
+    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.24.12%20pm.png",
+    side: "left" as const,
+    angle: 126, // bottom-left
+  },
+  {
+    label: "AUDIT FILE",
+    icon: FolderOpen,
+    headline: "A complete audit file. Ready for ATO review.",
+    body: "Planning document, working papers, findings, RFIs, audit report — all generated, all cross-referenced to source evidence. Everything your file needs to stand up to scrutiny. Nothing to stitch together.",
+    img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png",
+    side: "left" as const,
+    angle: -162, // top-left
+  },
+];
+
+function FeatureShowcaseSection() {
+  const [active, setActive] = useState(0);
+  const [pausedUntil, setPausedUntil] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (Date.now() < pausedUntil) return;
+      setActive((a) => (a + 1) % showcaseFeatures.length);
+    }, 4000);
+    return () => clearInterval(id);
+  }, [pausedUntil]);
+
+  const handlePick = (i: number) => {
+    setActive(i);
+    setPausedUntil(Date.now() + 8000);
+  };
+
+  const CIRCLE = 600;
+  const RADIUS = CIRCLE / 2;
+  const ICON_OFFSET = 70; // distance from circle edge to icon centre
+
+  const current = showcaseFeatures[active];
+
+  return (
+    <section id="features" style={{ background: "#ffffff", padding: "120px 24px" }}>
+      <div className="mx-auto" style={{ maxWidth: "1200px" }}>
+        <RevealSection className="text-center" style={{ marginBottom: "72px" }}>
+          <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
+            FEATURES
+          </p>
+          <h2 style={{ fontFamily: "'Manrope', 'Open Sans', sans-serif", fontWeight: 700, fontSize: "44px", color: "#111111", letterSpacing: "-0.02em", lineHeight: 1.15, maxWidth: "780px", margin: "0 auto" }}>
+            Everything the audit needs. Nothing left to do yourself.
+          </h2>
+        </RevealSection>
+
+        <div
+          className="relative mx-auto"
+          style={{ width: "100%", maxWidth: `${CIRCLE + ICON_OFFSET * 2 + 80}px`, height: `${CIRCLE + ICON_OFFSET * 2 + 80}px` }}
+        >
+          {/* Side text panels */}
+          {showcaseFeatures.map((f, i) => {
+            const isActive = i === active;
+            const onLeft = f.side === "left";
+            return (
+              <div
+                key={`text-${i}`}
+                aria-hidden={!isActive}
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  [onLeft ? "right" : "left"]: `calc(50% + ${RADIUS + ICON_OFFSET + 40}px)`,
+                  transform: "translateY(-50%)",
+                  width: "260px",
+                  textAlign: onLeft ? "right" : "left",
+                  opacity: isActive ? 1 : 0,
+                  transition: "opacity 300ms ease",
+                  pointerEvents: isActive ? "auto" : "none",
+                } as React.CSSProperties}
+              >
+                <p style={{
+                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
+                  fontWeight: 600, fontSize: "11px", color: "#111111",
+                  letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: "14px",
+                }}>
+                  {f.label}
+                </p>
+                <h3 style={{
+                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
+                  fontWeight: 600, fontSize: "22px", color: "#111111",
+                  lineHeight: 1.25, letterSpacing: "-0.01em", marginBottom: "14px",
+                }}>
+                  {f.headline}
+                </h3>
+                <p style={{
+                  fontFamily: "'Manrope', 'Open Sans', sans-serif",
+                  fontWeight: 400, fontSize: "14px", color: "#666666", lineHeight: 1.7,
+                }}>
+                  {f.body}
+                </p>
+              </div>
+            );
+          })}
+
+          {/* Centre stage: circle + spokes + icons */}
+          <div
+            style={{
+              position: "absolute", top: "50%", left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: `${CIRCLE}px`, height: `${CIRCLE}px`,
+            }}
+          >
+            {/* The circle */}
+            <div
+              style={{
+                position: "absolute", inset: 0, borderRadius: "50%",
+                background: "radial-gradient(circle at 50% 50%, #F2F2F2 0%, #F2F2F2 55%, #E5E5E5 100%)",
+              }}
+            />
+
+            {/* Screenshot crossfade */}
+            <div
+              style={{
+                position: "absolute", top: "50%", left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "420px", height: "300px",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              {showcaseFeatures.map((f, i) => (
+                <img
+                  key={`img-${i}`}
+                  src={f.img}
+                  alt={f.label}
+                  loading="lazy"
+                  style={{
+                    position: "absolute",
+                    maxWidth: "100%", maxHeight: "100%",
+                    width: "auto", height: "auto",
+                    objectFit: "contain",
+                    borderRadius: "12px",
+                    boxShadow: "0 16px 48px rgba(0,0,0,0.12)",
+                    opacity: i === active ? 1 : 0,
+                    transition: "opacity 300ms ease",
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Spokes + icons */}
+            {showcaseFeatures.map((f, i) => {
+              const isActive = i === active;
+              const rad = (f.angle * Math.PI) / 180;
+              // spoke: from edge of circle outward by ICON_OFFSET
+              const x1 = RADIUS + RADIUS * Math.cos(rad);
+              const y1 = RADIUS + RADIUS * Math.sin(rad);
+              const x2 = RADIUS + (RADIUS + ICON_OFFSET) * Math.cos(rad);
+              const y2 = RADIUS + (RADIUS + ICON_OFFSET) * Math.sin(rad);
+              const Icon = f.icon;
+              const ICON_BOX = 56;
+              return (
+                <div key={`spoke-${i}`} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+                  <svg
+                    width="100%" height="100%"
+                    viewBox={`0 0 ${CIRCLE} ${CIRCLE}`}
+                    style={{ position: "absolute", inset: 0, overflow: "visible" }}
+                  >
+                    <line
+                      x1={x1} y1={y1} x2={x2} y2={y2}
+                      stroke={isActive ? "#111111" : "#AAAAAA"}
+                      strokeOpacity={isActive ? 1 : 0.4}
+                      strokeWidth={1.25}
+                      style={{ transition: "stroke 300ms ease, stroke-opacity 300ms ease" }}
+                    />
+                  </svg>
+                  <button
+                    type="button"
+                    onClick={() => handlePick(i)}
+                    aria-label={f.label}
+                    style={{
+                      position: "absolute",
+                      left: `${x2}px`, top: `${y2}px`,
+                      width: `${ICON_BOX}px`, height: `${ICON_BOX}px`,
+                      transform: `translate(-50%, -50%) scale(${isActive ? 1.12 : 1})`,
+                      borderRadius: "50%",
+                      background: "#ffffff",
+                      border: `1px solid ${isActive ? "#111111" : "#E5E5E5"}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer",
+                      pointerEvents: "auto",
+                      opacity: isActive ? 1 : 0.4,
+                      transition: "transform 300ms ease, opacity 300ms ease, border-color 300ms ease",
+                      boxShadow: isActive ? "0 6px 18px rgba(0,0,0,0.10)" : "none",
+                      padding: 0,
+                    }}
+                  >
+                    <Icon size={22} color={isActive ? "#111111" : "#AAAAAA"} strokeWidth={1.75} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const howItWorksTabs = [
   { num: "01", tab: "Upload", title: "Upload the fund pack", desc: "Financial statements, bank statements, investment reports, trustee minutes. Every document type. Every format. Auditron handles it all.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png" },
   { num: "02", tab: "Analysis", title: "Every SIS Act area checked automatically", desc: "Contribution caps, pension minimums, in-house assets, related party transactions. Every finding referenced to its exact source document. Nothing missed. Nothing assumed.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.27.20%20pm.png" },
