@@ -592,38 +592,6 @@ export default function Landing() {
                     aria-label="Australia"
                     dangerouslySetInnerHTML={{ __html: auSvgProcessed }}
                   />
-                  {/* Sydney pin overlay — absolutely positioned at 78% / 48% */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: "78%",
-                      top: "48%",
-                      width: 0,
-                      height: 0,
-                      pointerEvents: "none",
-                    }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="120"
-                      height="60"
-                      viewBox="-30 -30 120 60"
-                      style={{ position: "absolute", left: "-30px", top: "-30px", overflow: "visible" }}
-                    >
-                      <circle cx="0" cy="0" r="22" fill="none" stroke="#FFFFFF" strokeWidth="1" opacity="0.3">
-                        <animate attributeName="r" values="22;48.4;22" dur="2s" begin="0.5s" repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.3;0;0.3" dur="2s" begin="0.5s" repeatCount="indefinite" />
-                      </circle>
-                      <circle cx="0" cy="0" r="14" fill="none" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.6">
-                        <animate attributeName="r" values="14;25.2;14" dur="2s" repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite" />
-                      </circle>
-                      <circle cx="0" cy="0" r="6" fill="#FFFFFF" />
-                      <text x="16" y="0" fill="#FFFFFF" fontFamily="Manrope, sans-serif" fontSize="11" fontWeight="500" dominantBaseline="middle">
-                        Sydney
-                      </text>
-                    </svg>
-                  </div>
                 </div>
               </div>
 
