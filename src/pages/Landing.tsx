@@ -11,7 +11,9 @@ const auSvgProcessed = auSvgRaw
   .replace(/\sfill="[^"]*"/gi, "")
   .replace(/\sstroke="[^"]*"/gi, "")
   .replace(/\sstroke-width="[^"]*"/gi, "")
-  .replace(/<svg([^>]*)>/i, '<svg$1 style="width:420px;height:auto;display:block;fill:#111111;stroke:none;">');
+  .replace(/\swidth="[^"]*"/i, "")
+  .replace(/\sheight="[^"]*"/i, "")
+  .replace(/<svg\b/i, '<svg width="420" height="auto" style="display:block;fill:#111111;stroke:none;"');
 
 /* ------------------------------------------------------------------ */
 /*  Intersection Observer hook — fires once                            */
