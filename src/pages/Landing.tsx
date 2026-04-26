@@ -855,7 +855,7 @@ export default function Landing() {
               </button>
             ))}
           </div>
-          <span style={{ fontSize: "13px", color: "#555555" }}>Built in Melbourne</span>
+          
         </div>
       </footer>
 
