@@ -110,7 +110,7 @@ const pricingFeatures = [
   "Specific findings with dollar amounts and references",
   "Auto-generated RFIs for unresolved items",
   "Draft audit opinion with reasoning",
-  "Unlimited document uploads per audit",
+  "Complete audit file including working papers",
   "Results in minutes, not hours",
 ];
 
@@ -650,45 +650,101 @@ export default function Landing() {
 
       {/* ==== PRICING ==== */}
       <section id="pricing" style={{ background: "#ffffff", padding: "120px 24px" }}>
-        <div className="mx-auto" style={{ maxWidth: "680px" }}>
+        <div className="mx-auto" style={{ maxWidth: "860px" }}>
           <RevealSection className="text-center" style={{ marginBottom: "64px" }}>
-            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
+            <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
               PRICING
             </p>
-            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
+            <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
               Simple pricing. No surprises.
             </h2>
           </RevealSection>
           <RevealSection>
-            <div className="text-center" style={{
-              background: "#111111", borderRadius: "24px", padding: "64px", position: "relative",
-              boxShadow: "0 8px 48px rgba(0,0,0,0.18)",
-              maxWidth: "680px", margin: "0 auto",
-            }}>
-              <div>
-                <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 800, fontSize: "80px", color: "#ffffff", letterSpacing: "-0.03em" }}>$29</span>
-                <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "18px", color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>per audit</p>
+            <div style={{ display: "flex", gap: "24px", alignItems: "stretch", justifyContent: "center", flexWrap: "wrap" }}>
+              {/* Pay as you go */}
+              <div style={{
+                flex: "1 1 0", minWidth: "300px",
+                background: "#ffffff", border: "1px solid #E0E0E0", borderRadius: "20px",
+                padding: "48px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+                display: "flex", flexDirection: "column",
+              }}>
+                <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "11px", color: "#888888", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "16px" }}>
+                  PAY AS YOU GO
+                </p>
+                <div>
+                  <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "72px", color: "#111111", letterSpacing: "-0.03em", lineHeight: 1 }}>$49</span>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "15px", color: "#666666", marginTop: "8px" }}>per audit</p>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "13px", color: "#999999", marginTop: "4px" }}>No commitment. Cancel any time.</p>
+                </div>
+                <div style={{ height: "1px", background: "#E0E0E0", margin: "32px 0" }} />
+                <ul style={{ display: "flex", flexDirection: "column", gap: "12px", flex: 1 }}>
+                  {pricingFeatures.map((feat, i) => (
+                    <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "14px", color: "#333333", lineHeight: 1.6 }}>
+                      <Check className="shrink-0" style={{ color: "#111111", width: "16px", height: "16px", marginTop: "4px" }} strokeWidth={2.5} />
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  style={{ width: "100%", marginTop: "32px", padding: "14px", borderRadius: "10px", border: "1px solid #111111", background: "#ffffff", color: "#111111", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#f5f5f5"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#ffffff"; }}
+                  onClick={() => scrollTo("contact")}
+                >
+                  Book a Demo
+                </button>
               </div>
-              <ul className="mt-12 space-y-5 text-left">
-                {pricingFeatures.map((feat, i) => (
-                  <li key={i} className="flex items-start gap-3" style={{ fontSize: "15px", color: "rgba(255,255,255,0.7)" }}>
-                    <Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "#ffffff" }} strokeWidth={2.5} />
-                    {feat}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="w-full mt-12 btn-hover-lift"
-                style={{ height: "48px", borderRadius: "8px", fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "15px", background: "#ffffff", color: "#111111", border: "none", cursor: "pointer", transition: "all 0.2s ease" }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#f0f0f0"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "#ffffff"; }}
-                onClick={() => scrollTo("contact")}
-              >
-                Book a Demo
-              </button>
-              <p className="mt-5" style={{ fontSize: "14px", color: "rgba(255,255,255,0.3)" }}>
-                Volume pricing available for firms processing 20+ audits per month.
-              </p>
+
+              {/* Volume plans */}
+              <div style={{
+                flex: "1 1 0", minWidth: "300px",
+                background: "#111111", border: "none", borderRadius: "20px",
+                padding: "48px",
+                display: "flex", flexDirection: "column",
+              }}>
+                <span style={{ display: "inline-block", alignSelf: "flex-start", background: "#ffffff", color: "#111111", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "10px", borderRadius: "20px", padding: "4px 12px", marginBottom: "20px", letterSpacing: "0.05em" }}>
+                  BEST FOR FIRMS
+                </span>
+                <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "11px", color: "#888888", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "16px" }}>
+                  VOLUME PLANS
+                </p>
+                <div>
+                  <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "72px", color: "#FFFFFF", letterSpacing: "-0.03em", lineHeight: 1 }}>From $29</span>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "15px", color: "#999999", marginTop: "8px" }}>per audit</p>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "13px", color: "#666666", marginTop: "4px" }}>Annual commitment. Billed upfront.</p>
+                </div>
+                <div style={{ height: "1px", background: "rgba(255,255,255,0.2)", margin: "32px 0" }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: "16px", padding: "14px 0", fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "12px", color: "#666666", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                    <span style={{ textAlign: "left" }}>Commitment</span>
+                    <span style={{ textAlign: "center" }}>Per audit</span>
+                    <span style={{ textAlign: "right" }}>Saving</span>
+                  </div>
+                  {[
+                    ["50 audits per year", "$44", "10% off"],
+                    ["100 audits per year", "$39", "20% off"],
+                    ["250 audits per year", "$35", "29% off"],
+                    ["500+ audits per year", "$29", "41% off"],
+                  ].map(([commit, price, save], i, arr) => (
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: "16px", padding: "14px 0", fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#FFFFFF", borderBottom: i < arr.length - 1 ? "1px solid rgba(255,255,255,0.1)" : "none" }}>
+                      <span style={{ textAlign: "left" }}>{commit}</span>
+                      <span style={{ textAlign: "center" }}>{price}</span>
+                      <span style={{ textAlign: "right", color: "#999999" }}>{save}</span>
+                    </div>
+                  ))}
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "12px", color: "#666666", textAlign: "center", marginTop: "20px" }}>
+                    All plans include the full product. No feature limits.
+                  </p>
+                </div>
+                <button
+                  style={{ width: "100%", marginTop: "32px", padding: "14px", borderRadius: "10px", border: "none", background: "#FFFFFF", color: "#111111", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#f0f0f0"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#FFFFFF"; }}
+                  onClick={() => scrollTo("contact")}
+                >
+                  Book a Demo
+                </button>
+              </div>
             </div>
           </RevealSection>
         </div>
