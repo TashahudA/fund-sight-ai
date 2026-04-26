@@ -106,12 +106,12 @@ const features = [
 ];
 
 const pricingFeatures = [
-  "Full audit file preparation",
-  "Workpaper generation",
-  "Compliance issue identification",
-  "Contravention detection",
-  "Audit-ready reporting",
-  "Final review ready for auditor sign-off",
+  "AI compliance analysis across 12 SIS Act areas",
+  "Specific findings with dollar amounts and references",
+  "Auto-generated RFIs for unresolved items",
+  "Draft audit opinion with reasoning",
+  "Complete audit file including working papers",
+  "Results in minutes, not hours",
 ];
 
 const navLinks = [
