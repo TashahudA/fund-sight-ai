@@ -388,7 +388,7 @@ export default function Landing() {
                   background: "#2d2d2d", borderRadius: "6px", width: "240px", height: "22px",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <span style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "12px", color: "#888888" }}>app.auditron.com.au</span>
+                  <span style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "12px", color: "#888888" }}>auditron.com.au</span>
                 </div>
               </div>
               <div style={{ overflow: "hidden", borderRadius: "0 0 12px 12px" }}>
