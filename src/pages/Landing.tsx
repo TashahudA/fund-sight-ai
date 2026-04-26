@@ -395,7 +395,7 @@ export default function Landing() {
                 <video
                   autoPlay muted loop playsInline controls={false}
                   style={{ display: "block", width: "100%" }}
-                  src="https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screen%20Recording%202026-03-19%20at%20101437%20am.mp4"
+                  src="https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Untitled%20design.mp4"
                 />
               </div>
             </div>
