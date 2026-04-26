@@ -518,7 +518,7 @@ export default function Landing() {
               FEATURES
             </p>
             <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
-              Everything the audit needs. Nothing left to do yourself.
+              Built for how auditors actually work.
             </h2>
           </RevealSection>
 
