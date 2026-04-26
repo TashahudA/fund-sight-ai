@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { TopNav } from "@/components/TopNav";
 import Landing from "@/pages/Landing";
+import Terms from "@/pages/Terms";
 import Dashboard from "@/pages/Dashboard";
 import MyAudits from "@/pages/MyAudits";
 import AuditDetail from "@/pages/AuditDetail";
@@ -24,6 +25,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/terms" element={<Terms />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/reset-password" element={<ResetPassword />} />

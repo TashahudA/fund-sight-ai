@@ -854,6 +854,12 @@ export default function Landing() {
                 {link.label}
               </button>
             ))}
+            <Link to="/terms" style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "13px", color: "#555555", textDecoration: "none", padding: "4px 0", transition: "color 0.2s ease" }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "#999999"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "#555555"; }}
+            >
+              Terms and conditions
+            </Link>
           </div>
           
         </div>
