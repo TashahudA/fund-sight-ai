@@ -19,6 +19,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [hasInvite, setHasInvite] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   // Store invite token from URL into localStorage
   useEffect(() => {
@@ -178,7 +179,31 @@ export default function Signup() {
               required
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <label className="flex items-start gap-2 text-sm text-muted-foreground cursor-pointer">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-0.5 cursor-pointer"
+            />
+            <span>
+              I agree to the{" "}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground hover:underline">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground hover:underline">
+                Privacy Policy
+              </a>
+              .
+            </span>
+          </label>
+          <Button
+            type="submit"
+            className="w-full mt-4"
+            disabled={loading || !agreed}
+            style={{ opacity: agreed ? 1 : 0.5 }}
+          >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             Create Account
           </Button>
