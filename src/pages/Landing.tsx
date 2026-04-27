@@ -218,9 +218,9 @@ function Hero() {
       >
         <Reveal>
           <div className="brand-eyebrow mb-6 flex items-center justify-center gap-2">
-            <Mark size={10} color="#E8DDC9" />
+            <Mark size={10} color="#5C1A1B" />
             AI-powered SMSF audits
-            <Mark size={10} color="#E8DDC9" />
+            <Mark size={10} color="#5C1A1B" />
           </div>
         </Reveal>
 
@@ -275,9 +275,9 @@ function Hero() {
             }}
           >
             <span>Built in Australia</span>
-            <Mark size={10} color="#E8DDC9" />
+            <Mark size={10} color="#5C1A1B" />
             <span>Data hosted in Australia</span>
-            <Mark size={10} color="#E8DDC9" />
+            <Mark size={10} color="#5C1A1B" />
             <span>For registered SMSF auditors</span>
           </div>
         </Reveal>
@@ -426,7 +426,7 @@ function HowItWorks() {
       <div className="mx-auto" style={{ maxWidth: 1200 }}>
         <Reveal>
           <div className="brand-eyebrow mb-5 flex items-center gap-2">
-            <Mark size={10} color="#E8DDC9" /> How it works
+            <Mark size={10} color="#5C1A1B" /> How it works
           </div>
           <h2
             className="font-display"
@@ -446,7 +446,7 @@ function HowItWorks() {
           {steps.map((s, i) => (
             <Reveal key={s.n} delay={i * 100}>
               <div className="relative">
-                <Mark size={16} color="#E8DDC9" />
+                <Mark size={16} color="#5C1A1B" />
                 <div
                   className="font-display brand-tabular"
                   style={{
@@ -580,7 +580,7 @@ function FeatureBlock({
         </div>
       </div>
       <div className={reverse ? "md:[direction:ltr]" : ""}>
-        <Mark size={14} color="#E8DDC9" />
+        <Mark size={14} color="#5C1A1B" />
         <div className="brand-eyebrow mt-4">{feature.eyebrow}</div>
         <h3
           className="font-display mt-4"
@@ -622,7 +622,7 @@ function Features() {
       <div className="mx-auto" style={{ maxWidth: 1200 }}>
         <Reveal>
           <div className="brand-eyebrow mb-5 flex items-center gap-2">
-            <Mark size={10} color="#E8DDC9" /> What Auditron does
+            <Mark size={10} color="#5C1A1B" /> What Auditron does
           </div>
           <h2
             className="font-display"
@@ -735,7 +735,7 @@ function Pricing() {
         <Reveal>
           <div className="text-center">
             <div className="brand-eyebrow mb-5 flex items-center justify-center gap-2">
-              <Mark size={10} color="#E8DDC9" /> Pricing
+              <Mark size={10} color="#5C1A1B" /> Pricing
             </div>
             <h2
               className="font-display mx-auto"
@@ -760,7 +760,7 @@ function Pricing() {
                 style={{
                   background: "#F2EBDD",
                   border: t.recommended
-                    ? "1.5px solid #E8DDC9"
+                    ? "1.5px solid #5C1A1B"
                     : "1px solid rgba(92,26,27,0.12)",
                   borderRadius: 12,
                   padding: "32px 28px",
@@ -900,7 +900,7 @@ function FAQ() {
       <div className="mx-auto" style={{ maxWidth: 880 }}>
         <Reveal>
           <div className="brand-eyebrow mb-5 flex items-center gap-2">
-            <Mark size={10} color="#E8DDC9" /> Frequently asked
+            <Mark size={10} color="#5C1A1B" /> Frequently asked
           </div>
           <h2
             className="font-display"
