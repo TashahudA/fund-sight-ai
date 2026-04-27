@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Playfair+Display:ital@1&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,500&family=Inter+Tight:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -98,3 +99,91 @@
     font-family: 'Open Sans', sans-serif;
   }
 }
+
+/* ---------- Marketing site (Auditron brand) ---------- */
+.brand-scope {
+  font-family: 'Inter Tight', system-ui, sans-serif;
+  background: #F5F1E8;
+  color: #1A1A1A;
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.brand-scope ::selection { background: rgba(201, 169, 106, 0.3); color: #1A1A1A; }
+.brand-scope h1, .brand-scope h2, .brand-scope .font-display {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 500;
+  font-variation-settings: "opsz" 96;
+}
+.brand-scope h3, .brand-scope h4 {
+  font-family: 'Inter Tight', system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.brand-eyebrow {
+  font-family: 'Inter Tight', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #5A5A5A;
+}
+.brand-rules {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 31px,
+    rgba(14, 46, 37, 0.08) 31px,
+    rgba(14, 46, 37, 0.08) 32px
+  );
+}
+.brand-rules-fade {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%);
+}
+.brand-rules-champagne {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 31px,
+    rgba(201, 169, 106, 0.18) 31px,
+    rgba(201, 169, 106, 0.18) 32px
+  );
+}
+.brand-tabular { font-variant-numeric: tabular-nums; }
+.brand-btn-primary {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: #0E2E25; color: #F5F1E8;
+  font-family: 'Inter Tight', system-ui, sans-serif;
+  font-weight: 600; font-size: 14px;
+  padding: 14px 28px; border-radius: 6px;
+  letter-spacing: 0.01em;
+  transition: transform 150ms ease, box-shadow 200ms ease;
+  border: 1.5px solid #0E2E25;
+}
+.brand-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(14,46,37,0.15); }
+.brand-btn-primary .brand-btn-flash {
+  position: absolute; right: 8px; bottom: 4px;
+  opacity: 0; transition: opacity 200ms ease;
+}
+.brand-btn-primary:hover .brand-btn-flash { opacity: 1; }
+.brand-btn-secondary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: #F5F1E8; color: #0E2E25;
+  font-family: 'Inter Tight', system-ui, sans-serif;
+  font-weight: 600; font-size: 14px;
+  padding: 12.5px 28px; border-radius: 6px;
+  border: 1.5px solid #0E2E25;
+  transition: background 200ms ease;
+}
+.brand-btn-secondary:hover { background: rgba(14,46,37,0.04); }
+.brand-link {
+  color: #0E2E25; position: relative; transition: opacity 150ms ease;
+}
+.brand-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.brand-feature-card .brand-rules { transition: opacity 300ms ease; opacity: 0.5; }
+.brand-feature-card:hover .brand-rules { opacity: 1; }
+.brand-accordion-mark { transition: transform 300ms ease; }
+.brand-accordion[data-open="true"] .brand-accordion-mark { transform: rotate(90deg); }
+

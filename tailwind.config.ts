@@ -15,6 +15,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Open Sans", "system-ui", "sans-serif"],
+        display: ['"Fraunces"', "Georgia", "serif"],
+        brand: ['"Inter Tight"', "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -85,6 +87,15 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Marketing brand tokens (Auditron 2026)
+        forest: {
+          DEFAULT: "#0E2E25",
+          deep: "#061612",
+        },
+        champagne: "#C9A96A",
+        paper: "#F5F1E8",
+        ink: "#1A1A1A",
+        "soft-ink": "#5A5A5A",
       },
       borderRadius: {
         lg: "var(--radius)",
