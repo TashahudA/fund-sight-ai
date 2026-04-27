@@ -100,16 +100,16 @@
   }
 }
 
-/* ---------- Marketing site (Auditron brand) ---------- */
+/* ---------- Marketing site (Auditron brand — Oxblood House) ---------- */
 .brand-scope {
   font-family: 'Inter Tight', system-ui, sans-serif;
-  background: #F5F1E8;
-  color: #1A1A1A;
+  background: #F2EBDD;
+  color: #1A1612;
   font-size: 17px;
-  line-height: 1.6;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
 }
-.brand-scope ::selection { background: rgba(201, 169, 106, 0.3); color: #1A1A1A; }
+.brand-scope ::selection { background: rgba(232, 221, 201, 0.5); color: #1A1612; }
 .brand-scope h1, .brand-scope h2, .brand-scope .font-display {
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 500;
@@ -124,45 +124,59 @@
   font-family: 'Inter Tight', system-ui, sans-serif;
   font-weight: 500;
   font-size: 12px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #5A5A5A;
+  color: #6B5F52;
 }
 .brand-rules {
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
     transparent 31px,
-    rgba(14, 46, 37, 0.08) 31px,
-    rgba(14, 46, 37, 0.08) 32px
+    rgba(92, 26, 27, 0.10) 31px,
+    rgba(92, 26, 27, 0.10) 32px
   );
 }
 .brand-rules-fade {
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%);
           mask-image: linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%);
 }
-.brand-rules-champagne {
+.brand-rules-cream {
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
     transparent 31px,
-    rgba(201, 169, 106, 0.18) 31px,
-    rgba(201, 169, 106, 0.18) 32px
+    rgba(232, 221, 201, 0.18) 31px,
+    rgba(232, 221, 201, 0.18) 32px
   );
+}
+/* Hero ledger-draw reveal — runs once on load */
+@keyframes brand-ledger-draw {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+.brand-rules-draw {
+  transform-origin: left center;
+  animation: brand-ledger-draw 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .brand-tabular { font-variant-numeric: tabular-nums; }
 .brand-btn-primary {
   position: relative;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  background: #0E2E25; color: #F5F1E8;
+  background: #5C1A1B; color: #F2EBDD;
   font-family: 'Inter Tight', system-ui, sans-serif;
   font-weight: 600; font-size: 14px;
-  padding: 14px 28px; border-radius: 6px;
+  padding: 14px 28px; border-radius: 4px;
   letter-spacing: 0.01em;
-  transition: transform 150ms ease, box-shadow 200ms ease;
-  border: 1.5px solid #0E2E25;
+  transition: transform 150ms ease, box-shadow 200ms ease, background 200ms ease;
+  border: 1.5px solid #5C1A1B;
 }
-.brand-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(14,46,37,0.15); }
+.brand-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(92,26,27,0.18);
+  background: #2A0B0C;
+  border-color: #2A0B0C;
+}
 .brand-btn-primary .brand-btn-flash {
   position: absolute; right: 8px; bottom: 4px;
   opacity: 0; transition: opacity 200ms ease;
@@ -170,20 +184,19 @@
 .brand-btn-primary:hover .brand-btn-flash { opacity: 1; }
 .brand-btn-secondary {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  background: #F5F1E8; color: #0E2E25;
+  background: #F2EBDD; color: #5C1A1B;
   font-family: 'Inter Tight', system-ui, sans-serif;
   font-weight: 600; font-size: 14px;
-  padding: 12.5px 28px; border-radius: 6px;
-  border: 1.5px solid #0E2E25;
+  padding: 12.5px 28px; border-radius: 4px;
+  border: 1.5px solid #5C1A1B;
   transition: background 200ms ease;
 }
-.brand-btn-secondary:hover { background: rgba(14,46,37,0.04); }
+.brand-btn-secondary:hover { background: rgba(92,26,27,0.05); }
 .brand-link {
-  color: #0E2E25; position: relative; transition: opacity 150ms ease;
+  color: #5C1A1B; position: relative; transition: opacity 150ms ease;
 }
 .brand-link:hover { text-decoration: underline; text-underline-offset: 4px; }
 .brand-feature-card .brand-rules { transition: opacity 300ms ease; opacity: 0.5; }
 .brand-feature-card:hover .brand-rules { opacity: 1; }
 .brand-accordion-mark { transition: transform 300ms ease; }
 .brand-accordion[data-open="true"] .brand-accordion-mark { transform: rotate(90deg); }
-

@@ -87,15 +87,15 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Marketing brand tokens (Auditron 2026)
-        forest: {
-          DEFAULT: "#0E2E25",
-          deep: "#061612",
+        // Marketing brand tokens (Auditron 2026 — Oxblood House)
+        oxblood: {
+          DEFAULT: "#5C1A1B",
+          deep: "#2A0B0C",
         },
-        champagne: "#C9A96A",
-        paper: "#F5F1E8",
-        ink: "#1A1A1A",
-        "soft-ink": "#5A5A5A",
+        cream: "#E8DDC9",
+        "paper-aged": "#F2EBDD",
+        ink: "#1A1612",
+        "soft-ink": "#6B5F52",
       },
       borderRadius: {
         lg: "var(--radius)",
