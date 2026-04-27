@@ -318,19 +318,19 @@ export default function Landing() {
 
       {/* ==== HERO ==== */}
       <section className="relative z-10" style={{ minHeight: "100vh", paddingTop: "120px", background: "#FAFAFA" }}>
-        {/* Signature teal circle — hero only, behind content */}
+        {/* Signature radial glow — hero only, behind headline */}
         <div
           aria-hidden="true"
-          className="hero-teal-circle"
+          className="hero-teal-glow"
           style={{
             position: "absolute",
-            top: "62%",
-            left: "62vw",
-            width: "680px",
-            height: "680px",
-            borderRadius: "50%",
-            background: "#0D7377",
-            transform: "translateY(-50%)",
+            top: "calc(120px + (60vh - 100px) / 2)",
+            left: "50%",
+            width: "700px",
+            height: "700px",
+            transform: "translate(-50%, -50%)",
+            background:
+              "radial-gradient(circle, rgba(13, 115, 119, 0.18) 0%, rgba(13, 115, 119, 0.06) 45%, transparent 70%)",
             zIndex: 0,
             pointerEvents: "none",
           }}
@@ -941,14 +941,9 @@ export default function Landing() {
         }
 
         @media (max-width: 768px) {
-          .hero-teal-circle {
-            width: 380px !important;
-            height: 380px !important;
-            top: auto !important;
-            bottom: -120px !important;
-            left: auto !important;
-            right: -120px !important;
-            transform: none !important;
+          .hero-teal-glow {
+            width: 400px !important;
+            height: 400px !important;
           }
         }
       `}</style>
