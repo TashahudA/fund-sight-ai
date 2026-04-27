@@ -15,8 +15,6 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Open Sans", "system-ui", "sans-serif"],
-        display: ['"Fraunces"', "Georgia", "serif"],
-        brand: ['"Inter Tight"', "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -87,15 +85,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Marketing brand tokens (Auditron 2026 — Oxblood House)
-        oxblood: {
-          DEFAULT: "#5C1A1B",
-          deep: "#2A0B0C",
-        },
-        cream: "#E8DDC9",
-        "paper-aged": "#F2EBDD",
-        ink: "#1A1612",
-        "soft-ink": "#6B5F52",
       },
       borderRadius: {
         lg: "var(--radius)",
