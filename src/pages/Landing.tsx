@@ -318,19 +318,33 @@ export default function Landing() {
 
       {/* ==== HERO ==== */}
       <section className="relative z-10" style={{ minHeight: "100vh", paddingTop: "120px", background: "#FAFAFA" }}>
-        {/* Signature radial glow — hero only, behind headline */}
+        {/* Signature radial glows — hero atmosphere */}
         <div
           aria-hidden="true"
-          className="hero-teal-glow"
+          className="hero-glow-teal"
           style={{
             position: "absolute",
-            top: "calc(120px + (60vh - 100px) / 2)",
-            left: "50%",
-            width: "700px",
-            height: "700px",
-            transform: "translate(-50%, -50%)",
+            top: "-180px",
+            right: "-200px",
+            width: "780px",
+            height: "780px",
             background:
-              "radial-gradient(circle, rgba(13, 115, 119, 0.18) 0%, rgba(13, 115, 119, 0.06) 45%, transparent 70%)",
+              "radial-gradient(circle, rgba(13, 115, 119, 0.22) 0%, rgba(13, 115, 119, 0.08) 40%, transparent 68%)",
+            zIndex: 0,
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="hero-glow-amber"
+          style={{
+            position: "absolute",
+            bottom: "-100px",
+            left: "-120px",
+            width: "500px",
+            height: "500px",
+            background:
+              "radial-gradient(circle, rgba(212, 168, 71, 0.16) 0%, rgba(212, 168, 71, 0.05) 42%, transparent 68%)",
             zIndex: 0,
             pointerEvents: "none",
           }}
@@ -941,9 +955,13 @@ export default function Landing() {
         }
 
         @media (max-width: 768px) {
-          .hero-teal-glow {
-            width: 400px !important;
-            height: 400px !important;
+          .hero-glow-teal {
+            width: 420px !important;
+            height: 420px !important;
+          }
+          .hero-glow-amber {
+            width: 280px !important;
+            height: 280px !important;
           }
         }
       `}</style>
