@@ -939,6 +939,18 @@ export default function Landing() {
           box-shadow: 0 0 0 3px rgba(0,0,0,0.06) !important;
           outline: none;
         }
+
+        @media (max-width: 768px) {
+          .hero-teal-circle {
+            width: 380px !important;
+            height: 380px !important;
+            top: auto !important;
+            bottom: -120px !important;
+            left: auto !important;
+            right: -120px !important;
+            transform: none !important;
+          }
+        }
       `}</style>
     </div>
   );
