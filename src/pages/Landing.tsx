@@ -135,7 +135,7 @@ function Nav() {
         height: 72,
         backdropFilter: scrolled ? "blur(12px)" : "none",
         WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
-        background: scrolled ? "rgba(245, 241, 232, 0.92)" : "transparent",
+        background: scrolled ? "rgba(242, 235, 221, 0.92)" : "transparent",
         borderBottom: scrolled ? "1px solid rgba(92,26,27,0.06)" : "1px solid transparent",
         transition: "background 200ms ease, border-color 200ms ease",
       }}
@@ -145,7 +145,7 @@ function Nav() {
         style={{ maxWidth: 1200, padding: "0 32px" }}
       >
         <Link to="/" aria-label="Auditron home" className="flex items-center">
-          <Wordmark height={22} color="#5C1A1B" />
+          <Wordmark height={24} color="#5C1A1B" />
         </Link>
         <nav className="hidden md:flex items-center gap-8">
           {[
@@ -159,7 +159,7 @@ function Nav() {
               onClick={() => scrollToId(id)}
               className="brand-link"
               style={{
-                fontFamily: '"Inter Tight", system-ui, sans-serif',
+                fontFamily: '"Fraunces", Georgia, serif',
                 fontWeight: 500,
                 fontSize: 15,
                 color: "#5C1A1B",
@@ -201,7 +201,7 @@ function Hero() {
       className="relative overflow-hidden"
       style={{ paddingTop: 168, paddingBottom: 96, background: "#F2EBDD" }}
     >
-      <RuleMotif fade />
+      <RuleMotif fade draw />
       {/* Subtle vignette */}
       <div
         aria-hidden
@@ -228,7 +228,7 @@ function Hero() {
           <h1
             className="font-display mx-auto"
             style={{
-              fontSize: "clamp(44px, 6.5vw, 72px)",
+              fontSize: "clamp(46px, 6.8vw, 76px)",
               lineHeight: 1.05,
               letterSpacing: "-0.02em",
               color: "#5C1A1B",
@@ -239,6 +239,14 @@ function Hero() {
             <br />
             In under <em style={{ fontStyle: "italic", fontWeight: 500 }}>10 minutes</em>.
           </h1>
+        </Reveal>
+
+        {/* Horizontal flourish: thin oxblood rule with the tick on its right end */}
+        <Reveal delay={120}>
+          <div className="mt-8 flex items-center justify-center gap-2.5" aria-hidden>
+            <span style={{ display: "block", width: 60, height: 1, background: "#5C1A1B", opacity: 0.55 }} />
+            <Mark size={12} color="#5C1A1B" />
+          </div>
         </Reveal>
 
         <Reveal delay={160}>
