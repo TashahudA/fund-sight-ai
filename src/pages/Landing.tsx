@@ -318,6 +318,23 @@ export default function Landing() {
 
       {/* ==== HERO ==== */}
       <section className="relative z-10" style={{ minHeight: "100vh", paddingTop: "120px", background: "#FAFAFA" }}>
+        {/* Signature teal circle — hero only, behind content */}
+        <div
+          aria-hidden="true"
+          className="hero-teal-circle"
+          style={{
+            position: "absolute",
+            top: "62%",
+            left: "62vw",
+            width: "680px",
+            height: "680px",
+            borderRadius: "50%",
+            background: "#0D7377",
+            transform: "translateY(-50%)",
+            zIndex: 0,
+            pointerEvents: "none",
+          }}
+        />
         <div className="relative z-10 flex flex-col items-center justify-center px-6" style={{ minHeight: "calc(60vh - 100px)" }}>
           <div className="text-center" style={{ maxWidth: "800px" }}>
             <p className="ai-powered-shimmer" style={{
