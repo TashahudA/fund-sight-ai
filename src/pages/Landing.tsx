@@ -73,13 +73,13 @@ function FAQAccordion() {
         return (
           <div key={i} style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
             <button onClick={() => setOpenIndex(isOpen ? null : i)} className="w-full flex items-center justify-between py-6 text-left">
-              <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "15px", color: "#0D0D0D", letterSpacing: "-0.01em" }}>{item.q}</span>
-              <div className="ml-4 shrink-0" style={{ transition: "transform 0.3s ease", transform: isOpen ? "rotate(45deg)" : "rotate(0deg)", color: "#888888" }}>
+              <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "15px", color: "#111111", letterSpacing: "-0.01em" }}>{item.q}</span>
+              <div className="ml-4 shrink-0" style={{ transition: "transform 0.3s ease", transform: isOpen ? "rotate(45deg)" : "rotate(0deg)", color: "#999999" }}>
                 <Plus className="h-4 w-4" />
               </div>
             </button>
             <div style={{ maxHeight: isOpen ? "200px" : "0px", opacity: isOpen ? 1 : 0, overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.4s ease" }}>
-              <p className="pb-6" style={{ fontSize: "15px", color: "#3D3D3D", lineHeight: 1.8 }}>{item.a}</p>
+              <p className="pb-6" style={{ fontSize: "15px", color: "#666666", lineHeight: 1.8 }}>{item.a}</p>
             </div>
           </div>
         );
@@ -235,19 +235,12 @@ export default function Landing() {
   const currentStep = howItWorksTabs[activeTab];
 
   return (
-    <div className="min-h-screen landing-root" style={{ background: "#FAFAFA", overflow: "hidden" }}>
+    <div className="min-h-screen landing-root" style={{ background: "#ffffff", overflow: "hidden" }}>
       {/* Manrope font — scoped to landing page only */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
         .landing-root, .landing-root * {
-          font-family: 'Inter', sans-serif !important;
-        }
-        .landing-root h1, .landing-root h2, .landing-root .serif-display {
-          font-family: 'Instrument Serif', serif !important;
-          font-weight: 400 !important;
-        }
-        .landing-root h1 em, .landing-root h2 em, .landing-root .serif-display em {
-          font-style: italic;
+          font-family: 'Manrope', 'Open Sans', sans-serif !important;
         }
       `}</style>
 
@@ -267,7 +260,7 @@ export default function Landing() {
             backdropFilter: scrolled ? "blur(16px)" : "none",
             WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
             borderRadius: scrolled ? "100px" : "0",
-            border: scrolled ? "1px solid #EBEBEB" : "1px solid transparent",
+            border: scrolled ? "1px solid #ebebeb" : "1px solid transparent",
             boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.07)" : "none",
             transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)",
             padding: scrolled ? "0 24px" : "0 32px",
@@ -277,7 +270,7 @@ export default function Landing() {
             <a
               href="#"
               onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: "20px", color: "#0D0D0D", textDecoration: "none", cursor: "pointer", letterSpacing: "-0.02em" }}
+              style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "18px", color: "#111111", textDecoration: "none", cursor: "pointer", letterSpacing: "-0.02em" }}
             >
               Auditron
             </a>
@@ -288,7 +281,7 @@ export default function Landing() {
                   key={link.id}
                   onClick={() => scrollTo(link.id)}
                   className="nav-link-hover"
-                  style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Inter', sans-serif", fontSize: "15px", fontWeight: 500, color: "#3D3D3D", padding: "6px 12px", position: "relative" }}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Open Sans', sans-serif", fontSize: "13px", fontWeight: 500, color: "#888888", padding: "6px 12px", position: "relative" }}
                 >
                   {link.label}
                 </button>
@@ -296,7 +289,7 @@ export default function Landing() {
             </div>
 
             <div className="flex items-center gap-3">
-              <Link to="/login" className="nav-link-hover" style={{ fontFamily: "'Inter', sans-serif", fontSize: "15px", fontWeight: 500, color: "#3D3D3D", position: "relative", padding: "6px 0" }}>
+              <Link to="/login" className="nav-link-hover" style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "13px", fontWeight: 500, color: "#888888", position: "relative", padding: "6px 0" }}>
                 Login
               </Link>
               <button
@@ -317,58 +310,27 @@ export default function Landing() {
       </nav>
 
       {/* ==== HERO ==== */}
-      <section className="relative z-10" style={{ minHeight: "100vh", paddingTop: "120px", background: "#FAFAFA" }}>
-        {/* Signature radial glows — hero atmosphere */}
-        <div
-          aria-hidden="true"
-          className="hero-glow-teal"
-          style={{
-            position: "absolute",
-            top: "-180px",
-            right: "-200px",
-            width: "780px",
-            height: "780px",
-            background:
-              "radial-gradient(circle, rgba(13, 115, 119, 0.22) 0%, rgba(13, 115, 119, 0.08) 40%, transparent 68%)",
-            zIndex: 0,
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="hero-glow-amber"
-          style={{
-            position: "absolute",
-            bottom: "-100px",
-            left: "-120px",
-            width: "500px",
-            height: "500px",
-            background:
-              "radial-gradient(circle, rgba(212, 168, 71, 0.16) 0%, rgba(212, 168, 71, 0.05) 42%, transparent 68%)",
-            zIndex: 0,
-            pointerEvents: "none",
-          }}
-        />
+      <section className="relative z-10" style={{ minHeight: "100vh", paddingTop: "120px", background: "#ffffff" }}>
         <div className="relative z-10 flex flex-col items-center justify-center px-6" style={{ minHeight: "calc(60vh - 100px)" }}>
           <div className="text-center" style={{ maxWidth: "800px" }}>
             <p className="ai-powered-shimmer" style={{
-              fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: "11px",
-              letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: "20px",
-              color: "#888888", display: "inline-block",
+              fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "14px",
+              letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: "20px",
+              color: "#999999", display: "inline-block",
             }}>
               AI-POWERED SMSF AUDITS
             </p>
 
             <h1 style={{ lineHeight: 1.05, marginBottom: "20px" }}>
-              <span className="hidden md:block" style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, fontSize: "68px", color: "#0D0D0D", letterSpacing: "-0.02em", lineHeight: 1.05 }}>
-                95% of your audit done.<br />In under <em>10 minutes</em>.
+              <span className="hidden md:block" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "64px", color: "#111111", letterSpacing: "-0.03em" }}>
+                95% of your audit done.<br />In under 10 minutes.
               </span>
-              <span className="block md:hidden" style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, fontSize: "40px", color: "#0D0D0D", letterSpacing: "-0.02em", lineHeight: 1.05 }}>
-                95% of your audit done.<br />In under <em>10 minutes</em>.
+              <span className="block md:hidden" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "38px", color: "#111111", letterSpacing: "-0.03em" }}>
+                95% of your audit done.<br />In under 10 minutes.
               </span>
             </h1>
 
-            <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: "17px", color: "#3D3D3D", maxWidth: "640px", margin: "0 auto", lineHeight: 1.65 }}>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#6B6B6B", maxWidth: "640px", margin: "0 auto", lineHeight: 1.7 }}>
               Auditron runs the full audit. You review the findings and sign off.
             </p>
 
@@ -389,7 +351,7 @@ export default function Landing() {
                 className="btn-hover-lift"
                 style={{
                   fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "15px",
-                  background: "#FAFAFA", color: "#0D0D0D", border: "1px solid #333333", borderRadius: "8px",
+                  background: "#ffffff", color: "#111111", border: "1px solid #333333", borderRadius: "8px",
                   height: "48px", padding: "0 32px", cursor: "pointer", transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = "#f5f5f5"; }}
@@ -442,22 +404,21 @@ export default function Landing() {
       </section>
 
       {/* ==== HOW IT WORKS — TAB SWITCHER ==== */}
-      <section id="how-it-works" style={{ background: "#FAFAFA", padding: "120px 24px" }}>
+      <section id="how-it-works" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "1100px" }}>
           <RevealSection className="text-center" style={{ marginBottom: "48px" }}>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: "11px", color: "#888888", letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: "12px" }}>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
               HOW IT WORKS
             </p>
-            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, fontSize: "44px", color: "#0D0D0D", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
               From upload to sign-off in 3 steps.
             </h2>
           </RevealSection>
 
           <RevealSection>
             <div style={{
-              background: "#FFFFFF",
-              border: "1px solid #EBEBEB",
-              borderRadius: "16px",
+              background: "#f5f5f5",
+              borderRadius: "24px",
               padding: "64px",
               boxShadow: "0 2px 40px rgba(0,0,0,0.06)",
             }}>
@@ -509,10 +470,10 @@ export default function Landing() {
               >
                 {/* Left — text */}
                 <div style={{ flex: "0 0 40%", minWidth: "260px" }}>
-                  <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#0D0D0D", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+                  <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#111111", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
                     {currentStep.title}
                   </h3>
-                  <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#3D3D3D", lineHeight: 1.75, marginTop: "16px", maxWidth: "360px" }}>
+                  <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", lineHeight: 1.75, marginTop: "16px", maxWidth: "360px" }}>
                     {currentStep.desc}
                   </p>
                 </div>
@@ -520,7 +481,7 @@ export default function Landing() {
                 <div style={{
                   flex: 1,
                   minWidth: "260px",
-                  background: "#FAFAFA",
+                  background: "#f0f0f0",
                   borderRadius: "16px",
                   height: "340px",
                   display: "flex",
@@ -550,13 +511,13 @@ export default function Landing() {
       </section>
 
       {/* ==== FEATURES ==== */}
-      <section id="features" style={{ background: "#FAFAFA", padding: "120px 24px" }}>
+      <section id="features" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "1100px" }}>
           <RevealSection className="text-center" style={{ marginBottom: "64px" }}>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: "11px", color: "#888888", letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: "12px" }}>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
               FEATURES
             </p>
-            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, fontSize: "44px", color: "#0D0D0D", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
               Built for how auditors actually work.
             </h2>
           </RevealSection>
@@ -573,15 +534,15 @@ export default function Landing() {
                   <div style={{ flex: "0 0 40%", minWidth: "240px" }}>
                     <span style={{
                       fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "12px",
-                      color: "#3D3D3D", background: "#FFFFFF", border: "1px solid #EBEBEB", borderRadius: "100px",
+                      color: "#666666", background: "#f0f0f0", borderRadius: "100px",
                       padding: "4px 14px", display: "inline-block", marginBottom: "14px",
                     }}>
                       {feat.pill}
                     </span>
-                    <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#0D0D0D", lineHeight: 1.2, letterSpacing: "-0.02em", marginBottom: "16px" }}>
+                    <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#111111", lineHeight: 1.2, letterSpacing: "-0.02em", marginBottom: "16px" }}>
                       {feat.title}
                     </h3>
-                    <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#3D3D3D", lineHeight: 1.75, maxWidth: "380px" }}>
+                    <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", lineHeight: 1.75, maxWidth: "380px" }}>
                       {feat.desc}
                     </p>
                   </div>
@@ -603,23 +564,22 @@ export default function Landing() {
       </section>
 
       {/* ==== DATA SOVEREIGNTY ==== */}
-      <section id="sovereignty" style={{ background: "#FAFAFA", padding: "120px 24px" }}>
+      <section id="sovereignty" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "1100px" }}>
           <RevealSection>
             <div style={{
-              background: "#FFFFFF",
-              border: "1px solid #EBEBEB",
-              borderRadius: "16px",
+              background: "#f5f5f5",
+              borderRadius: "24px",
               padding: "64px",
               boxShadow: "0 2px 40px rgba(0,0,0,0.06)",
             }}>
               <div className="text-center" style={{ marginBottom: "20px" }}>
-                <h2 style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, fontSize: "44px", color: "#0D0D0D", letterSpacing: "-0.02em", lineHeight: 1.1, margin: 0 }}>
+                <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "36px", color: "#111111", letterSpacing: "-0.02em", margin: 0 }}>
                   Your data never leaves Australia.
                 </h2>
               </div>
               <div className="text-center" style={{ marginBottom: "60px" }}>
-                <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#3D3D3D", margin: 0 }}>
+                <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", margin: 0 }}>
                   Built here. Stored here. Owned by Australians.
                 </p>
               </div>
@@ -673,10 +633,10 @@ export default function Landing() {
                   { h: "Your data, your rules.", b: "Export everything in one click. Delete everything in one click. No lock in. No exit fees." },
                 ].map((p, i) => (
                   <div key={i}>
-                    <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "16px", color: "#0D0D0D", margin: 0, marginBottom: "6px" }}>
+                    <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "16px", color: "#111111", margin: 0, marginBottom: "6px" }}>
                       {p.h}
                     </h3>
-                    <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "14px", color: "#3D3D3D", lineHeight: 1.6, margin: 0 }}>
+                    <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "14px", color: "#666666", lineHeight: 1.6, margin: 0 }}>
                       {p.b}
                     </p>
                   </div>
@@ -689,13 +649,13 @@ export default function Landing() {
       </section>
 
       {/* ==== PRICING ==== */}
-      <section id="pricing" style={{ background: "#FAFAFA", padding: "120px 24px" }}>
+      <section id="pricing" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "860px" }}>
           <RevealSection className="text-center" style={{ marginBottom: "64px" }}>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: "11px", color: "#888888", letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: "12px" }}>
+            <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
               PRICING
             </p>
-            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, fontSize: "44px", color: "#0D0D0D", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
               Simple pricing. No surprises.
             </h2>
           </RevealSection>
@@ -704,7 +664,7 @@ export default function Landing() {
               {/* Pay as you go */}
               <div style={{
                 flex: "1 1 0", minWidth: "300px",
-                background: "#FAFAFA", border: "1px solid #EBEBEB", borderRadius: "20px",
+                background: "#ffffff", border: "1px solid #E0E0E0", borderRadius: "20px",
                 padding: "48px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
                 display: "flex", flexDirection: "column",
               }}>
@@ -712,21 +672,21 @@ export default function Landing() {
                   PAY AS YOU GO
                 </p>
                 <div>
-                  <span style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, fontSize: "76px", color: "#0D7377", letterSpacing: "-0.02em", lineHeight: 1 }}>$49</span>
-                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "15px", color: "#3D3D3D", marginTop: "8px" }}>per audit</p>
-                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "13px", color: "#888888", marginTop: "4px" }}>No commitment. Cancel any time.</p>
+                  <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "72px", color: "#111111", letterSpacing: "-0.03em", lineHeight: 1 }}>$49</span>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "15px", color: "#666666", marginTop: "8px" }}>per audit</p>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "13px", color: "#999999", marginTop: "4px" }}>No commitment. Cancel any time.</p>
                 </div>
-                <div style={{ height: "1px", background: "#EBEBEB", margin: "32px 0" }} />
+                <div style={{ height: "1px", background: "#E0E0E0", margin: "32px 0" }} />
                 <ul style={{ display: "flex", flexDirection: "column", gap: "12px", flex: 1 }}>
                   {pricingFeatures.map((feat, i) => (
-                    <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "14px", color: "#3D3D3D", lineHeight: 1.6 }}>
-                      <Check className="shrink-0" style={{ color: "#0D7377", width: "16px", height: "16px", marginTop: "4px" }} strokeWidth={2.5} />
+                    <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "14px", color: "#333333", lineHeight: 1.6 }}>
+                      <Check className="shrink-0" style={{ color: "#111111", width: "16px", height: "16px", marginTop: "4px" }} strokeWidth={2.5} />
                       <span>{feat}</span>
                     </li>
                   ))}
                 </ul>
                 <button
-                  style={{ width: "100%", marginTop: "32px", padding: "14px", borderRadius: "10px", border: "1px solid #111111", background: "#FAFAFA", color: "#0D0D0D", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease" }}
+                  style={{ width: "100%", marginTop: "32px", padding: "14px", borderRadius: "10px", border: "1px solid #111111", background: "#ffffff", color: "#111111", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease" }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = "#f5f5f5"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = "#ffffff"; }}
                   onClick={() => scrollTo("contact")}
@@ -742,20 +702,20 @@ export default function Landing() {
                 padding: "48px",
                 display: "flex", flexDirection: "column",
               }}>
-                <span style={{ display: "inline-block", alignSelf: "flex-start", background: "#FAFAFA", color: "#0D0D0D", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "10px", borderRadius: "20px", padding: "4px 12px", marginBottom: "20px", letterSpacing: "0.05em" }}>
+                <span style={{ display: "inline-block", alignSelf: "flex-start", background: "#ffffff", color: "#111111", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "10px", borderRadius: "20px", padding: "4px 12px", marginBottom: "20px", letterSpacing: "0.05em" }}>
                   BEST FOR FIRMS
                 </span>
                 <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "11px", color: "#888888", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "16px" }}>
                   VOLUME PLANS
                 </p>
                 <div>
-                  <span style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, fontSize: "76px", color: "#FFFFFF", letterSpacing: "-0.02em", lineHeight: 1 }}>From $29</span>
-                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "15px", color: "#888888", marginTop: "8px" }}>per audit</p>
-                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "13px", color: "#3D3D3D", marginTop: "4px" }}>Annual commitment. Billed upfront.</p>
+                  <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "72px", color: "#FFFFFF", letterSpacing: "-0.03em", lineHeight: 1 }}>From $29</span>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "15px", color: "#999999", marginTop: "8px" }}>per audit</p>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "13px", color: "#666666", marginTop: "4px" }}>Annual commitment. Billed upfront.</p>
                 </div>
                 <div style={{ height: "1px", background: "rgba(255,255,255,0.2)", margin: "32px 0" }} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: "16px", padding: "14px 0", fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "12px", color: "#3D3D3D", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: "16px", padding: "14px 0", fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "12px", color: "#666666", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
                     <span style={{ textAlign: "left" }}>Commitment</span>
                     <span style={{ textAlign: "center" }}>Per audit</span>
                     <span style={{ textAlign: "right" }}>Saving</span>
@@ -769,15 +729,15 @@ export default function Landing() {
                     <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: "16px", padding: "14px 0", fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#FFFFFF", borderBottom: i < arr.length - 1 ? "1px solid rgba(255,255,255,0.1)" : "none" }}>
                       <span style={{ textAlign: "left" }}>{commit}</span>
                       <span style={{ textAlign: "center" }}>{price}</span>
-                      <span style={{ textAlign: "right", color: "#888888" }}>{save}</span>
+                      <span style={{ textAlign: "right", color: "#999999" }}>{save}</span>
                     </div>
                   ))}
-                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "12px", color: "#3D3D3D", textAlign: "center", marginTop: "20px" }}>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "12px", color: "#666666", textAlign: "center", marginTop: "20px" }}>
                     All plans include the full product. No feature limits.
                   </p>
                 </div>
                 <button
-                  style={{ width: "100%", marginTop: "32px", padding: "14px", borderRadius: "10px", border: "none", background: "#FFFFFF", color: "#0D0D0D", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease" }}
+                  style={{ width: "100%", marginTop: "32px", padding: "14px", borderRadius: "10px", border: "none", background: "#FFFFFF", color: "#111111", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease" }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = "#f0f0f0"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = "#FFFFFF"; }}
                   onClick={() => scrollTo("contact")}
@@ -791,13 +751,13 @@ export default function Landing() {
       </section>
 
       {/* ==== FAQ ==== */}
-      <section id="faq" style={{ background: "#FAFAFA", padding: "120px 24px" }}>
+      <section id="faq" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "680px" }}>
           <RevealSection className="text-center" style={{ marginBottom: "64px" }}>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: "11px", color: "#888888", letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: "12px" }}>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
               FAQ
             </p>
-            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, fontSize: "44px", color: "#0D0D0D", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
               Questions
             </h2>
           </RevealSection>
@@ -808,13 +768,13 @@ export default function Landing() {
       </section>
 
       {/* ==== CONTACT / BOOK A DEMO ==== */}
-      <section id="contact" style={{ background: "#FAFAFA", padding: "120px 24px" }}>
+      <section id="contact" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "520px" }}>
           <RevealSection className="text-center" style={{ marginBottom: "48px" }}>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: "11px", color: "#888888", letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: "12px" }}>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#999999", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
               CONTACT
             </p>
-            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontWeight: 400, fontSize: "44px", color: "#0D0D0D", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
               Book a Demo
             </h2>
             <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "18px", color: "#888888", marginTop: "16px" }}>
@@ -936,11 +896,11 @@ export default function Landing() {
         .nav-link-hover::after {
           content: '';
           position: absolute; bottom: -2px; left: 0; width: 100%; height: 1px;
-          background: #0D7377; transform: scaleX(0); transform-origin: left;
+          background: #111111; transform: scaleX(0); transform-origin: left;
           transition: transform 0.2s ease;
         }
         .nav-link-hover:hover::after { transform: scaleX(1); }
-        .nav-link-hover:hover { color: #0D7377 !important; }
+        .nav-link-hover:hover { color: #111111 !important; }
 
         .btn-hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .btn-hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
@@ -953,17 +913,6 @@ export default function Landing() {
           box-shadow: 0 0 0 3px rgba(0,0,0,0.06) !important;
           outline: none;
         }
-
-        @media (max-width: 768px) {
-          .hero-glow-teal {
-            width: 420px !important;
-            height: 420px !important;
-          }
-          .hero-glow-amber {
-            width: 280px !important;
-            height: 280px !important;
-          }
-        }
       `}</style>
     </div>
   );
@@ -973,7 +922,7 @@ const labelStyle: React.CSSProperties = {
   fontFamily: "'Open Sans', sans-serif",
   fontWeight: 500,
   fontSize: "13px",
-  color: "#3D3D3D",
+  color: "#333333",
   marginBottom: "6px",
   display: "block",
 };
@@ -982,12 +931,12 @@ const inputStyle: React.CSSProperties = {
   fontFamily: "'Open Sans', sans-serif",
   fontWeight: 400,
   fontSize: "15px",
-  border: "1px solid #EBEBEB",
+  border: "1px solid #e5e5e5",
   borderRadius: "8px",
   padding: "14px 16px",
   width: "100%",
-  background: "#FAFAFA",
-  color: "#0D0D0D",
+  background: "#ffffff",
+  color: "#111111",
   transition: "border-color 0.2s ease, box-shadow 0.2s ease",
   outline: "none",
 };
