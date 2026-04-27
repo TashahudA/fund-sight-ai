@@ -1,85 +1,90 @@
 import * as React from "react";
+import Mark from "./Mark";
 
 /**
- * Auditron Wordmark.
- * The capital "A" is hand-constructed: its crossbar is the tick gesture
- * (angled slightly up from low-left to mid-right) plus a small companion
- * dot to the upper-right of where the crossbar meets the right diagonal.
- * Remaining glyphs "uditron" are set in Inter Tight 700 with tightened tracking.
+ * Auditron lockup — the cross-reference Mark sits to the LEFT of the
+ * wordmark "Auditron", set in Fraunces 500 with display optical-size.
+ * The letterforms are NOT modified — the Mark does the visual work,
+ * the serif wordmark provides the gravitas.
+ *
+ * `variant="inline"` (default) → mark · 12px gap · wordmark
+ * `variant="stacked"`           → mark above, wordmark below, both centred
  */
-type WordmarkProps = {
+
+type Variant = "inline" | "stacked";
+
+type LockupProps = {
+  /** Cap height of the wordmark in px. Mark scales proportionally (≈ 0.92×). */
   height?: number;
+  /** Colour applied to both the mark and the wordmark. */
   color?: string;
+  variant?: Variant;
   className?: string;
   style?: React.CSSProperties;
   title?: string;
 };
 
 export function Wordmark({
-  height = 22,
-  color = "#0E2E25",
+  height = 24,
+  color = "#5C1A1B",
+  variant = "inline",
   className,
   style,
   title = "Auditron",
-}: WordmarkProps) {
-  // Intrinsic viewBox: 200 wide × 36 tall.
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 200 36"
-      height={height}
-      width={(height * 200) / 36}
-      role="img"
-      aria-label={title}
-      className={className}
-      style={style}
-    >
-      {/* --- Custom "A" --- */}
-      {/* Left diagonal */}
-      <path
-        d="M2.5 32 L14 4"
-        stroke={color}
-        strokeWidth="3.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      {/* Right diagonal */}
-      <path
-        d="M14 4 L25.5 32"
-        stroke={color}
-        strokeWidth="3.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      {/* Crossbar = the tick gesture, slightly angled upward */}
-      <path
-        d="M7.5 23.5 L20 19"
-        stroke={color}
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      {/* Companion dot at upper-right of where the crossbar meets the right diagonal */}
-      <circle cx="22.6" cy="14.6" r="1.45" fill={color} />
+}: LockupProps) {
+  // Fraunces cap-height is ≈ 0.72× the font-size. We size the type so its
+  // cap height matches `height` precisely, so the mark and the capital "A"
+  // align like a coat-of-arms beside a name.
+  const fontSize = Math.round(height / 0.72);
+  const markSize = Math.round(height * 0.92);
 
-      {/* --- "uditron" in Inter Tight 700 --- */}
-      <text
-        x="32"
-        y="28"
-        fill={color}
+  const wordStyle: React.CSSProperties = {
+    fontFamily: '"Fraunces", Georgia, serif',
+    fontWeight: 500,
+    fontSize,
+    lineHeight: 1,
+    letterSpacing: "-0.015em",
+    color,
+    fontVariationSettings: '"opsz" 96',
+    // Trim leading so the optical baseline sits flush with the mark
+    display: "inline-block",
+  };
+
+  if (variant === "stacked") {
+    return (
+      <div
+        className={className}
         style={{
-          fontFamily: '"Inter Tight", system-ui, sans-serif',
-          fontWeight: 700,
-          fontSize: "26px",
-          letterSpacing: "-0.02em",
+          display: "inline-flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 10,
+          ...style,
         }}
+        aria-label={title}
+        role="img"
       >
-        uditron
-      </text>
-    </svg>
+        <Mark size={Math.round(height * 1.1)} color={color} />
+        <span style={wordStyle}>Auditron</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={className}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 12,
+        ...style,
+      }}
+      aria-label={title}
+      role="img"
+    >
+      <Mark size={markSize} color={color} />
+      <span style={wordStyle}>Auditron</span>
+    </div>
   );
 }
 

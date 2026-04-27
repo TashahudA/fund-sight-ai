@@ -80,7 +80,7 @@ function PrimaryBtn({
     <>
       <span>{children}</span>
       <span className="brand-btn-flash">
-        <Mark size={12} color="#C9A96A" />
+        <Mark size={12} color="#E8DDC9" />
       </span>
     </>
   );
@@ -135,8 +135,8 @@ function Nav() {
         height: 72,
         backdropFilter: scrolled ? "blur(12px)" : "none",
         WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
-        background: scrolled ? "rgba(245, 241, 232, 0.92)" : "transparent",
-        borderBottom: scrolled ? "1px solid rgba(14,46,37,0.06)" : "1px solid transparent",
+        background: scrolled ? "rgba(242, 235, 221, 0.92)" : "transparent",
+        borderBottom: scrolled ? "1px solid rgba(92,26,27,0.06)" : "1px solid transparent",
         transition: "background 200ms ease, border-color 200ms ease",
       }}
     >
@@ -145,7 +145,7 @@ function Nav() {
         style={{ maxWidth: 1200, padding: "0 32px" }}
       >
         <Link to="/" aria-label="Auditron home" className="flex items-center">
-          <Wordmark height={22} color="#0E2E25" />
+          <Wordmark height={24} color="#5C1A1B" />
         </Link>
         <nav className="hidden md:flex items-center gap-8">
           {[
@@ -159,10 +159,10 @@ function Nav() {
               onClick={() => scrollToId(id)}
               className="brand-link"
               style={{
-                fontFamily: '"Inter Tight", system-ui, sans-serif',
+                fontFamily: '"Fraunces", Georgia, serif',
                 fontWeight: 500,
                 fontSize: 15,
-                color: "#0E2E25",
+                color: "#5C1A1B",
                 background: "transparent",
                 border: 0,
                 cursor: "pointer",
@@ -180,7 +180,7 @@ function Nav() {
               fontFamily: '"Inter Tight", system-ui, sans-serif',
               fontWeight: 500,
               fontSize: 15,
-              color: "#0E2E25",
+              color: "#5C1A1B",
             }}
           >
             Login
@@ -199,16 +199,16 @@ function Hero() {
   return (
     <section
       className="relative overflow-hidden"
-      style={{ paddingTop: 168, paddingBottom: 96, background: "#F5F1E8" }}
+      style={{ paddingTop: 168, paddingBottom: 96, background: "#F2EBDD" }}
     >
-      <RuleMotif fade />
+      <RuleMotif fade draw />
       {/* Subtle vignette */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at center, transparent 50%, rgba(14,46,37,0.025) 100%)",
+            "radial-gradient(ellipse at center, transparent 50%, rgba(92,26,27,0.025) 100%)",
         }}
       />
 
@@ -218,9 +218,9 @@ function Hero() {
       >
         <Reveal>
           <div className="brand-eyebrow mb-6 flex items-center justify-center gap-2">
-            <Mark size={10} color="#C9A96A" />
+            <Mark size={10} color="#5C1A1B" />
             AI-powered SMSF audits
-            <Mark size={10} color="#C9A96A" />
+            <Mark size={10} color="#5C1A1B" />
           </div>
         </Reveal>
 
@@ -228,10 +228,10 @@ function Hero() {
           <h1
             className="font-display mx-auto"
             style={{
-              fontSize: "clamp(44px, 6.5vw, 72px)",
+              fontSize: "clamp(46px, 6.8vw, 76px)",
               lineHeight: 1.05,
               letterSpacing: "-0.02em",
-              color: "#0E2E25",
+              color: "#5C1A1B",
               maxWidth: 920,
             }}
           >
@@ -239,6 +239,14 @@ function Hero() {
             <br />
             In under <em style={{ fontStyle: "italic", fontWeight: 500 }}>10 minutes</em>.
           </h1>
+        </Reveal>
+
+        {/* Horizontal flourish: thin oxblood rule with the tick on its right end */}
+        <Reveal delay={120}>
+          <div className="mt-8 flex items-center justify-center gap-2.5" aria-hidden>
+            <span style={{ display: "block", width: 60, height: 1, background: "#5C1A1B", opacity: 0.55 }} />
+            <Mark size={12} color="#5C1A1B" />
+          </div>
         </Reveal>
 
         <Reveal delay={160}>
@@ -249,7 +257,7 @@ function Hero() {
               fontWeight: 400,
               fontSize: 19,
               lineHeight: 1.55,
-              color: "#5A5A5A",
+              color: "#6B5F52",
               maxWidth: 560,
             }}
           >
@@ -271,13 +279,13 @@ function Hero() {
               fontFamily: '"Inter Tight", system-ui, sans-serif',
               fontWeight: 400,
               fontSize: 13,
-              color: "#5A5A5A",
+              color: "#6B5F52",
             }}
           >
             <span>Built in Australia</span>
-            <Mark size={10} color="#C9A96A" />
+            <Mark size={10} color="#5C1A1B" />
             <span>Data hosted in Australia</span>
-            <Mark size={10} color="#C9A96A" />
+            <Mark size={10} color="#5C1A1B" />
             <span>For registered SMSF auditors</span>
           </div>
         </Reveal>
@@ -290,9 +298,9 @@ function Hero() {
               maxWidth: 1100,
               borderRadius: 20,
               overflow: "hidden",
-              background: "#F5F1E8",
-              border: "1px solid rgba(14,46,37,0.08)",
-              boxShadow: "0 24px 48px -12px rgba(14,46,37,0.18)",
+              background: "#F2EBDD",
+              border: "1px solid rgba(92,26,27,0.08)",
+              boxShadow: "0 24px 48px -12px rgba(92,26,27,0.18)",
             }}
           >
             {/* macOS chrome */}
@@ -300,8 +308,8 @@ function Hero() {
               className="flex items-center gap-2"
               style={{
                 padding: "12px 16px",
-                background: "rgba(14,46,37,0.04)",
-                borderBottom: "1px solid rgba(14,46,37,0.08)",
+                background: "rgba(92,26,27,0.04)",
+                borderBottom: "1px solid rgba(92,26,27,0.08)",
               }}
             >
               <span style={{ width: 11, height: 11, borderRadius: "50%", background: "#E5C2C2" }} />
@@ -312,7 +320,7 @@ function Hero() {
               style={{
                 aspectRatio: "16 / 10",
                 background:
-                  "linear-gradient(135deg, #F5F1E8 0%, #ECE6D6 100%)",
+                  "linear-gradient(135deg, #F2EBDD 0%, #E8DDC9 100%)",
                 position: "relative",
               }}
             >
@@ -328,7 +336,7 @@ function Hero() {
                 className="absolute inset-0 flex items-center justify-center"
                 style={{ pointerEvents: "none" }}
               >
-                <Mark size={56} color="#0E2E25" style={{ opacity: 0.12 }} />
+                <Mark size={56} color="#5C1A1B" style={{ opacity: 0.12 }} />
               </div>
             </div>
           </div>
@@ -341,7 +349,7 @@ function Hero() {
         className="absolute"
         style={{ right: 32, bottom: 32, opacity: 0.4 }}
       >
-        <Mark size={32} color="#C9A96A" />
+        <Mark size={32} color="#E8DDC9" />
       </div>
     </section>
   );
@@ -359,7 +367,7 @@ function TrustStrip() {
     "Westmere SMSF",
   ];
   return (
-    <section style={{ padding: "56px 24px 56px", background: "#F5F1E8" }}>
+    <section style={{ padding: "56px 24px 56px", background: "#F2EBDD" }}>
       <div className="mx-auto" style={{ maxWidth: 1200 }}>
         <Reveal>
           <div className="brand-eyebrow text-center mb-8">
@@ -373,7 +381,7 @@ function TrustStrip() {
                   fontFamily: '"Fraunces", Georgia, serif',
                   fontWeight: 400,
                   fontSize: 22,
-                  color: "#5A5A5A",
+                  color: "#6B5F52",
                   opacity: 0.5,
                   letterSpacing: "-0.01em",
                 }}
@@ -386,7 +394,7 @@ function TrustStrip() {
       </div>
       <div
         className="mx-auto mt-14"
-        style={{ maxWidth: 1200, height: 1, background: "rgba(14,46,37,0.08)" }}
+        style={{ maxWidth: 1200, height: 1, background: "rgba(92,26,27,0.08)" }}
       />
     </section>
   );
@@ -421,12 +429,12 @@ function HowItWorks() {
     <section
       id="how"
       className="relative"
-      style={{ padding: "120px 24px", background: "#F5F1E8" }}
+      style={{ padding: "120px 24px", background: "#F2EBDD" }}
     >
       <div className="mx-auto" style={{ maxWidth: 1200 }}>
         <Reveal>
           <div className="brand-eyebrow mb-5 flex items-center gap-2">
-            <Mark size={10} color="#C9A96A" /> How it works
+            <Mark size={10} color="#5C1A1B" /> How it works
           </div>
           <h2
             className="font-display"
@@ -434,7 +442,7 @@ function HowItWorks() {
               fontSize: "clamp(34px, 4.4vw, 48px)",
               lineHeight: 1.1,
               letterSpacing: "-0.015em",
-              color: "#0E2E25",
+              color: "#5C1A1B",
               maxWidth: 720,
             }}
           >
@@ -446,14 +454,14 @@ function HowItWorks() {
           {steps.map((s, i) => (
             <Reveal key={s.n} delay={i * 100}>
               <div className="relative">
-                <Mark size={16} color="#C9A96A" />
+                <Mark size={16} color="#5C1A1B" />
                 <div
                   className="font-display brand-tabular"
                   style={{
                     fontWeight: 400,
                     fontSize: 96,
                     lineHeight: 1,
-                    color: "#0E2E25",
+                    color: "#5C1A1B",
                     opacity: 0.12,
                     marginTop: 8,
                   }}
@@ -465,7 +473,7 @@ function HowItWorks() {
                     fontFamily: '"Inter Tight", system-ui, sans-serif',
                     fontWeight: 600,
                     fontSize: 22,
-                    color: "#0E2E25",
+                    color: "#5C1A1B",
                     marginTop: 16,
                     letterSpacing: "-0.01em",
                   }}
@@ -478,7 +486,7 @@ function HowItWorks() {
                     fontWeight: 400,
                     fontSize: 16,
                     lineHeight: 1.6,
-                    color: "#1A1A1A",
+                    color: "#1A1612",
                     marginTop: 12,
                   }}
                 >
@@ -491,7 +499,7 @@ function HowItWorks() {
       </div>
       <div
         className="mx-auto mt-24"
-        style={{ maxWidth: 1200, height: 1, background: "rgba(14,46,37,0.08)" }}
+        style={{ maxWidth: 1200, height: 1, background: "rgba(92,26,27,0.08)" }}
       />
     </section>
   );
@@ -556,9 +564,9 @@ function FeatureBlock({
           className="relative overflow-hidden"
           style={{
             borderRadius: 12,
-            background: "#ECE6D6",
-            border: "1px solid rgba(14,46,37,0.08)",
-            boxShadow: "0 12px 24px -8px rgba(14,46,37,0.08)",
+            background: "#E8DDC9",
+            border: "1px solid rgba(92,26,27,0.08)",
+            boxShadow: "0 12px 24px -8px rgba(92,26,27,0.08)",
             aspectRatio: "4 / 3",
           }}
         >
@@ -575,12 +583,12 @@ function FeatureBlock({
             className="absolute inset-0 flex items-center justify-center"
             style={{ pointerEvents: "none" }}
           >
-            <Mark size={48} color="#0E2E25" style={{ opacity: 0.18 }} />
+            <Mark size={48} color="#5C1A1B" style={{ opacity: 0.18 }} />
           </div>
         </div>
       </div>
       <div className={reverse ? "md:[direction:ltr]" : ""}>
-        <Mark size={14} color="#C9A96A" />
+        <Mark size={14} color="#5C1A1B" />
         <div className="brand-eyebrow mt-4">{feature.eyebrow}</div>
         <h3
           className="font-display mt-4"
@@ -589,7 +597,7 @@ function FeatureBlock({
             fontSize: "clamp(28px, 3.4vw, 36px)",
             lineHeight: 1.15,
             letterSpacing: "-0.015em",
-            color: "#0E2E25",
+            color: "#5C1A1B",
           }}
         >
           {feature.title}
@@ -601,7 +609,7 @@ function FeatureBlock({
             fontWeight: 400,
             fontSize: 16,
             lineHeight: 1.65,
-            color: "#1A1A1A",
+            color: "#1A1612",
             maxWidth: 480,
           }}
         >
@@ -617,12 +625,12 @@ function Features() {
     <section
       id="features"
       className="relative"
-      style={{ padding: "120px 24px", background: "#F5F1E8" }}
+      style={{ padding: "120px 24px", background: "#F2EBDD" }}
     >
       <div className="mx-auto" style={{ maxWidth: 1200 }}>
         <Reveal>
           <div className="brand-eyebrow mb-5 flex items-center gap-2">
-            <Mark size={10} color="#C9A96A" /> What Auditron does
+            <Mark size={10} color="#5C1A1B" /> What Auditron does
           </div>
           <h2
             className="font-display"
@@ -630,7 +638,7 @@ function Features() {
               fontSize: "clamp(34px, 4.4vw, 48px)",
               lineHeight: 1.1,
               letterSpacing: "-0.015em",
-              color: "#0E2E25",
+              color: "#5C1A1B",
               maxWidth: 820,
             }}
           >
@@ -658,9 +666,9 @@ function TheLine() {
   return (
     <section
       className="relative overflow-hidden"
-      style={{ background: "#061612", padding: "120px 24px" }}
+      style={{ background: "#2A0B0C", padding: "120px 24px" }}
     >
-      <RuleMotif variant="champagne" fade />
+      <RuleMotif variant="cream" fade />
       <Reveal>
         <div className="relative mx-auto text-center" style={{ maxWidth: 980 }}>
           <p
@@ -671,13 +679,13 @@ function TheLine() {
               fontSize: "clamp(32px, 5vw, 56px)",
               lineHeight: 1.15,
               letterSpacing: "-0.015em",
-              color: "#F5F1E8",
+              color: "#F2EBDD",
             }}
           >
             "The auditor remains the auditor. Auditron just removes the busywork."
           </p>
           <div className="mt-10 flex justify-center">
-            <Mark size={20} color="#C9A96A" />
+            <Mark size={20} color="#E8DDC9" />
           </div>
         </div>
       </Reveal>
@@ -729,13 +737,13 @@ function Pricing() {
     <section
       id="pricing"
       className="relative"
-      style={{ padding: "120px 24px", background: "#F5F1E8" }}
+      style={{ padding: "120px 24px", background: "#F2EBDD" }}
     >
       <div className="mx-auto" style={{ maxWidth: 1200 }}>
         <Reveal>
           <div className="text-center">
             <div className="brand-eyebrow mb-5 flex items-center justify-center gap-2">
-              <Mark size={10} color="#C9A96A" /> Pricing
+              <Mark size={10} color="#5C1A1B" /> Pricing
             </div>
             <h2
               className="font-display mx-auto"
@@ -743,7 +751,7 @@ function Pricing() {
                 fontSize: "clamp(34px, 4.4vw, 48px)",
                 lineHeight: 1.1,
                 letterSpacing: "-0.015em",
-                color: "#0E2E25",
+                color: "#5C1A1B",
                 maxWidth: 820,
               }}
             >
@@ -758,15 +766,15 @@ function Pricing() {
               <div
                 className="relative h-full flex flex-col"
                 style={{
-                  background: "#F5F1E8",
+                  background: "#F2EBDD",
                   border: t.recommended
-                    ? "1.5px solid #C9A96A"
-                    : "1px solid rgba(14,46,37,0.12)",
+                    ? "1.5px solid #5C1A1B"
+                    : "1px solid rgba(92,26,27,0.12)",
                   borderRadius: 12,
                   padding: "32px 28px",
                   boxShadow: t.recommended
-                    ? "0 18px 36px -12px rgba(201,169,106,0.25)"
-                    : "0 8px 20px -10px rgba(14,46,37,0.06)",
+                    ? "0 18px 36px -12px rgba(232,221,201,0.25)"
+                    : "0 8px 20px -10px rgba(92,26,27,0.06)",
                 }}
               >
                 {t.recommended && (
@@ -775,8 +783,8 @@ function Pricing() {
                     style={{
                       top: -12,
                       left: 28,
-                      background: "#C9A96A",
-                      color: "#0E2E25",
+                      background: "#E8DDC9",
+                      color: "#5C1A1B",
                       fontFamily: '"Inter Tight", system-ui, sans-serif',
                       fontWeight: 600,
                       fontSize: 11,
@@ -794,7 +802,7 @@ function Pricing() {
                     fontFamily: '"Inter Tight", system-ui, sans-serif',
                     fontWeight: 600,
                     fontSize: 18,
-                    color: "#0E2E25",
+                    color: "#5C1A1B",
                   }}
                 >
                   {t.name}
@@ -806,7 +814,7 @@ function Pricing() {
                       fontWeight: 500,
                       fontSize: 56,
                       lineHeight: 1,
-                      color: "#0E2E25",
+                      color: "#5C1A1B",
                       letterSpacing: "-0.02em",
                     }}
                   >
@@ -817,7 +825,7 @@ function Pricing() {
                       fontFamily: '"Inter Tight", system-ui, sans-serif',
                       fontWeight: 400,
                       fontSize: 16,
-                      color: "#5A5A5A",
+                      color: "#6B5F52",
                     }}
                   >
                     /audit
@@ -827,14 +835,14 @@ function Pricing() {
                   {t.features.map((feat) => (
                     <li key={feat} className="flex items-start gap-3">
                       <span style={{ marginTop: 3 }}>
-                        <Mark size={14} color="#0E2E25" />
+                        <Mark size={14} color="#5C1A1B" />
                       </span>
                       <span
                         style={{
                           fontFamily: '"Inter Tight", system-ui, sans-serif',
                           fontWeight: 400,
                           fontSize: 15,
-                          color: "#1A1A1A",
+                          color: "#1A1612",
                           lineHeight: 1.5,
                         }}
                       >
@@ -853,7 +861,7 @@ function Pricing() {
       </div>
       <div
         className="mx-auto mt-24"
-        style={{ maxWidth: 1200, height: 1, background: "rgba(14,46,37,0.08)" }}
+        style={{ maxWidth: 1200, height: 1, background: "rgba(92,26,27,0.08)" }}
       />
     </section>
   );
@@ -895,12 +903,12 @@ function FAQ() {
     <section
       id="faq"
       className="relative"
-      style={{ padding: "120px 24px", background: "#F5F1E8" }}
+      style={{ padding: "120px 24px", background: "#F2EBDD" }}
     >
       <div className="mx-auto" style={{ maxWidth: 880 }}>
         <Reveal>
           <div className="brand-eyebrow mb-5 flex items-center gap-2">
-            <Mark size={10} color="#C9A96A" /> Frequently asked
+            <Mark size={10} color="#5C1A1B" /> Frequently asked
           </div>
           <h2
             className="font-display"
@@ -908,7 +916,7 @@ function FAQ() {
               fontSize: "clamp(34px, 4.4vw, 48px)",
               lineHeight: 1.1,
               letterSpacing: "-0.015em",
-              color: "#0E2E25",
+              color: "#5C1A1B",
             }}
           >
             What auditors <em style={{ fontStyle: "italic" }}>ask first.</em>
@@ -923,7 +931,7 @@ function FAQ() {
                 key={f.q}
                 className="brand-accordion"
                 data-open={open ? "true" : "false"}
-                style={{ borderTop: "1px solid rgba(14,46,37,0.12)" }}
+                style={{ borderTop: "1px solid rgba(92,26,27,0.12)" }}
               >
                 <button
                   type="button"
@@ -941,14 +949,14 @@ function FAQ() {
                       fontFamily: '"Inter Tight", system-ui, sans-serif',
                       fontWeight: 600,
                       fontSize: 18,
-                      color: "#0E2E25",
+                      color: "#5C1A1B",
                       letterSpacing: "-0.01em",
                     }}
                   >
                     {f.q}
                   </span>
                   <span className="brand-accordion-mark" style={{ marginLeft: 16, flexShrink: 0 }}>
-                    <Mark size={18} color="#0E2E25" />
+                    <Mark size={18} color="#5C1A1B" />
                   </span>
                 </button>
                 <div
@@ -965,7 +973,7 @@ function FAQ() {
                       fontWeight: 400,
                       fontSize: 16,
                       lineHeight: 1.65,
-                      color: "#1A1A1A",
+                      color: "#1A1612",
                       maxWidth: 720,
                     }}
                   >
@@ -975,7 +983,7 @@ function FAQ() {
               </div>
             );
           })}
-          <div style={{ borderTop: "1px solid rgba(14,46,37,0.12)" }} />
+          <div style={{ borderTop: "1px solid rgba(92,26,27,0.12)" }} />
         </div>
       </div>
     </section>
@@ -990,7 +998,7 @@ function BottomCTA() {
     <section
       id="contact"
       className="relative overflow-hidden"
-      style={{ padding: "120px 24px", background: "#F5F1E8" }}
+      style={{ padding: "120px 24px", background: "#F2EBDD" }}
     >
       <RuleMotif fade />
       <div className="relative mx-auto text-center" style={{ maxWidth: 880 }}>
@@ -1001,7 +1009,7 @@ function BottomCTA() {
               fontSize: "clamp(34px, 4.8vw, 56px)",
               lineHeight: 1.1,
               letterSpacing: "-0.02em",
-              color: "#0E2E25",
+              color: "#5C1A1B",
             }}
           >
             Ready to <em style={{ fontStyle: "italic" }}>audit smarter?</em>
@@ -1013,7 +1021,7 @@ function BottomCTA() {
               fontWeight: 400,
               fontSize: 19,
               lineHeight: 1.55,
-              color: "#5A5A5A",
+              color: "#6B5F52",
               maxWidth: 520,
             }}
           >
@@ -1072,20 +1080,20 @@ function Footer() {
   return (
     <footer
       className="relative overflow-hidden"
-      style={{ background: "#0E2E25", color: "#F5F1E8", padding: "80px 24px 40px" }}
+      style={{ background: "#5C1A1B", color: "#F2EBDD", padding: "80px 24px 40px" }}
     >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{ opacity: 0.22 }}
       >
-        <RuleMotif variant="champagne" />
+        <RuleMotif variant="cream" />
       </div>
 
       <div className="relative mx-auto" style={{ maxWidth: 1200 }}>
         <div className="grid md:grid-cols-12 gap-10">
           <div className="md:col-span-5">
-            <Wordmark height={32} color="#F5F1E8" />
+            <Wordmark height={32} color="#F2EBDD" />
             <p
               className="mt-5"
               style={{
@@ -1093,7 +1101,7 @@ function Footer() {
                 fontWeight: 400,
                 fontSize: 14,
                 lineHeight: 1.6,
-                color: "rgba(245,241,232,0.7)",
+                color: "rgba(242,235,221,0.7)",
                 maxWidth: 360,
               }}
             >
@@ -1106,7 +1114,7 @@ function Footer() {
               <div key={col.heading}>
                 <div
                   className="brand-eyebrow"
-                  style={{ color: "rgba(245,241,232,0.55)", marginBottom: 16 }}
+                  style={{ color: "rgba(242,235,221,0.55)", marginBottom: 16 }}
                 >
                   {col.heading}
                 </div>
@@ -1120,7 +1128,7 @@ function Footer() {
                             fontFamily: '"Inter Tight", system-ui, sans-serif',
                             fontWeight: 400,
                             fontSize: 14,
-                            color: "#F5F1E8",
+                            color: "#F2EBDD",
                           }}
                         >
                           {l.label}
@@ -1132,7 +1140,7 @@ function Footer() {
                             fontFamily: '"Inter Tight", system-ui, sans-serif',
                             fontWeight: 400,
                             fontSize: 14,
-                            color: "#F5F1E8",
+                            color: "#F2EBDD",
                           }}
                         >
                           {l.label}
@@ -1148,7 +1156,7 @@ function Footer() {
 
         <div
           className="mt-16"
-          style={{ height: 1, background: "rgba(245,241,232,0.12)" }}
+          style={{ height: 1, background: "rgba(242,235,221,0.12)" }}
         />
 
         <div className="mt-6 flex flex-col md:flex-row items-center md:items-center justify-between gap-4">
@@ -1157,18 +1165,18 @@ function Footer() {
               fontFamily: '"Inter Tight", system-ui, sans-serif',
               fontWeight: 400,
               fontSize: 13,
-              color: "rgba(201,169,106,0.7)",
+              color: "rgba(232,221,201,0.7)",
             }}
           >
             © 2026 Auditron. All rights reserved.
           </div>
-          <Mark size={14} color="#C9A96A" />
+          <Mark size={14} color="#E8DDC9" />
           <div
             style={{
               fontFamily: '"Inter Tight", system-ui, sans-serif',
               fontWeight: 400,
               fontSize: 13,
-              color: "rgba(201,169,106,0.7)",
+              color: "rgba(232,221,201,0.7)",
             }}
           >
             Built in Melbourne.
