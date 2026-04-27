@@ -15,7 +15,7 @@ type MarkProps = {
 
 export function Mark({
   size = 24,
-  color = "#0E2E25",
+  color = "#5C1A1B",
   className,
   style,
   title,
