@@ -68,7 +68,8 @@ export default function MyRFIs() {
     if (!user) return;
     const { data, error } = await supabase
       .from("rfis")
-      .select("*, audits(fund_name)")
+      .select("*, audits!inner(fund_name, user_id)")
+      .eq("audits.user_id", user.id)
       .order("created_at", { ascending: false });
     if (error) {
       console.error("Error fetching RFIs:", error);
