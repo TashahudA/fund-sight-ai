@@ -959,7 +959,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
             className="min-h-[600px] h-[calc(100vh-14rem)]"
             onCountChange={fetchCounts}
             onAutoComplete={async () => { await fetchAudit(); await fetchCounts(); }}
-            onResolved={async () => { try { await fetchAudit(); } catch { /* silent */ } }}
+            onResolved={async () => { try { await Promise.all([fetchAudit(), fetchCounts()]); } catch { /* silent */ } }}
           />
         </TabsContent>
 
