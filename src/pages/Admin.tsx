@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Copy, Check, Trash2, Users, FileText, Activity, Coins } from "lucide-react";
 import { UserActivityDrawer } from "@/components/UserActivityDrawer";
+import { API_BASE_URL } from "@/lib/apiConfig";
 import {
   Dialog,
   DialogContent,
@@ -202,7 +203,7 @@ export default function Admin() {
     }
     setAddingCredits(true);
     try {
-      const res = await fetch("https://auditron-server-production.up.railway.app/stripe/admin/add-credits", {
+      const res = await fetch(`${API_BASE_URL}/stripe/admin/add-credits`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ admin_user_id: user.id, target_user_id: addCreditsProfile.id, credits: num }),
@@ -228,7 +229,7 @@ export default function Admin() {
     setGeneratingInvite(true);
     setGeneratedLink("");
     try {
-      const res = await fetch("https://auditron-server-production.up.railway.app/admin/generate-invite", {
+      const res = await fetch(`${API_BASE_URL}/admin/generate-invite`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
