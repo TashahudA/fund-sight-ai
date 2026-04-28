@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
+import { API_BASE_URL as API_BASE } from "@/lib/apiConfig";
 
 type FindingStatus = "pass" | "pass_with_review" | "needs_info" | "fail" | "refer_to_auditor";
 
@@ -44,8 +45,6 @@ interface Props {
   existingReviews: ReviewAction[];
   onReviewSaved: (review: ReviewAction) => void;
 }
-
-const API_BASE = "https://auditron-server-production.up.railway.app";
 
 const normalizeStatus = (s: string): FindingStatus => {
   const lower = s.toLowerCase();
