@@ -1064,7 +1064,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
       </Tabs>
     </div>
 
-      <AlertDialog open={completeConfirmOpen} onOpenChange={setCompleteConfirmOpen}>
+      <AlertDialog open={completeConfirmOpen} onOpenChange={(open) => { if (!completingAudit) setCompleteConfirmOpen(open); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Mark audit as complete?</AlertDialogTitle>
@@ -1074,11 +1074,11 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancelComplete} disabled={completingAudit}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmComplete} disabled={completingAudit}>
+            <Button onClick={handleConfirmComplete} disabled={completingAudit}>
               {completingAudit
                 ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5 inline" />Completing...</>
                 : "Confirm"}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
