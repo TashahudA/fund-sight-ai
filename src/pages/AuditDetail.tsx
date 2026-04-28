@@ -661,6 +661,8 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
       setCompleteConfirmOpen(false);
       setPendingStatus(null);
       toast({ title: "Audit marked complete — all RFIs resolved" });
+    } catch (err: any) {
+      toast({ title: "Failed to complete audit", description: err.message, variant: "destructive" });
     } finally {
       setCompletingAudit(false);
     }
