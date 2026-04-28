@@ -619,19 +619,46 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
       setCompleteConfirmOpen(true);
       return;
     }
-    await supabase.from("audits").update({ status: newStatus }).eq("id", audit.id);
+    const dbStatus = newStatus === "in progress" ? "in_progress" : newStatus;
+    await supabase.from("audits").update({ status: dbStatus }).eq("id", audit.id);
     await fetchAudit();
     toast({ title: `Status updated to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}` });
   };
 
   const handleConfirmComplete = async () => {
     if (!audit) return;
-    // Only update audit status — do NOT bulk-resolve RFIs from frontend
+
+    // Fetch all open RFIs for this audit
+    const { data: openRfis } = await supabase
+      .from("rfis")
+      .select("id")
+      .eq("audit_id", audit.id)
+      .eq("status", "open");
+
+    // Resolve each one via the backend (preserves audit trail)
+    if (openRfis && openRfis.length > 0) {
+      await Promise.allSettled(
+        openRfis.map(rfi =>
+          fetch("https://auditron-server-production.up.railway.app/audit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              audit_id: audit.id,
+              mode: "resolve_rfi",
+              rfi_id: rfi.id,
+              resolved_by: "auditor"
+            })
+          })
+        )
+      );
+    }
+
+    // Update audit status
     await supabase.from("audits").update({ status: "complete" }).eq("id", audit.id);
     await Promise.all([fetchAudit(), fetchCounts()]);
     setCompleteConfirmOpen(false);
     setPendingStatus(null);
-    toast({ title: "Audit marked complete" });
+    toast({ title: "Audit marked complete — all RFIs resolved" });
   };
 
   const handleCancelComplete = () => {
@@ -743,7 +770,12 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
               {/* Status dropdown */}
               <Select
-                value={(audit.status || "pending").toLowerCase()}
+                value={(() => {
+                  const s = (audit.status || "pending").toLowerCase();
+                  if (s === "in_progress") return "in progress";
+                  if (s === "complete") return "complete";
+                  return "pending";
+                })()}
                 onValueChange={handleStatusChange}
               >
                 <SelectTrigger
@@ -1030,7 +1062,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
           <AlertDialogHeader>
             <AlertDialogTitle>Mark audit as complete?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will resolve all open RFIs.
+              This will mark all open RFIs as resolved by the auditor and complete the audit.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
