@@ -611,6 +611,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
   const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [completingAudit, setCompletingAudit] = useState(false);
 
   const handleStatusChange = async (newStatus: string) => {
     if (!audit) return;
@@ -627,38 +628,42 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
   const handleConfirmComplete = async () => {
     if (!audit) return;
+    setCompletingAudit(true);
+    try {
+      // Fetch all open RFIs for this audit
+      const { data: openRfis } = await supabase
+        .from("rfis")
+        .select("id")
+        .eq("audit_id", audit.id)
+        .eq("status", "open");
 
-    // Fetch all open RFIs for this audit
-    const { data: openRfis } = await supabase
-      .from("rfis")
-      .select("id")
-      .eq("audit_id", audit.id)
-      .eq("status", "open");
-
-    // Resolve each one via the backend (preserves audit trail)
-    if (openRfis && openRfis.length > 0) {
-      await Promise.allSettled(
-        openRfis.map(rfi =>
-          fetch("https://auditron-server-production.up.railway.app/audit", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              audit_id: audit.id,
-              mode: "resolve_rfi",
-              rfi_id: rfi.id,
-              resolved_by: "auditor"
+      // Resolve each one via the backend (preserves audit trail)
+      if (openRfis && openRfis.length > 0) {
+        await Promise.allSettled(
+          openRfis.map(rfi =>
+            fetch("https://auditron-server-production.up.railway.app/audit", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                audit_id: audit.id,
+                mode: "resolve_rfi",
+                rfi_id: rfi.id,
+                resolved_by: "auditor"
+              })
             })
-          })
-        )
-      );
-    }
+          )
+        );
+      }
 
-    // Update audit status
-    await supabase.from("audits").update({ status: "complete" }).eq("id", audit.id);
-    await Promise.all([fetchAudit(), fetchCounts()]);
-    setCompleteConfirmOpen(false);
-    setPendingStatus(null);
-    toast({ title: "Audit marked complete — all RFIs resolved" });
+      // Update audit status
+      await supabase.from("audits").update({ status: "complete" }).eq("id", audit.id);
+      await Promise.all([fetchAudit(), fetchCounts()]);
+      setCompleteConfirmOpen(false);
+      setPendingStatus(null);
+      toast({ title: "Audit marked complete — all RFIs resolved" });
+    } finally {
+      setCompletingAudit(false);
+    }
   };
 
   const handleCancelComplete = () => {
@@ -1066,8 +1071,12 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelComplete}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmComplete}>Confirm</AlertDialogAction>
+            <AlertDialogCancel onClick={handleCancelComplete} disabled={completingAudit}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmComplete} disabled={completingAudit}>
+              {completingAudit
+                ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5 inline" />Completing...</>
+                : "Confirm"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
