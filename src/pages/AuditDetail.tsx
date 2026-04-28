@@ -17,6 +17,7 @@ import { ReportsTab } from "@/components/ReportsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
 import { startAudit } from "@/lib/auditApi";
+import { API_BASE_URL } from "@/lib/apiConfig";
 import { toast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Tables } from "@/integrations/supabase/types";
