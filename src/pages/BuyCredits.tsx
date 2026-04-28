@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Coins, Loader2, Lock, ShieldCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
-const API = "https://auditron-server-production.up.railway.app";
+import { API_BASE_URL as API } from "@/lib/apiConfig";
 
 export default function BuyCredits() {
   const { user } = useAuth();

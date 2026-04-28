@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 const INVITE_TOKEN_KEY = "auditron_invite_token";
 
@@ -69,7 +70,7 @@ export default function Signup() {
     const inviteToken = localStorage.getItem(INVITE_TOKEN_KEY);
     if (inviteToken && data?.user?.id) {
       try {
-        await fetch("https://auditron-server-production.up.railway.app/admin/use-invite", {
+        await fetch(`${API_BASE_URL}/admin/use-invite`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token: inviteToken, user_id: data.user.id }),

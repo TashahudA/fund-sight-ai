@@ -17,6 +17,7 @@ import { ReportsTab } from "@/components/ReportsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFileName } from "@/lib/sanitizeFileName";
 import { startAudit } from "@/lib/auditApi";
+import { API_BASE_URL } from "@/lib/apiConfig";
 import { toast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Tables } from "@/integrations/supabase/types";
@@ -246,7 +247,7 @@ export default function AuditDetail() {
   const fetchReviews = useCallback(async () => {
     if (!id) return;
     try {
-      const res = await fetch(`https://auditron-server-production.up.railway.app/reviews/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/reviews/${id}`, {
         headers: { Accept: "application/json" },
       });
       if (res.ok) {
@@ -442,7 +443,7 @@ export default function AuditDetail() {
         setRunningAudit(false);
         return;
       }
-      const res = await fetch("https://auditron-server-production.up.railway.app/stripe/deduct-credit", {
+      const res = await fetch(`${API_BASE_URL}/stripe/deduct-credit`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ user_id: authUser.id, audit_id: audit.id }),
@@ -641,7 +642,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
       if (openRfis && openRfis.length > 0) {
         await Promise.allSettled(
           openRfis.map(rfi =>
-            fetch("https://auditron-server-production.up.railway.app/audit", {
+            fetch(`${API_BASE_URL}/audit`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
