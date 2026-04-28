@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_AUDIT_API_URL ?? "https://auditron-server-production.up.railway.app";
+import { API_BASE_URL as BASE_URL } from "./apiConfig";
 
 async function callAuditApi(body: Record<string, unknown>) {
   const res = await fetch(`${BASE_URL}/audit`, {
