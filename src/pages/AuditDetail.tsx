@@ -936,9 +936,41 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                   <p className={`font-semibold text-base mt-0.5 ${opinionTextColor(envelope.opinion || audit.opinion)}`}>
                     {envelope.opinion || audit.opinion || "Pending"}
                   </p>
-                  {envelope.opinion_reasoning && (
-                    <p className="text-sm text-muted-foreground mt-1">{envelope.opinion_reasoning}</p>
-                  )}
+                  {envelope.opinion_reasoning && (() => {
+                    const env = envelope as any;
+                    const { partA: rawA, partB: rawB } = env.opinion_part_a_basis
+                      ? { partA: env.opinion_part_a_basis as string, partB: (env.opinion_part_b_basis as string) || "" }
+                      : splitOpinionReasoning(env.opinion_reasoning || "");
+                    const partAWord = (env.opinion_part_a || audit.opinion || "").toString();
+                    const partBWord = (env.opinion_part_b || env.opinion_part_a || audit.opinion || "").toString();
+                    const cap = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+                    const bodyA = env.opinion_part_a_basis ? rawA : stripHeader(rawA);
+                    const bodyB = env.opinion_part_b_basis ? rawB : stripHeader(rawB);
+                    const HeaderChip = ({ label, word }: { label: string; word: string }) => (
+                      <span className="inline rounded-sm bg-muted/70 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground/90 mr-1.5 align-middle">
+                        {label} <span className="text-foreground/80 font-semibold">{cap(word)}.</span>
+                      </span>
+                    );
+                    if (!bodyA && !bodyB) {
+                      return <p className="text-sm text-muted-foreground mt-1">{envelope.opinion_reasoning}</p>;
+                    }
+                    return (
+                      <div className="mt-2 space-y-2">
+                        {bodyA && (
+                          <p className="text-sm text-foreground leading-relaxed">
+                            <HeaderChip label="Part A — Financial Statements (s35C(1)):" word={partAWord} />
+                            <span className="text-muted-foreground">{bodyA}</span>
+                          </p>
+                        )}
+                        {bodyB && (
+                          <p className="text-sm text-foreground leading-relaxed">
+                            <HeaderChip label="Part B — Compliance (s35C(2)):" word={partBWord} />
+                            <span className="text-muted-foreground">{bodyB}</span>
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {envelope.summary && (
                     <p className="text-xs text-muted-foreground mt-1">{envelope.summary}</p>
                   )}
