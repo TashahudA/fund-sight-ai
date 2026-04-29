@@ -947,8 +947,8 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                     const bodyA = env.opinion_part_a_basis ? rawA : stripHeader(rawA);
                     const bodyB = env.opinion_part_b_basis ? rawB : stripHeader(rawB);
                     const HeaderChip = ({ label, word }: { label: string; word: string }) => (
-                      <span className="font-medium text-foreground/90">
-                        {label} <span className="font-semibold">{cap(word)}.</span>
+                      <span className="bg-muted/60 px-1.5 py-0.5 text-foreground/90 box-decoration-clone">
+                        {label} {cap(word)}.
                       </span>
                     );
                     if (!bodyA && !bodyB) {
@@ -957,15 +957,15 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                     return (
                       <div className="mt-2 space-y-2">
                         {bodyA && (
-                          <p className="text-sm leading-relaxed">
+                          <p className="text-sm leading-relaxed text-muted-foreground">
                             <HeaderChip label="Part A — Financial Statements (s35C(1)):" word={partAWord} />
-                            <span className="text-muted-foreground"> {bodyA}</span>
+                            {" "}{bodyA}
                           </p>
                         )}
                         {bodyB && (
-                          <p className="text-sm leading-relaxed">
+                          <p className="text-sm leading-relaxed text-muted-foreground">
                             <HeaderChip label="Part B — Compliance (s35C(2)):" word={partBWord} />
-                            <span className="text-muted-foreground"> {bodyB}</span>
+                            {" "}{bodyB}
                           </p>
                         )}
                       </div>
