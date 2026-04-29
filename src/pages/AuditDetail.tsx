@@ -129,6 +129,28 @@ const opinionLeftBorder = (opinion: string | null) => {
   return "";
 };
 
+const PART_A_HEADER = "Part A — Financial Statements (s35C(1)):";
+const PART_B_HEADER = "Part B — Compliance (s35C(2)):";
+
+const splitOpinionReasoning = (reasoning: string): { partA: string; partB: string } => {
+  if (!reasoning) return { partA: "", partB: "" };
+  const partBMatch = reasoning.match(/\nPart B[\s\u2014\-]/i);
+  if (!partBMatch || partBMatch.index === undefined) {
+    return { partA: reasoning.trim(), partB: "" };
+  }
+  return {
+    partA: reasoning.slice(0, partBMatch.index).trim(),
+    partB: reasoning.slice(partBMatch.index).trim(),
+  };
+};
+
+const stripHeader = (text: string): string => {
+  if (!text) return "";
+  const firstNewline = text.indexOf("\n");
+  if (firstNewline === -1) return "";
+  return text.slice(firstNewline).trim();
+};
+
 const opinionTextColor = (opinion: string | null) => {
   const o = (opinion || "").toLowerCase();
   if (o === "unqualified") return "text-status-pass";
@@ -928,10 +950,14 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                   size="sm"
                   className="absolute top-2 right-2 h-8 px-2"
                   onClick={() => {
-                    setOpinionPartA((envelope as any).opinion_part_a || audit.opinion || "unqualified");
-                    setOpinionPartB((envelope as any).opinion_part_b || (envelope as any).opinion_part_a || audit.opinion || "unqualified");
-                    setOpinionPartABasis("");
-                    setOpinionPartBBasis("");
+                    const env = envelope as any;
+                    const { partA: rawPartA, partB: rawPartB } = env.opinion_part_a_basis
+                      ? { partA: env.opinion_part_a_basis as string, partB: (env.opinion_part_b_basis as string) || "" }
+                      : splitOpinionReasoning(env.opinion_reasoning || "");
+                    setOpinionPartA(env.opinion_part_a || audit.opinion || "unqualified");
+                    setOpinionPartB(env.opinion_part_b || env.opinion_part_a || audit.opinion || "unqualified");
+                    setOpinionPartABasis(env.opinion_part_a_basis ? rawPartA : stripHeader(rawPartA));
+                    setOpinionPartBBasis(env.opinion_part_b_basis ? rawPartB : stripHeader(rawPartB));
                     setOpinionEmphasis((envelope.emphasis_of_matter || [])[0] || "");
                     setEditOpinionOpen(true);
                   }}
@@ -1137,12 +1163,9 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Part A */}
                   <div className="rounded-md border border-border p-4 space-y-3">
-                    <div>
-                      <p className="text-sm font-semibold">Part A — Financial Statements</p>
-                      <p className="text-xs text-muted-foreground">Opinion on the fund's financial statements.</p>
-                    </div>
+                    <p className="text-sm font-semibold text-foreground">{PART_A_HEADER}</p>
                     <div className="space-y-1.5">
-                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">Part A Opinion</Label>
+                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">Opinion</Label>
                       <Select value={opinionPartA} onValueChange={setOpinionPartA}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -1154,27 +1177,21 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Basis for Part A Opinion</Label>
+                      <Label className="text-xs">Opinion text</Label>
                       <Textarea
                         value={opinionPartABasis}
                         onChange={(e) => setOpinionPartABasis(e.target.value)}
-                        placeholder="Describe the basis for the Part A opinion..."
-                        className="min-h-[180px] text-sm leading-relaxed"
+                        placeholder="In our opinion, except for the effects of the matter(s) described below, the financial statements present fairly..."
+                        className="min-h-[120px] text-sm leading-relaxed"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Previous reasoning is retained if left blank. Enter new text to override.
-                      </p>
                     </div>
                   </div>
 
                   {/* Part B */}
                   <div className="rounded-md border border-border p-4 space-y-3">
-                    <div>
-                      <p className="text-sm font-semibold">Part B — Compliance</p>
-                      <p className="text-xs text-muted-foreground">Opinion on compliance with the SIS Act.</p>
-                    </div>
+                    <p className="text-sm font-semibold text-foreground">{PART_B_HEADER}</p>
                     <div className="space-y-1.5">
-                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">Part B Opinion</Label>
+                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">Opinion</Label>
                       <Select value={opinionPartB} onValueChange={setOpinionPartB}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -1186,16 +1203,13 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Basis for Part B Opinion</Label>
+                      <Label className="text-xs">Opinion text</Label>
                       <Textarea
                         value={opinionPartBBasis}
                         onChange={(e) => setOpinionPartBBasis(e.target.value)}
-                        placeholder="Describe the basis for the Part B opinion..."
-                        className="min-h-[180px] text-sm leading-relaxed"
+                        placeholder="In our opinion, the trustee of the fund has, in all material respects, complied with..."
+                        className="min-h-[120px] text-sm leading-relaxed"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Previous reasoning is retained if left blank. Enter new text to override.
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -1234,15 +1248,26 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                     ? "qualified"
                     : "unqualified";
                 const { envelope: existingEnv } = parseFindings(audit.ai_findings);
+                const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+                const partAFull = [
+                  `${PART_A_HEADER} ${cap(opinionPartA)}.`,
+                  opinionPartABasis.trim(),
+                ].filter(Boolean).join("\n");
+                const partBFull = [
+                  `${PART_B_HEADER} ${cap(opinionPartB)}.`,
+                  opinionPartBBasis.trim(),
+                ].filter(Boolean).join("\n");
                 const newFindings = {
                   ...existingEnv,
                   opinion: derivedOverall,
                   opinion_part_a: opinionPartA,
                   opinion_part_b: opinionPartB,
-                  opinion_reasoning: (opinionPartABasis || opinionPartBBasis)
-                    ? (opinionPartABasis + (opinionPartBBasis ? "\n\nPart B: " + opinionPartBBasis : ""))
-                    : ((existingEnv as any).opinion_reasoning || ""),
-                  emphasis_of_matter: opinionEmphasis ? [opinionEmphasis] : [],
+                  opinion_part_a_basis: opinionPartABasis,
+                  opinion_part_b_basis: opinionPartBBasis,
+                  opinion_reasoning: partAFull + "\n\n" + partBFull,
+                  emphasis_of_matter: opinionEmphasis
+                    ? [opinionEmphasis]
+                    : ((existingEnv as any).emphasis_of_matter || []),
                 };
                 const { error } = await supabase
                   .from("audits")
