@@ -35,6 +35,8 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Synchronous latch — prevents duplicate submits before React commits `loading`
+  const submittingRef = useRef(false);
 
   const resetForm = () => {
     setFundName("");
@@ -61,9 +63,12 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
   }, [addFiles]);
 
   const handleSubmit = async () => {
+    // Idempotent guard: blocks rapid double-clicks before `loading` state commits
+    if (submittingRef.current) return;
     if (!user) { setError("You must be logged in to create an audit."); return; }
     if (!fundName.trim()) { setError("Fund name is required."); return; }
 
+    submittingRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -80,9 +85,10 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
       .select("id")
       .single();
 
-    if (insertError) { setLoading(false); setError(insertError.message); return; }
+    if (insertError) { submittingRef.current = false; setLoading(false); setError(insertError.message); return; }
 
     const auditId = data.id;
+    const uploadedPaths: string[] = [];
 
     if (files.length > 0) {
       setUploadingFiles(true);
@@ -94,6 +100,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
             .from("audit-documents")
             .upload(filePath, file, { upsert: true });
           if (storageError) throw storageError;
+          uploadedPaths.push(filePath);
 
           const { error: dbError } = await supabase.from("documents").insert({
             audit_id: auditId,
@@ -105,6 +112,18 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
           if (dbError) throw dbError;
         }
       } catch (err: any) {
+        // Rollback: remove the orphaned audit row + any uploaded files so we don't
+        // leave a phantom pending/unpaid audit hanging around.
+        try {
+          if (uploadedPaths.length > 0) {
+            await supabase.storage.from("audit-documents").remove(uploadedPaths);
+          }
+          await supabase.from("documents").delete().eq("audit_id", auditId);
+          await supabase.from("audits").delete().eq("id", auditId);
+        } catch (rollbackErr) {
+          console.warn("[NewAuditModal] rollback failed", rollbackErr);
+        }
+        submittingRef.current = false;
         setLoading(false);
         setUploadingFiles(false);
         setError(`File upload failed: ${err.message}`);
@@ -113,6 +132,7 @@ export function NewAuditModal({ open, onOpenChange }: NewAuditModalProps) {
       setUploadingFiles(false);
     }
 
+    submittingRef.current = false;
     setLoading(false);
     resetForm();
     onOpenChange(false);
