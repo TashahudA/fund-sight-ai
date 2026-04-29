@@ -1112,7 +1112,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
       {/* Edit Opinion Dialog */}
       <Dialog open={editOpinionOpen} onOpenChange={(open) => { if (!savingOpinion) setEditOpinionOpen(open); }}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Audit Opinion</DialogTitle>
           </DialogHeader>
@@ -1134,64 +1134,80 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
             return (
               <div className="space-y-5">
-                {/* Part A */}
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Part A Opinion</Label>
-                  <Select value={opinionPartA} onValueChange={setOpinionPartA}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="unqualified">Unqualified</SelectItem>
-                      <SelectItem value="qualified">Qualified</SelectItem>
-                      <SelectItem value="adverse">Adverse</SelectItem>
-                      <SelectItem value="disclaimer">Disclaimer of Opinion</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Label className="text-xs">Basis for Part A Opinion</Label>
-                  <Textarea
-                    value={opinionPartABasis}
-                    onChange={(e) => setOpinionPartABasis(e.target.value)}
-                    placeholder="Describe the basis for the Part A opinion..."
-                    className="min-h-[80px]"
-                  />
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Part A */}
+                  <div className="rounded-md border border-border p-4 space-y-3">
+                    <div>
+                      <p className="text-sm font-semibold">Part A — Financial Statements</p>
+                      <p className="text-xs text-muted-foreground">Opinion on the fund's financial statements.</p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">Part A Opinion</Label>
+                      <Select value={opinionPartA} onValueChange={setOpinionPartA}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unqualified">Unqualified</SelectItem>
+                          <SelectItem value="qualified">Qualified</SelectItem>
+                          <SelectItem value="adverse">Adverse</SelectItem>
+                          <SelectItem value="disclaimer">Disclaimer of Opinion</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Basis for Part A Opinion</Label>
+                      <Textarea
+                        value={opinionPartABasis}
+                        onChange={(e) => setOpinionPartABasis(e.target.value)}
+                        placeholder="Describe the basis for the Part A opinion..."
+                        className="min-h-[180px] text-sm leading-relaxed"
+                      />
+                    </div>
+                  </div>
 
-                <div className="border-t border-border" />
-
-                {/* Part B */}
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Part B Opinion</Label>
-                  <Select value={opinionPartB} onValueChange={setOpinionPartB}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="unqualified">Unqualified</SelectItem>
-                      <SelectItem value="qualified">Qualified</SelectItem>
-                      <SelectItem value="adverse">Adverse</SelectItem>
-                      <SelectItem value="disclaimer">Disclaimer of Opinion</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Label className="text-xs">Basis for Part B Opinion</Label>
-                  <Textarea
-                    value={opinionPartBBasis}
-                    onChange={(e) => setOpinionPartBBasis(e.target.value)}
-                    placeholder="Describe the basis for the Part B opinion..."
-                    className="min-h-[80px]"
-                  />
+                  {/* Part B */}
+                  <div className="rounded-md border border-border p-4 space-y-3">
+                    <div>
+                      <p className="text-sm font-semibold">Part B — Compliance</p>
+                      <p className="text-xs text-muted-foreground">Opinion on compliance with the SIS Act.</p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">Part B Opinion</Label>
+                      <Select value={opinionPartB} onValueChange={setOpinionPartB}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unqualified">Unqualified</SelectItem>
+                          <SelectItem value="qualified">Qualified</SelectItem>
+                          <SelectItem value="adverse">Adverse</SelectItem>
+                          <SelectItem value="disclaimer">Disclaimer of Opinion</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Basis for Part B Opinion</Label>
+                      <Textarea
+                        value={opinionPartBBasis}
+                        onChange={(e) => setOpinionPartBBasis(e.target.value)}
+                        placeholder="Describe the basis for the Part B opinion..."
+                        className="min-h-[180px] text-sm leading-relaxed"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Derived overall */}
-                <div className="rounded-md border border-border bg-hover px-3 py-2">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Derived</p>
-                  <p className={`font-semibold text-sm ${overallColor}`}>Overall: {overallLabel}</p>
+                <div className="rounded-md border border-border bg-hover px-4 py-3 flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">Derived Overall Opinion</p>
+                  <p className={`font-semibold text-base ${overallColor}`}>{overallLabel}</p>
                 </div>
 
                 {/* Emphasis */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label className="text-xs">Emphasis of Matter (optional)</Label>
                   <Textarea
                     value={opinionEmphasis}
                     onChange={(e) => setOpinionEmphasis(e.target.value)}
                     placeholder="Any matters to emphasise without modifying the opinion..."
-                    className="min-h-[60px]"
+                    className="min-h-[120px] text-sm leading-relaxed"
                   />
                 </div>
               </div>
