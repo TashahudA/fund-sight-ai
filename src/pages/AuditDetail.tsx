@@ -647,6 +647,22 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
   const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [completingAudit, setCompletingAudit] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAudit = async () => {
+    if (!audit) return;
+    setDeleting(true);
+    try {
+      await deleteAuditCascade(audit.id);
+      toast({ title: "Audit deleted", description: `${audit.fund_name} has been removed.` });
+      navigate("/audits");
+    } catch (err: any) {
+      toast({ title: "Failed to delete audit", description: err?.message || "Unknown error", variant: "destructive" });
+      setDeleting(false);
+      setDeleteOpen(false);
+    }
+  };
 
   const handleStatusChange = async (newStatus: string) => {
     if (!audit) return;
