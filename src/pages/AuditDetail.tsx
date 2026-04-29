@@ -146,9 +146,10 @@ const splitOpinionReasoning = (reasoning: string): { partA: string; partB: strin
 
 const stripHeader = (text: string): string => {
   if (!text) return "";
-  const firstNewline = text.indexOf("\n");
-  if (firstNewline === -1) return "";
-  return text.slice(firstNewline).trim();
+  // Remove only "Part X — [title]: [OpinionWord]." from the start
+  // Everything after the opinion word (including the opening sentence) stays
+  const headerPattern = /^Part [AB][^:]*:\s*(Qualified|Unqualified|Adverse|Disclaimer)\.\s*/i;
+  return text.replace(headerPattern, "").trim();
 };
 
 const opinionTextColor = (opinion: string | null) => {
