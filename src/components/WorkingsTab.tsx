@@ -236,6 +236,7 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
 
   const det = data?._deterministic ?? {};
   const ing = data?._ingestion ?? {};
+  const w = data?._workings ?? {};
 
   // 1. Materiality
   const mat = data?._materiality ?? det?.materiality ?? null;
@@ -245,42 +246,29 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
   const matThreshold = firstNonNull(mat?.threshold, mat?.overall, mat?.materiality);
 
   // 2. Contribution caps
-  const contribData: any[] =
-    (Array.isArray(data?._contribution_caps) && data._contribution_caps) ||
-    (Array.isArray(data?._contributions) && data._contributions) ||
-    (Array.isArray(det?.contribution_caps) && det.contribution_caps) ||
-    (Array.isArray(det?.contributions) && det.contributions) ||
-    [];
+  const contribData: any[] = Array.isArray(w?.contribution_caps) ? w.contribution_caps : [];
 
   // 3. Pension drawdown
-  const pensionData: any[] =
-    (Array.isArray(data?._pension_minimums) && data._pension_minimums) ||
-    (Array.isArray(data?._pensions) && data._pensions) ||
-    (Array.isArray(det?.pension_minimums) && det.pension_minimums) ||
-    (Array.isArray(det?.pensions) && det.pensions) ||
-    [];
+  const pensionData: any[] = Array.isArray(w?.pension_workings) ? w.pension_workings : [];
 
   // 4. ATO obligations
-  const atoSrc = data?._ato_accounts ?? data?._ato ?? det?.ato_accounts ?? det?.ato ?? null;
-  const atoAccounts: any[] = Array.isArray(atoSrc) ? atoSrc : (atoSrc?.accounts && Array.isArray(atoSrc.accounts) ? atoSrc.accounts : []);
-  const atoTotalDebt = atoAccounts.reduce((sum, a) => {
-    const bal = Number(a?.balance ?? 0);
-    return sum + (isFinite(bal) && bal > 0 ? bal : 0);
-  }, 0);
+  const atoSummary = w?.ato_summary ?? null;
+  const atoAccounts: any[] = Array.isArray(atoSummary?.accounts) ? atoSummary.accounts : [];
+  const atoTotalDebt = Number(atoSummary?.total_debt ?? 0);
 
   // 5. In-house assets
-  const ih = data?._in_house_assets ?? data?._inhouse_assets ?? det?.in_house_assets ?? null;
-  const ihRelated = ih ? firstNonNull(ih?.related_party_value, ih?.related_party_assets, ih?.in_house_value) : null;
-  const ihTotal = ih ? firstNonNull(ih?.total_fund_assets, ih?.total_assets) : null;
+  const ih = w?.in_house_assets ?? null;
+  const ihRelated = ih ? ih?.total_in_house : null;
+  const ihTotal = ih ? ih?.total_assets : null;
   let ihPct: number | null = null;
   if (ih) {
-    const explicit = firstNonNull(ih?.percentage, ih?.percent, ih?.in_house_percentage);
+    const explicit = ih?.percentage;
     if (explicit != null) ihPct = Number(explicit) <= 1 ? Number(explicit) * 100 : Number(explicit);
     else if (ihRelated != null && ihTotal != null && Number(ihTotal) > 0) {
       ihPct = (Number(ihRelated) / Number(ihTotal)) * 100;
     }
   }
-  const ihPass = ihPct == null ? null : ihPct < 5;
+  const ihPass = ih?.status ? String(ih.status).toLowerCase() === "pass" : (ihPct == null ? null : ihPct < 5);
 
   // 6. Evidence register
   const classifications: any[] = Array.isArray(ing?.classifications) ? ing.classifications : [];
@@ -311,21 +299,21 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
 
       {/* 2. Contribution Caps */}
       <Card title="Contribution Caps — Member Summary">
-        {contribData.length === 0 ? (
+        {!contribData || contribData.length === 0 ? (
           <MutedCallout>No contribution data extracted.</MutedCallout>
         ) : (
           <DataTable
             headers={["Member", "Concessional", "CC Cap", "Non-Concessional", "NCC Cap", "Status"]}
             rows={contribData.map((m: any) => {
-              const cc = Number(firstNonNull(m?.concessional, m?.cc, m?.concessional_contributions) ?? 0);
-              const ccCap = Number(firstNonNull(m?.cc_cap, m?.concessional_cap) ?? 0);
-              const ncc = Number(firstNonNull(m?.non_concessional, m?.ncc, m?.non_concessional_contributions) ?? 0);
-              const nccCap = Number(firstNonNull(m?.ncc_cap, m?.non_concessional_cap) ?? 0);
-              const explicitPass = m?.status ? String(m.status).toLowerCase() === "pass" : null;
-              const computedPass = (ccCap > 0 ? cc <= ccCap : true) && (nccCap > 0 ? ncc <= nccCap : true);
-              const pass = explicitPass != null ? explicitPass : computedPass;
+              const cc = Number(m?.cc_amount ?? 0);
+              const ccCap = Number(m?.cc_cap ?? 0);
+              const ncc = Number(m?.ncc_amount ?? 0);
+              const nccCap = Number(m?.ncc_cap ?? 0);
+              const ccPass = m?.cc_status ? String(m.cc_status).toLowerCase() === "pass" : (ccCap > 0 ? cc <= ccCap : true);
+              const nccPass = m?.ncc_status ? String(m.ncc_status).toLowerCase() === "pass" : (nccCap > 0 ? ncc <= nccCap : true);
+              const pass = ccPass && nccPass;
               return [
-                <span className="font-medium text-foreground">{m?.member ?? m?.name ?? "—"}</span>,
+                <span className="font-medium text-foreground">{m?.member ?? "—"}</span>,
                 fmtMoney(cc),
                 fmtMoney(ccCap),
                 fmtMoney(ncc),
@@ -339,22 +327,24 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
 
       {/* 3. Pension */}
       <Card title="Pension Drawdown Workings">
-        {pensionData.length === 0 ? (
+        {!pensionData || pensionData.length === 0 ? (
           <MutedCallout>No pension phase members identified.</MutedCallout>
         ) : (
           <DataTable
             headers={["Member", "Age", "Age Factor", "Opening Balance", "Minimum Required", "Actual Drawdown", "Status"]}
             rows={pensionData.map((p: any) => {
-              const min = Number(firstNonNull(p?.minimum_required, p?.minimum, p?.min) ?? 0);
-              const actual = Number(firstNonNull(p?.actual_drawdown, p?.actual, p?.drawn) ?? 0);
+              const min = Number(p?.minimum_required ?? 0);
+              const actual = Number(p?.actual_paid ?? 0);
               const explicitPass = p?.status ? String(p.status).toLowerCase() === "pass" : null;
               const computedPass = min > 0 ? actual >= min : true;
               const pass = explicitPass != null ? explicitPass : computedPass;
+              const age = p?.dob_missing ? "—" : (p?.age_at_1_july ?? "—");
+              const factor = p?.factor_pct;
               return [
-                <span className="font-medium text-foreground">{p?.member ?? p?.name ?? "—"}</span>,
-                p?.age ?? "—",
-                firstNonNull(p?.age_factor, p?.factor) != null ? `${firstNonNull(p?.age_factor, p?.factor)}%` : "—",
-                fmtMoney(firstNonNull(p?.opening_balance, p?.balance)),
+                <span className="font-medium text-foreground">{p?.member ?? "—"}</span>,
+                age,
+                factor != null ? `${factor}%` : "—",
+                fmtMoney(p?.opening_balance),
                 fmtMoney(min),
                 fmtMoney(actual),
                 <StatusBadge pass={pass} />,
@@ -366,7 +356,7 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
 
       {/* 4. ATO Obligations */}
       <Card title="ATO Account Summary">
-        {atoAccounts.length === 0 ? (
+        {!atoSummary ? (
           <ReRunCallout />
         ) : (
           <div className="space-y-3">
@@ -378,19 +368,24 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
                 </span>
               </div>
             )}
-            <DataTable
-              headers={["Account Type", "Balance", "GIC", "Status"]}
-              rows={atoAccounts.map((a: any) => {
-                const bal = Number(firstNonNull(a?.balance, a?.amount) ?? 0);
-                const inDebt = bal > 0;
-                return [
-                  <span className="font-medium text-foreground">{titleCase(a?.account_type ?? a?.type ?? a?.name)}</span>,
-                  fmtMoney(bal),
-                  fmtMoney(firstNonNull(a?.gic, a?.general_interest_charge)),
-                  <StatusBadge pass={!inDebt} passLabel="CLEAR" failLabel="DEBT" />,
-                ];
-              })}
-            />
+            {atoAccounts.length === 0 ? (
+              <MutedCallout>No ATO account details available.</MutedCallout>
+            ) : (
+              <DataTable
+                headers={["Account Type", "Balance", "GIC", "Status"]}
+                rows={atoAccounts.map((a: any) => {
+                  const bal = Number(a?.balance ?? 0);
+                  const inDebt = a?.is_debt != null ? !!a.is_debt : bal > 0;
+                  const pass = a?.status ? String(a.status).toLowerCase() === "pass" : !inDebt;
+                  return [
+                    <span className="font-medium text-foreground">{titleCase(a?.type)}</span>,
+                    fmtMoney(bal),
+                    fmtMoney(a?.gic),
+                    <StatusBadge pass={pass} passLabel="CLEAR" failLabel="DEBT" />,
+                  ];
+                })}
+              />
+            )}
           </div>
         )}
       </Card>
