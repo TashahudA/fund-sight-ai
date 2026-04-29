@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RFITab } from "@/components/RFITab";
@@ -936,9 +936,41 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                   <p className={`font-semibold text-base mt-0.5 ${opinionTextColor(envelope.opinion || audit.opinion)}`}>
                     {envelope.opinion || audit.opinion || "Pending"}
                   </p>
-                  {envelope.opinion_reasoning && (
-                    <p className="text-sm text-muted-foreground mt-1">{envelope.opinion_reasoning}</p>
-                  )}
+                  {envelope.opinion_reasoning && (() => {
+                    const env = envelope as any;
+                    const { partA: rawA, partB: rawB } = env.opinion_part_a_basis
+                      ? { partA: env.opinion_part_a_basis as string, partB: (env.opinion_part_b_basis as string) || "" }
+                      : splitOpinionReasoning(env.opinion_reasoning || "");
+                    const partAWord = (env.opinion_part_a || audit.opinion || "").toString();
+                    const partBWord = (env.opinion_part_b || env.opinion_part_a || audit.opinion || "").toString();
+                    const cap = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+                    const bodyA = env.opinion_part_a_basis ? rawA : stripHeader(rawA);
+                    const bodyB = env.opinion_part_b_basis ? rawB : stripHeader(rawB);
+                    const HeaderChip = ({ label, word }: { label: string; word: string }) => (
+                      <span className="inline rounded-sm bg-muted/70 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground/90 mr-1.5 align-middle">
+                        {label} <span className="text-foreground/80 font-semibold">{cap(word)}.</span>
+                      </span>
+                    );
+                    if (!bodyA && !bodyB) {
+                      return <p className="text-sm text-muted-foreground mt-1">{envelope.opinion_reasoning}</p>;
+                    }
+                    return (
+                      <div className="mt-2 space-y-2">
+                        {bodyA && (
+                          <p className="text-sm text-foreground leading-relaxed">
+                            <HeaderChip label="Part A — Financial Statements (s35C(1)):" word={partAWord} />
+                            <span className="text-muted-foreground">{bodyA}</span>
+                          </p>
+                        )}
+                        {bodyB && (
+                          <p className="text-sm text-foreground leading-relaxed">
+                            <HeaderChip label="Part B — Compliance (s35C(2)):" word={partBWord} />
+                            <span className="text-muted-foreground">{bodyB}</span>
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {envelope.summary && (
                     <p className="text-xs text-muted-foreground mt-1">{envelope.summary}</p>
                   )}
@@ -1139,9 +1171,12 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
 
       {/* Edit Opinion Dialog */}
       <Dialog open={editOpinionOpen} onOpenChange={(open) => { if (!savingOpinion) setEditOpinionOpen(open); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Audit Opinion</DialogTitle>
+            <DialogDescription className="text-xs">
+              The section header and "Part A/B …" prefix are fixed. Choose the opinion word from the dropdown — it appears as the prefix on the opinion card. Edit the opinion body text below each.
+            </DialogDescription>
           </DialogHeader>
 
           {(() => {
@@ -1159,88 +1194,105 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 : "text-status-pass";
             const overallLabel = derivedOverall.charAt(0).toUpperCase() + derivedOverall.slice(1);
 
+            const PartSection = ({
+              num, title, section, opinion, setOpinion, basis, setBasis, placeholder,
+            }: {
+              num: string; title: string; section: string;
+              opinion: string; setOpinion: (v: string) => void;
+              basis: string; setBasis: (v: string) => void;
+              placeholder: string;
+            }) => {
+              const cap = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+              return (
+                <section className="rounded-lg border border-border bg-card overflow-hidden">
+                  <header className="flex items-baseline gap-3 px-5 py-3 bg-muted/40 border-b border-border">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">{num}</span>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-foreground leading-tight">{title}</h3>
+                      <p className="text-[11px] text-muted-foreground/70 mt-0.5">{section}</p>
+                    </div>
+                  </header>
+                  <div className="p-5 space-y-4">
+                    <div className="grid grid-cols-[140px_1fr] gap-4 items-center">
+                      <Label className="text-xs font-medium text-muted-foreground">Opinion word</Label>
+                      <Select value={opinion} onValueChange={setOpinion}>
+                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unqualified">Unqualified</SelectItem>
+                          <SelectItem value="qualified">Qualified</SelectItem>
+                          <SelectItem value="adverse">Adverse</SelectItem>
+                          <SelectItem value="disclaimer">Disclaimer of Opinion</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium text-muted-foreground">Opinion body</Label>
+                        <span className="text-[10px] text-muted-foreground/60">
+                          Will be prefixed with: <span className="font-mono text-foreground/70">{title}: {cap(opinion)}.</span>
+                        </span>
+                      </div>
+                      <Textarea
+                        value={basis}
+                        onChange={(e) => setBasis(e.target.value)}
+                        placeholder={placeholder}
+                        className="min-h-[200px] text-sm leading-relaxed"
+                      />
+                    </div>
+                  </div>
+                </section>
+              );
+            };
+
             return (
               <div className="space-y-5">
-                {/* Part A */}
-                <div className="space-y-3">
-                  <div className="space-y-0.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                      Part A — Financial Statements (s35C(1))
-                    </p>
+                <PartSection
+                  num="01"
+                  title="Part A — Financial Statements"
+                  section="SIS Act s35C(1)"
+                  opinion={opinionPartA}
+                  setOpinion={setOpinionPartA}
+                  basis={opinionPartABasis}
+                  setBasis={setOpinionPartABasis}
+                  placeholder="In our opinion, except for the effects of the matter(s) described below, the financial statements present fairly..."
+                />
+
+                <PartSection
+                  num="02"
+                  title="Part B — Compliance"
+                  section="SIS Act s35C(2)"
+                  opinion={opinionPartB}
+                  setOpinion={setOpinionPartB}
+                  basis={opinionPartBBasis}
+                  setBasis={setOpinionPartBBasis}
+                  placeholder="In our opinion, the trustee of the fund has, in all material respects, complied with..."
+                />
+
+                <div className="rounded-lg border border-border bg-hover px-5 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Derived Overall Opinion</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">Auto-calculated from Part A + Part B</p>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Opinion</Label>
-                    <Select value={opinionPartA} onValueChange={setOpinionPartA}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unqualified">Unqualified</SelectItem>
-                        <SelectItem value="qualified">Qualified</SelectItem>
-                        <SelectItem value="adverse">Adverse</SelectItem>
-                        <SelectItem value="disclaimer">Disclaimer of Opinion</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Opinion text</Label>
+                  <p className={`font-semibold text-lg ${overallColor}`}>{overallLabel}</p>
+                </div>
+
+                <section className="rounded-lg border border-border bg-card overflow-hidden">
+                  <header className="flex items-baseline gap-3 px-5 py-3 bg-muted/40 border-b border-border">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">03</span>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-foreground leading-tight">Emphasis of Matter</h3>
+                      <p className="text-[11px] text-muted-foreground/70 mt-0.5">Optional — does not modify the opinion</p>
+                    </div>
+                  </header>
+                  <div className="p-5">
                     <Textarea
-                      value={opinionPartABasis}
-                      onChange={(e) => setOpinionPartABasis(e.target.value)}
-                      placeholder="In our opinion, except for the effects of the matter(s) described below, the financial statements present fairly..."
-                      className="min-h-[160px] text-sm leading-relaxed"
+                      value={opinionEmphasis}
+                      onChange={(e) => setOpinionEmphasis(e.target.value)}
+                      placeholder="Any matters to emphasise without modifying the opinion..."
+                      className="min-h-[120px] text-sm leading-relaxed"
                     />
                   </div>
-                </div>
-
-                <div className="border-t border-border my-2" />
-
-                {/* Part B */}
-                <div className="space-y-3">
-                  <div className="space-y-0.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                      Part B — Compliance (s35C(2))
-                    </p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Opinion</Label>
-                    <Select value={opinionPartB} onValueChange={setOpinionPartB}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unqualified">Unqualified</SelectItem>
-                        <SelectItem value="qualified">Qualified</SelectItem>
-                        <SelectItem value="adverse">Adverse</SelectItem>
-                        <SelectItem value="disclaimer">Disclaimer of Opinion</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Opinion text</Label>
-                    <Textarea
-                      value={opinionPartBBasis}
-                      onChange={(e) => setOpinionPartBBasis(e.target.value)}
-                      placeholder="In our opinion, the trustee of the fund has, in all material respects, complied with..."
-                      className="min-h-[160px] text-sm leading-relaxed"
-                    />
-                  </div>
-                </div>
-
-                <div className="border-t border-border my-2" />
-
-                {/* Derived overall */}
-                <div className="rounded-md border border-border bg-hover px-4 py-3 flex items-center justify-between">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground font-medium">Derived Overall Opinion</p>
-                  <p className={`font-semibold text-base ${overallColor}`}>{overallLabel}</p>
-                </div>
-
-                {/* Emphasis */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Emphasis of Matter (optional)</Label>
-                  <Textarea
-                    value={opinionEmphasis}
-                    onChange={(e) => setOpinionEmphasis(e.target.value)}
-                    placeholder="Any matters to emphasise without modifying the opinion..."
-                    className="min-h-[120px] text-sm leading-relaxed"
-                  />
-                </div>
+                </section>
               </div>
             );
           })()}
