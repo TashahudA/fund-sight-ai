@@ -172,6 +172,13 @@ export default function AuditDetail() {
   const paymentPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [reviews, setReviews] = useState<ReviewAction[]>([]);
   const [showNoCreditModal, setShowNoCreditModal] = useState(false);
+  const [editOpinionOpen, setEditOpinionOpen] = useState(false);
+  const [opinionPartA, setOpinionPartA] = useState("");
+  const [opinionPartB, setOpinionPartB] = useState("");
+  const [opinionPartABasis, setOpinionPartABasis] = useState("");
+  const [opinionPartBBasis, setOpinionPartBBasis] = useState("");
+  const [opinionEmphasis, setOpinionEmphasis] = useState("");
+  const [savingOpinion, setSavingOpinion] = useState(false);
 
   const isPaid = audit?.payment_status === "paid";
 
