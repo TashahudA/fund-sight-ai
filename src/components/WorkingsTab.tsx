@@ -155,7 +155,7 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
   const classifications: any[] = Array.isArray(ing?.classifications) ? ing.classifications : [];
   const corrections: any[] = Array.isArray(data?._corrections) ? data._corrections : [];
   const version = data?._version ?? "—";
-  const detContext = det?.context ?? det?.analysis_context ?? det;
+  const detContext: string = (det?.context_block ?? "").toString();
   const balanceSheetRaw: string = (data?._balance_sheet_raw ?? "").toString();
 
   return (
@@ -301,7 +301,7 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
         <div className="space-y-1">
           <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Deterministic analysis context</p>
           <pre className="max-h-80 overflow-auto rounded-md border border-border bg-muted/30 p-3 text-[11px] font-mono text-foreground/80 whitespace-pre-wrap break-all">
-{detContext ? JSON.stringify(detContext, null, 2) : "No deterministic context available."}
+{detContext ? detContext : "No deterministic analysis available — re-run audit to generate."}
           </pre>
         </div>
       </Section>
