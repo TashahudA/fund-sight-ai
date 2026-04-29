@@ -947,7 +947,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                     const bodyA = env.opinion_part_a_basis ? rawA : stripHeader(rawA);
                     const bodyB = env.opinion_part_b_basis ? rawB : stripHeader(rawB);
                     const HeaderChip = ({ label, word }: { label: string; word: string }) => (
-                      <span className="bg-muted/60 px-1.5 py-0.5 text-foreground/90 box-decoration-clone">
+                      <span className="px-1.5 py-0.5 box-decoration-clone bg-foreground/10 text-foreground">
                         {label} {cap(word)}.
                       </span>
                     );
