@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, X } from "lucide-react";
+import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, X, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RFITab } from "@/components/RFITab";
 import { FindingReviewCard, type ReviewAction } from "@/components/FindingReviewCard";
@@ -170,6 +172,13 @@ export default function AuditDetail() {
   const paymentPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [reviews, setReviews] = useState<ReviewAction[]>([]);
   const [showNoCreditModal, setShowNoCreditModal] = useState(false);
+  const [editOpinionOpen, setEditOpinionOpen] = useState(false);
+  const [opinionPartA, setOpinionPartA] = useState("");
+  const [opinionPartB, setOpinionPartB] = useState("");
+  const [opinionPartABasis, setOpinionPartABasis] = useState("");
+  const [opinionPartBBasis, setOpinionPartBBasis] = useState("");
+  const [opinionEmphasis, setOpinionEmphasis] = useState("");
+  const [savingOpinion, setSavingOpinion] = useState(false);
 
   const isPaid = audit?.payment_status === "paid";
 
@@ -897,7 +906,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
               )}
 
               {/* Opinion Banner */}
-              <div className={`flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>
+              <div className={`relative flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>
                 {opinionIcon(envelope.opinion || audit.opinion)}
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">DRAFT OPINION</p>
@@ -914,6 +923,22 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                     {passCount} areas passed, {flagCount} flagged for review.
                   </p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2 h-8 px-2"
+                  onClick={() => {
+                    setOpinionPartA((envelope as any).opinion_part_a || audit.opinion || "unqualified");
+                    setOpinionPartB((envelope as any).opinion_part_b || audit.opinion || "unqualified");
+                    setOpinionPartABasis(envelope.opinion_reasoning || "");
+                    setOpinionPartBBasis("");
+                    setOpinionEmphasis((envelope.emphasis_of_matter || [])[0] || "");
+                    setEditOpinionOpen(true);
+                  }}
+                >
+                  <Pencil className="h-3.5 w-3.5 mr-1" />
+                  Edit
+                </Button>
               </div>
 
               {/* Emphasis of Matter */}
@@ -1084,6 +1109,136 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Opinion Dialog */}
+      <Dialog open={editOpinionOpen} onOpenChange={(open) => { if (!savingOpinion) setEditOpinionOpen(open); }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Audit Opinion</DialogTitle>
+          </DialogHeader>
+
+          {(() => {
+            const derivedOverall =
+              opinionPartA === "adverse" || opinionPartB === "adverse"
+                ? "adverse"
+                : opinionPartA === "qualified" || opinionPartB === "qualified"
+                ? "qualified"
+                : "unqualified";
+            const overallColor =
+              derivedOverall === "adverse"
+                ? "text-status-fail"
+                : derivedOverall === "qualified"
+                ? "text-status-flag"
+                : "text-status-pass";
+            const overallLabel = derivedOverall.charAt(0).toUpperCase() + derivedOverall.slice(1);
+
+            return (
+              <div className="space-y-5">
+                {/* Part A */}
+                <div className="space-y-2">
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Part A Opinion</Label>
+                  <Select value={opinionPartA} onValueChange={setOpinionPartA}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unqualified">Unqualified</SelectItem>
+                      <SelectItem value="qualified">Qualified</SelectItem>
+                      <SelectItem value="adverse">Adverse</SelectItem>
+                      <SelectItem value="disclaimer">Disclaimer of Opinion</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Label className="text-xs">Basis for Part A Opinion</Label>
+                  <Textarea
+                    value={opinionPartABasis}
+                    onChange={(e) => setOpinionPartABasis(e.target.value)}
+                    placeholder="Describe the basis for the Part A opinion..."
+                    className="min-h-[80px]"
+                  />
+                </div>
+
+                <div className="border-t border-border" />
+
+                {/* Part B */}
+                <div className="space-y-2">
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Part B Opinion</Label>
+                  <Select value={opinionPartB} onValueChange={setOpinionPartB}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unqualified">Unqualified</SelectItem>
+                      <SelectItem value="qualified">Qualified</SelectItem>
+                      <SelectItem value="adverse">Adverse</SelectItem>
+                      <SelectItem value="disclaimer">Disclaimer of Opinion</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Label className="text-xs">Basis for Part B Opinion</Label>
+                  <Textarea
+                    value={opinionPartBBasis}
+                    onChange={(e) => setOpinionPartBBasis(e.target.value)}
+                    placeholder="Describe the basis for the Part B opinion..."
+                    className="min-h-[80px]"
+                  />
+                </div>
+
+                {/* Derived overall */}
+                <div className="rounded-md border border-border bg-hover px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Derived</p>
+                  <p className={`font-semibold text-sm ${overallColor}`}>Overall: {overallLabel}</p>
+                </div>
+
+                {/* Emphasis */}
+                <div className="space-y-2">
+                  <Label className="text-xs">Emphasis of Matter (optional)</Label>
+                  <Textarea
+                    value={opinionEmphasis}
+                    onChange={(e) => setOpinionEmphasis(e.target.value)}
+                    placeholder="Any matters to emphasise without modifying the opinion..."
+                    className="min-h-[60px]"
+                  />
+                </div>
+              </div>
+            );
+          })()}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpinionOpen(false)} disabled={savingOpinion}>Cancel</Button>
+            <Button
+              disabled={savingOpinion}
+              onClick={async () => {
+                if (!id || !audit) return;
+                setSavingOpinion(true);
+                const derivedOverall =
+                  opinionPartA === "adverse" || opinionPartB === "adverse"
+                    ? "adverse"
+                    : opinionPartA === "qualified" || opinionPartB === "qualified"
+                    ? "qualified"
+                    : "unqualified";
+                const { envelope: existingEnv } = parseFindings(audit.ai_findings);
+                const newFindings = {
+                  ...existingEnv,
+                  opinion: derivedOverall,
+                  opinion_part_a: opinionPartA,
+                  opinion_part_b: opinionPartB,
+                  opinion_reasoning: opinionPartABasis + (opinionPartBBasis ? "\n\nPart B: " + opinionPartBBasis : ""),
+                  emphasis_of_matter: opinionEmphasis ? [opinionEmphasis] : [],
+                };
+                const { error } = await supabase
+                  .from("audits")
+                  .update({ opinion: derivedOverall, ai_findings: newFindings as any })
+                  .eq("id", id);
+                setSavingOpinion(false);
+                if (error) {
+                  toast({ title: "Failed to update opinion", description: error.message, variant: "destructive" });
+                  return;
+                }
+                await fetchAudit();
+                toast({ title: "Opinion updated" });
+                setEditOpinionOpen(false);
+              }}
+            >
+              {savingOpinion ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5 inline" />Saving...</> : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* No Credits Modal */}
       <AlertDialog open={showNoCreditModal} onOpenChange={setShowNoCreditModal}>
