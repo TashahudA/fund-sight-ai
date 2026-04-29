@@ -61,9 +61,16 @@ export default function MyAudits() {
   // Delete-confirmation state
   const [deleteTarget, setDeleteTarget] = useState<Audit | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+
+  // Reset typed confirmation whenever the target changes
+  useEffect(() => {
+    setDeleteConfirmText("");
+  }, [deleteTarget?.id]);
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
+    if (deleteConfirmText.trim() !== deleteTarget.fund_name) return;
     setDeleting(true);
     try {
       await deleteAuditCascade(deleteTarget.id);
@@ -363,11 +370,24 @@ export default function MyAudits() {
               This will permanently delete <span className="font-semibold text-foreground">{deleteTarget?.fund_name}</span>, including all uploaded documents, RFIs, findings and notes. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="delete-confirm-input" className="text-sm">
+              Type <span className="font-semibold text-foreground">{deleteTarget?.fund_name}</span> to confirm.
+            </Label>
+            <Input
+              id="delete-confirm-input"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={deleteTarget?.fund_name || ""}
+              autoComplete="off"
+              disabled={deleting}
+            />
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => { e.preventDefault(); handleConfirmDelete(); }}
-              disabled={deleting}
+              disabled={deleting || deleteConfirmText.trim() !== deleteTarget?.fund_name}
               className="bg-status-fail text-white hover:bg-status-fail/90"
             >
               {deleting ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Deleting…</> : "Delete audit"}
