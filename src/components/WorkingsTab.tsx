@@ -45,12 +45,17 @@ const fmtDate = (s?: string | null) => {
 const confidenceBadge = (c?: string) => {
   const lower = (c || "").toLowerCase();
   let variant: "pass" | "flag" | "fail" | "secondary" = "secondary";
+  let label = lower || "—";
   if (lower === "high") variant = "pass";
   else if (lower === "medium") variant = "flag";
-  else if (lower === "low" || lower === "conflict") variant = "fail";
+  else if (lower === "low") variant = "fail";
+  else if (lower === "conflict") {
+    variant = "flag";
+    label = "uncertain";
+  }
   return (
     <Badge variant={variant} className="text-[10px] px-1.5 py-0 capitalize">
-      {lower || "—"}
+      {label}
     </Badge>
   );
 };
@@ -157,6 +162,7 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
       {/* 1. Materiality */}
       <Section icon={<Calculator className="h-4 w-4" />} title="Materiality" defaultOpen>
         {materiality ? (
+          <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <StatBox label="Overall" value={fmtMoney(materiality?.overall)} hint="2% of benchmark" />
             <StatBox label="Performance" value={fmtMoney(materiality?.performance)} hint="75% of overall" />
@@ -167,6 +173,10 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
               hint={materiality?.benchmark ?? "Total assets"}
             />
           </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Materiality calculated at 2% of total assets as a planning guide per ASA 320. Auditors should apply professional judgement to determine appropriate materiality for each engagement.
+          </p>
+          </>
         ) : (
           <p className="text-sm text-muted-foreground italic">Materiality not calculated for this audit.</p>
         )}
