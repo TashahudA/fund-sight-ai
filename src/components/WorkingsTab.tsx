@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, AlertCircle, AlertTriangle } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 
 interface WorkingsTabProps {
