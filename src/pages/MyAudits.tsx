@@ -285,6 +285,7 @@ export default function MyAudits() {
                     </span>
                   </th>
                 ))}
+                <th className="w-10" aria-hidden="true" />
               </tr>
             </thead>
             <tbody>
