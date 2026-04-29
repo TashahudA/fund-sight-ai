@@ -129,6 +129,28 @@ const opinionLeftBorder = (opinion: string | null) => {
   return "";
 };
 
+const PART_A_HEADER = "Part A — Financial Statements (s35C(1)):";
+const PART_B_HEADER = "Part B — Compliance (s35C(2)):";
+
+const splitOpinionReasoning = (reasoning: string): { partA: string; partB: string } => {
+  if (!reasoning) return { partA: "", partB: "" };
+  const partBMatch = reasoning.match(/\nPart B[\s\u2014\-]/i);
+  if (!partBMatch || partBMatch.index === undefined) {
+    return { partA: reasoning.trim(), partB: "" };
+  }
+  return {
+    partA: reasoning.slice(0, partBMatch.index).trim(),
+    partB: reasoning.slice(partBMatch.index).trim(),
+  };
+};
+
+const stripHeader = (text: string): string => {
+  if (!text) return "";
+  const firstNewline = text.indexOf("\n");
+  if (firstNewline === -1) return "";
+  return text.slice(firstNewline).trim();
+};
+
 const opinionTextColor = (opinion: string | null) => {
   const o = (opinion || "").toLowerCase();
   if (o === "unqualified") return "text-status-pass";
