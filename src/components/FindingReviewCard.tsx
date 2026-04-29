@@ -92,9 +92,9 @@ const findingLeftBorder = (s: string, remediated?: boolean) => {
   return "border-l-[3px] border-l-status-new";
 };
 
-const confidenceDot = (c?: "high" | "medium" | "low") => {
+const confidenceDot = (c?: "high" | "medium" | "low", forcePass?: boolean) => {
   if (!c) return null;
-  const color = c === "high" ? "bg-status-pass" : c === "medium" ? "bg-status-flag" : "bg-status-fail";
+  const color = forcePass ? "bg-status-pass" : c === "high" ? "bg-status-pass" : c === "medium" ? "bg-status-flag" : "bg-status-fail";
   const label = c.charAt(0).toUpperCase() + c.slice(1);
   return <span title={`${label} confidence`} className={`inline-block h-2 w-2 rounded-full ${color}`} />;
 };
@@ -211,7 +211,7 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
           )}
         </div>
         <div className="flex items-center gap-1.5">
-          {confidenceDot(f.confidence)}
+          {confidenceDot(f.confidence, isPassEquivalent)}
           <Badge variant={isPassEquivalent ? "pass" : findingBadgeVariant(f.status)}>
             {isPassEquivalent ? "Pass" : findingLabel(f.status)}
           </Badge>
