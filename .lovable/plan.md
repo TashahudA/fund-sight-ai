@@ -1,37 +1,57 @@
-## Improve Edit Opinion Dialog UX
+## Goal
 
-Make the dialog wider and more spacious so auditors can read and write substantial opinion text without feeling cramped or scrolling excessively.
+Fix the "Edit Audit Opinion" dialog in `src/pages/AuditDetail.tsx` so the Part A / Part B basis textareas are no longer pre-filled with the long combined `opinion_reasoning` blob. Make the pre-population intuitive and ensure existing reasoning is preserved when the auditor doesn't type anything new.
 
-### Changes to `src/pages/AuditDetail.tsx` (Edit Opinion Dialog only)
+## Why your proposed solution is good
 
-**1. Wider, taller dialog**
-- Change `max-w-lg` → `max-w-3xl` (much wider for long-form text).
-- Keep `max-h-[90vh] overflow-y-auto` so it stays usable on shorter screens.
+- `opinion_reasoning` is a single combined string (often containing report-style text with a "Part B:" suffix). Dumping it into the Part A textarea is misleading and makes Part B look empty even though it's effectively included in the Part A blob.
+- Leaving both basis fields blank + showing helper text ("Previous reasoning is retained if left blank") makes the intent explicit and avoids destructive edits.
+- Guarding the save so `opinion_reasoning` is only overwritten when the user typed something prevents accidentally wiping existing reasoning by just changing the dropdown.
 
-**2. Two-column layout for Part A / Part B**
-- Place Part A and Part B side-by-side in a `grid grid-cols-1 md:grid-cols-2 gap-6` so the auditor sees both at once instead of scrolling between them.
-- Drop the horizontal divider; use the column gap + subtle card framing instead (each part wrapped in a `rounded-md border border-border p-4` block for clear separation).
+This matches how professional audit tools handle override flows — change the verdict without being forced to retype the rationale.
 
-**3. Bigger, more comfortable textareas**
-- Part A basis: `min-h-[80px]` → `min-h-[180px]`
-- Part B basis: `min-h-[80px]` → `min-h-[180px]`
-- Emphasis of Matter: `min-h-[60px]` → `min-h-[120px]`
-- Add `leading-relaxed` and `text-sm` for readability of long text.
+## Changes (all in `src/pages/AuditDetail.tsx`)
 
-**4. Cleaner form structure inside each part**
-- Stack: section heading ("Part A — Financial Statements" / "Part B — Compliance") in normal weight + small muted helper, then Select, then basis textarea with its own clear label.
-- Add proper spacing (`space-y-3` inside each card) so labels don't sit right on top of inputs.
+### 1. Edit-button click handler (around line 931–934)
 
-**5. Polished derived overall banner**
-- Move the derived overall to a full-width row beneath the two columns.
-- Use a slightly larger, badge-style display: uppercase label "Derived Overall Opinion" on the left, the colored result on the right, inside a `rounded-md border bg-hover px-4 py-3 flex items-center justify-between`.
+Replace the current pre-population block with:
 
-**6. Footer**
-- Keep Cancel + Save, no logic changes. Save button keeps loading spinner.
+```ts
+setOpinionPartA((envelope as any).opinion_part_a || audit.opinion || "unqualified");
+setOpinionPartB((envelope as any).opinion_part_b || (envelope as any).opinion_part_a || audit.opinion || "unqualified");
+setOpinionPartABasis("");
+setOpinionPartBBasis("");
+setOpinionEmphasis(((envelope as any).emphasis_of_matter || [])[0] || "");
+```
 
-### Out of scope
-- No changes to save logic, state variables, Supabase update payload, or the opinion banner / pencil button on the page.
-- No changes to fonts, colors, or design tokens beyond using existing ones (`bg-hover`, `border-border`, `text-status-pass/flag/fail`, `text-muted-foreground`).
+### 2. Helper text under each basis textarea (around lines 1159 and 1188)
 
-### Result
-The dialog becomes a wide, two-column form with generous textareas, clear card separation between Part A and Part B, and a prominent derived overall banner — making it comfortable to read and write multi-paragraph audit opinions without scrolling.
+Add directly below each basis `<Textarea>`:
+
+```tsx
+<p className="text-xs text-muted-foreground mt-1">
+  Previous reasoning is retained if left blank. Enter new text to override.
+</p>
+```
+
+Applied to both Part A and Part B basis fields.
+
+### 3. Save handler (around line 1236)
+
+Replace the current `opinion_reasoning` assignment with the conditional preserve-or-overwrite logic:
+
+```ts
+opinion_reasoning: (opinionPartABasis || opinionPartBBasis)
+  ? (opinionPartABasis + (opinionPartBBasis ? "\n\nPart B: " + opinionPartBBasis : ""))
+  : ((envelope as any).opinion_reasoning || ""),
+```
+
+### 4. Untouched
+
+- Dialog layout, two-column grid, derived overall banner, Part A/B dropdowns, emphasis textarea behaviour, Supabase update target (`audits.opinion` + `audits.ai_findings`), and the realtime refresh logic all stay exactly as they are.
+
+## Result
+
+- Opening Edit shows clean empty basis boxes with a clear hint.
+- Changing only the dropdown and saving preserves the existing reasoning.
+- Typing into either basis box overrides it, with Part B prefixed correctly in the combined string.
