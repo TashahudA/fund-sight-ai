@@ -1163,12 +1163,9 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Part A */}
                   <div className="rounded-md border border-border p-4 space-y-3">
-                    <div>
-                      <p className="text-sm font-semibold">Part A — Financial Statements</p>
-                      <p className="text-xs text-muted-foreground">Opinion on the fund's financial statements.</p>
-                    </div>
+                    <p className="text-sm font-semibold text-foreground">{PART_A_HEADER}</p>
                     <div className="space-y-1.5">
-                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">Part A Opinion</Label>
+                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">Opinion</Label>
                       <Select value={opinionPartA} onValueChange={setOpinionPartA}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -1180,27 +1177,21 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Basis for Part A Opinion</Label>
+                      <Label className="text-xs">Opinion text</Label>
                       <Textarea
                         value={opinionPartABasis}
                         onChange={(e) => setOpinionPartABasis(e.target.value)}
-                        placeholder="Describe the basis for the Part A opinion..."
-                        className="min-h-[180px] text-sm leading-relaxed"
+                        placeholder="In our opinion, except for the effects of the matter(s) described below, the financial statements present fairly..."
+                        className="min-h-[120px] text-sm leading-relaxed"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Previous reasoning is retained if left blank. Enter new text to override.
-                      </p>
                     </div>
                   </div>
 
                   {/* Part B */}
                   <div className="rounded-md border border-border p-4 space-y-3">
-                    <div>
-                      <p className="text-sm font-semibold">Part B — Compliance</p>
-                      <p className="text-xs text-muted-foreground">Opinion on compliance with the SIS Act.</p>
-                    </div>
+                    <p className="text-sm font-semibold text-foreground">{PART_B_HEADER}</p>
                     <div className="space-y-1.5">
-                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">Part B Opinion</Label>
+                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">Opinion</Label>
                       <Select value={opinionPartB} onValueChange={setOpinionPartB}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -1212,16 +1203,13 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Basis for Part B Opinion</Label>
+                      <Label className="text-xs">Opinion text</Label>
                       <Textarea
                         value={opinionPartBBasis}
                         onChange={(e) => setOpinionPartBBasis(e.target.value)}
-                        placeholder="Describe the basis for the Part B opinion..."
-                        className="min-h-[180px] text-sm leading-relaxed"
+                        placeholder="In our opinion, the trustee of the fund has, in all material respects, complied with..."
+                        className="min-h-[120px] text-sm leading-relaxed"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Previous reasoning is retained if left blank. Enter new text to override.
-                      </p>
                     </div>
                   </div>
                 </div>
