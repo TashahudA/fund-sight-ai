@@ -967,6 +967,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                           reviewerName={reviewerName}
                           existingReviews={reviews.filter(r => r.finding_area === f.area)}
                           onReviewSaved={handleReviewSaved}
+                          onFindingUpdated={fetchAudit}
                         />
                       ))}
                     </div>
