@@ -857,6 +857,24 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                   <SelectItem value="complete">Complete</SelectItem>
                 </SelectContent>
               </Select>
+
+              {/* Overflow actions (delete) */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 w-8 p-0" aria-label="More actions">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => setDeleteOpen(true)}
+                    className="text-status-fail focus:text-status-fail"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete audit
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); }} runningAudit={runningAudit} />
           </div>
