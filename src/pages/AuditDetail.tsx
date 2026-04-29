@@ -929,8 +929,8 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                   className="absolute top-2 right-2 h-8 px-2"
                   onClick={() => {
                     setOpinionPartA((envelope as any).opinion_part_a || audit.opinion || "unqualified");
-                    setOpinionPartB((envelope as any).opinion_part_b || audit.opinion || "unqualified");
-                    setOpinionPartABasis(envelope.opinion_reasoning || "");
+                    setOpinionPartB((envelope as any).opinion_part_b || (envelope as any).opinion_part_a || audit.opinion || "unqualified");
+                    setOpinionPartABasis("");
                     setOpinionPartBBasis("");
                     setOpinionEmphasis((envelope.emphasis_of_matter || [])[0] || "");
                     setEditOpinionOpen(true);
@@ -1161,6 +1161,9 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                         placeholder="Describe the basis for the Part A opinion..."
                         className="min-h-[180px] text-sm leading-relaxed"
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Previous reasoning is retained if left blank. Enter new text to override.
+                      </p>
                     </div>
                   </div>
 
@@ -1190,6 +1193,9 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                         placeholder="Describe the basis for the Part B opinion..."
                         className="min-h-[180px] text-sm leading-relaxed"
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Previous reasoning is retained if left blank. Enter new text to override.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1233,7 +1239,9 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                   opinion: derivedOverall,
                   opinion_part_a: opinionPartA,
                   opinion_part_b: opinionPartB,
-                  opinion_reasoning: opinionPartABasis + (opinionPartBBasis ? "\n\nPart B: " + opinionPartBBasis : ""),
+                  opinion_reasoning: (opinionPartABasis || opinionPartBBasis)
+                    ? (opinionPartABasis + (opinionPartBBasis ? "\n\nPart B: " + opinionPartBBasis : ""))
+                    : ((existingEnv as any).opinion_reasoning || ""),
                   emphasis_of_matter: opinionEmphasis ? [opinionEmphasis] : [],
                 };
                 const { error } = await supabase
