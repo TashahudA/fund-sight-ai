@@ -112,6 +112,8 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
   const hasAgreed = existingReviews.some(r => r.action === "agree");
   const overrides = existingReviews.filter(r => r.action === "override");
   const hasResolved = overrides.length > 0;
+  const hasRfiResolution = !!f.rfi_resolution;
+  const isPassEquivalent = hasAgreed || hasResolved || hasRfiResolution || normalizeStatus(f.status) === "pass";
   const notes = existingReviews.filter(r => r.action === "note");
   const isReviewed = existingReviews.length > 0;
   const isDecisionMade = hasAgreed || hasResolved;
@@ -195,10 +197,10 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
   };
 
   return (
-    <div className={`rounded-lg border border-border bg-background p-4 space-y-2 ${(hasAgreed || hasResolved) ? "border-l-[3px] border-l-status-pass" : findingLeftBorder(f.status, isRemediated)} ${isRemediated ? "opacity-60" : ""}`}>
+    <div className={`rounded-lg border border-border bg-background p-4 space-y-2 ${isPassEquivalent ? "border-l-[3px] border-l-status-pass" : findingLeftBorder(f.status, isRemediated)} ${isRemediated ? "opacity-60" : ""}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {(hasAgreed || hasResolved) ? (
+          {isPassEquivalent ? (
             <CheckCircle2 className="h-4 w-4 text-status-pass" />
           ) : (
             findingIcon(f.status)
@@ -210,8 +212,8 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
         </div>
         <div className="flex items-center gap-1.5">
           {confidenceDot(f.confidence)}
-          <Badge variant={hasResolved ? "pass" : findingBadgeVariant(f.status)}>
-            {hasResolved ? "Pass" : findingLabel(f.status)}
+          <Badge variant={isPassEquivalent ? "pass" : findingBadgeVariant(f.status)}>
+            {isPassEquivalent ? "Pass" : findingLabel(f.status)}
           </Badge>
           {isRemediated && <Badge variant="secondary">Remediated</Badge>}
         </div>
