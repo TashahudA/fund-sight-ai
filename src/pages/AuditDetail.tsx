@@ -947,8 +947,8 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                     const bodyA = env.opinion_part_a_basis ? rawA : stripHeader(rawA);
                     const bodyB = env.opinion_part_b_basis ? rawB : stripHeader(rawB);
                     const HeaderChip = ({ label, word }: { label: string; word: string }) => (
-                      <span className="inline rounded-sm bg-muted/70 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground/90 mr-1.5 align-middle">
-                        {label} <span className="text-foreground/80 font-semibold">{cap(word)}.</span>
+                      <span className="font-medium text-foreground/90">
+                        {label} <span className="font-semibold">{cap(word)}.</span>
                       </span>
                     );
                     if (!bodyA && !bodyB) {
@@ -957,15 +957,15 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                     return (
                       <div className="mt-2 space-y-2">
                         {bodyA && (
-                          <p className="text-sm text-foreground leading-relaxed">
+                          <p className="text-sm leading-relaxed">
                             <HeaderChip label="Part A — Financial Statements (s35C(1)):" word={partAWord} />
-                            <span className="text-muted-foreground">{bodyA}</span>
+                            <span className="text-muted-foreground"> {bodyA}</span>
                           </p>
                         )}
                         {bodyB && (
-                          <p className="text-sm text-foreground leading-relaxed">
+                          <p className="text-sm leading-relaxed">
                             <HeaderChip label="Part B — Compliance (s35C(2)):" word={partBWord} />
-                            <span className="text-muted-foreground">{bodyB}</span>
+                            <span className="text-muted-foreground"> {bodyB}</span>
                           </p>
                         )}
                       </div>
@@ -1174,9 +1174,6 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
         <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Audit Opinion</DialogTitle>
-            <DialogDescription className="text-xs">
-              The section header and "Part A/B …" prefix are fixed. Choose the opinion word from the dropdown — it appears as the prefix on the opinion card. Edit the opinion body text below each.
-            </DialogDescription>
           </DialogHeader>
 
           {(() => {
@@ -1226,12 +1223,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs font-medium text-muted-foreground">Opinion body</Label>
-                        <span className="text-[10px] text-muted-foreground/60">
-                          Will be prefixed with: <span className="font-mono text-foreground/70">{title}: {cap(opinion)}.</span>
-                        </span>
-                      </div>
+                      <Label className="text-xs font-medium text-muted-foreground">Opinion body</Label>
                       <Textarea
                         value={basis}
                         onChange={(e) => setBasis(e.target.value)}
@@ -1269,10 +1261,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                 />
 
                 <div className="rounded-lg border border-border bg-hover px-5 py-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Derived Overall Opinion</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">Auto-calculated from Part A + Part B</p>
-                  </div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">Derived Overall Opinion</p>
                   <p className={`font-semibold text-lg ${overallColor}`}>{overallLabel}</p>
                 </div>
 
@@ -1281,7 +1270,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                     <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">03</span>
                     <div className="flex-1">
                       <h3 className="text-sm font-semibold text-foreground leading-tight">Emphasis of Matter</h3>
-                      <p className="text-[11px] text-muted-foreground/70 mt-0.5">Optional — does not modify the opinion</p>
+                      <p className="text-[11px] text-muted-foreground/70 mt-0.5">Optional</p>
                     </div>
                   </header>
                   <div className="p-5">
