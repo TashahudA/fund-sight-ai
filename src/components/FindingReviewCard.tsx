@@ -198,7 +198,7 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
     <div className={`rounded-lg border border-border bg-background p-4 space-y-2 ${findingLeftBorder(f.status, isRemediated)} ${isRemediated ? "opacity-60" : ""}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {hasAgreed ? (
+          {(hasAgreed || hasResolved) ? (
             <CheckCircle2 className="h-4 w-4 text-status-pass" />
           ) : (
             findingIcon(f.status)
@@ -210,7 +210,9 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
         </div>
         <div className="flex items-center gap-1.5">
           {confidenceDot(f.confidence)}
-          <Badge variant={findingBadgeVariant(f.status)}>{findingLabel(f.status)}</Badge>
+          <Badge variant={hasResolved ? "pass" : findingBadgeVariant(f.status)}>
+            {hasResolved ? "Pass" : findingLabel(f.status)}
+          </Badge>
           {isRemediated && <Badge variant="secondary">Remediated</Badge>}
         </div>
       </div>
