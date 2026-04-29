@@ -195,7 +195,7 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
   };
 
   return (
-    <div className={`rounded-lg border border-border bg-background p-4 space-y-2 ${findingLeftBorder(f.status, isRemediated)} ${isRemediated ? "opacity-60" : ""}`}>
+    <div className={`rounded-lg border border-border bg-background p-4 space-y-2 ${(hasAgreed || hasResolved) ? "border-l-[3px] border-l-status-pass" : findingLeftBorder(f.status, isRemediated)} ${isRemediated ? "opacity-60" : ""}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {(hasAgreed || hasResolved) ? (
