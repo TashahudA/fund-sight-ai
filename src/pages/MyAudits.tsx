@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Search, Plus, Loader2, FileX, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
+import { Search, Plus, Loader2, FileX, ArrowUp, ArrowDown, ChevronsUpDown, MoreVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,10 @@ import { NewAuditModal } from "@/components/NewAuditModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { deleteAuditCascade } from "@/lib/deleteAudit";
+import { toast } from "@/hooks/use-toast";
 
 type Audit = Tables<"audits">;
 
@@ -53,6 +57,25 @@ export default function MyAudits() {
 
   // Open RFI counts per audit
   const [openRfiCounts, setOpenRfiCounts] = useState<Record<string, number>>({});
+
+  // Delete-confirmation state
+  const [deleteTarget, setDeleteTarget] = useState<Audit | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteAuditCascade(deleteTarget.id);
+      setAudits((prev) => prev.filter((a) => a.id !== deleteTarget.id));
+      toast({ title: "Audit deleted", description: `${deleteTarget.fund_name} has been removed.` });
+      setDeleteTarget(null);
+    } catch (err: any) {
+      toast({ title: "Failed to delete audit", description: err?.message || "Unknown error", variant: "destructive" });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const fetchAudits = async () => {
     if (!user) return;
@@ -298,6 +321,29 @@ export default function MyAudits() {
                         <span style={{ fontSize: "14px", color: "#888888" }}>—</span>
                       )}
                     </td>
+                    <td className="px-2 py-3.5 w-10" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+                            aria-label="Audit actions"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => setDeleteTarget(audit)}
+                            className="text-status-fail focus:text-status-fail"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete audit
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
                   </tr>
                 );
               })}
@@ -307,6 +353,27 @@ export default function MyAudits() {
       )}
 
       <NewAuditModal open={modalOpen} onOpenChange={(v) => { setModalOpen(v); if (!v) fetchAudits(); }} />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(v) => { if (!v && !deleting) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this audit?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <span className="font-semibold text-foreground">{deleteTarget?.fund_name}</span>, including all uploaded documents, RFIs, findings and notes. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleConfirmDelete(); }}
+              disabled={deleting}
+              className="bg-status-fail text-white hover:bg-status-fail/90"
+            >
+              {deleting ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Deleting…</> : "Delete audit"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
