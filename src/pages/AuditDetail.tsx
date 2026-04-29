@@ -906,7 +906,7 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
               )}
 
               {/* Opinion Banner */}
-              <div className={`flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>
+              <div className={`relative flex items-center gap-3 rounded-lg border border-border bg-hover p-4 ${opinionLeftBorder(envelope.opinion || audit.opinion)}`}>
                 {opinionIcon(envelope.opinion || audit.opinion)}
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">DRAFT OPINION</p>
@@ -923,6 +923,22 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                     {passCount} areas passed, {flagCount} flagged for review.
                   </p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2 h-8 px-2"
+                  onClick={() => {
+                    setOpinionPartA((envelope as any).opinion_part_a || audit.opinion || "unqualified");
+                    setOpinionPartB((envelope as any).opinion_part_b || audit.opinion || "unqualified");
+                    setOpinionPartABasis(envelope.opinion_reasoning || "");
+                    setOpinionPartBBasis("");
+                    setOpinionEmphasis((envelope.emphasis_of_matter || [])[0] || "");
+                    setEditOpinionOpen(true);
+                  }}
+                >
+                  <Pencil className="h-3.5 w-3.5 mr-1" />
+                  Edit
+                </Button>
               </div>
 
               {/* Emphasis of Matter */}
