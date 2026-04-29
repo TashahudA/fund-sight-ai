@@ -950,10 +950,14 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                   size="sm"
                   className="absolute top-2 right-2 h-8 px-2"
                   onClick={() => {
-                    setOpinionPartA((envelope as any).opinion_part_a || audit.opinion || "unqualified");
-                    setOpinionPartB((envelope as any).opinion_part_b || (envelope as any).opinion_part_a || audit.opinion || "unqualified");
-                    setOpinionPartABasis("");
-                    setOpinionPartBBasis("");
+                    const env = envelope as any;
+                    const { partA: rawPartA, partB: rawPartB } = env.opinion_part_a_basis
+                      ? { partA: env.opinion_part_a_basis as string, partB: (env.opinion_part_b_basis as string) || "" }
+                      : splitOpinionReasoning(env.opinion_reasoning || "");
+                    setOpinionPartA(env.opinion_part_a || audit.opinion || "unqualified");
+                    setOpinionPartB(env.opinion_part_b || env.opinion_part_a || audit.opinion || "unqualified");
+                    setOpinionPartABasis(env.opinion_part_a_basis ? rawPartA : stripHeader(rawPartA));
+                    setOpinionPartBBasis(env.opinion_part_b_basis ? rawPartB : stripHeader(rawPartB));
                     setOpinionEmphasis((envelope.emphasis_of_matter || [])[0] || "");
                     setEditOpinionOpen(true);
                   }}
