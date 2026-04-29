@@ -1248,15 +1248,26 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                     ? "qualified"
                     : "unqualified";
                 const { envelope: existingEnv } = parseFindings(audit.ai_findings);
+                const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+                const partAFull = [
+                  `${PART_A_HEADER} ${cap(opinionPartA)}.`,
+                  opinionPartABasis.trim(),
+                ].filter(Boolean).join("\n");
+                const partBFull = [
+                  `${PART_B_HEADER} ${cap(opinionPartB)}.`,
+                  opinionPartBBasis.trim(),
+                ].filter(Boolean).join("\n");
                 const newFindings = {
                   ...existingEnv,
                   opinion: derivedOverall,
                   opinion_part_a: opinionPartA,
                   opinion_part_b: opinionPartB,
-                  opinion_reasoning: (opinionPartABasis || opinionPartBBasis)
-                    ? (opinionPartABasis + (opinionPartBBasis ? "\n\nPart B: " + opinionPartBBasis : ""))
-                    : ((existingEnv as any).opinion_reasoning || ""),
-                  emphasis_of_matter: opinionEmphasis ? [opinionEmphasis] : [],
+                  opinion_part_a_basis: opinionPartABasis,
+                  opinion_part_b_basis: opinionPartBBasis,
+                  opinion_reasoning: partAFull + "\n\n" + partBFull,
+                  emphasis_of_matter: opinionEmphasis
+                    ? [opinionEmphasis]
+                    : ((existingEnv as any).emphasis_of_matter || []),
                 };
                 const { error } = await supabase
                   .from("audits")
