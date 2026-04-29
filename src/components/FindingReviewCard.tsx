@@ -44,6 +44,7 @@ interface Props {
   reviewerName: string;
   existingReviews: ReviewAction[];
   onReviewSaved: (review: ReviewAction) => void;
+  onFindingUpdated?: () => void;
 }
 
 const normalizeStatus = (s: string): FindingStatus => {
@@ -98,7 +99,7 @@ const confidenceDot = (c?: "high" | "medium" | "low") => {
   return <span title={`${label} confidence`} className={`inline-block h-2 w-2 rounded-full ${color}`} />;
 };
 
-export function FindingReviewCard({ finding: f, index, auditId, reviewerName, existingReviews, onReviewSaved }: Props) {
+export function FindingReviewCard({ finding: f, index, auditId, reviewerName, existingReviews, onReviewSaved, onFindingUpdated }: Props) {
   const [saving, setSaving] = useState<string | null>(null);
   const [showResolveInput, setShowResolveInput] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
@@ -142,7 +143,7 @@ export function FindingReviewCard({ finding: f, index, auditId, reviewerName, ex
         reviewed_at: new Date().toISOString(),
       });
       if (action === "agree") toast({ title: "Finding agreed" });
-      if (action === "override") { toast({ title: "Finding resolved" }); setShowResolveInput(false); setResolveText(""); }
+      if (action === "override") { toast({ title: "Finding resolved" }); setShowResolveInput(false); setResolveText(""); onFindingUpdated?.(); }
       if (action === "note") { toast({ title: "Note added" }); setShowNoteInput(false); setNoteText(""); }
     } catch (err: any) {
       toast({ title: "Failed to save review", description: err.message, variant: "destructive" });
