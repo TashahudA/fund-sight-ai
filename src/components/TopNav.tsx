@@ -1,12 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bell, Plus, User, LogOut, Coins } from "lucide-react";
+import { Plus, User, LogOut, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { NewAuditModal } from "@/components/NewAuditModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -14,13 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-interface Notification {
-  id: string;
-  message: string;
-  time: Date;
-  link: string;
-}
 
 export function TopNav() {
   const location = useLocation();
@@ -30,12 +21,6 @@ export function TopNav() {
   const [openRfiCount, setOpenRfiCount] = useState(0);
   const [auditCount, setAuditCount] = useState(0);
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
-
-  // Notification state
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [bellOpen, setBellOpen] = useState(false);
-  const [hasUnread, setHasUnread] = useState(false);
-  const bellRef = useRef<HTMLDivElement>(null);
 
   const displayName = profile?.full_name || "User";
 
@@ -48,97 +33,6 @@ export function TopNav() {
     setOpenRfiCount(rfiRes.count ?? 0);
     setAuditCount(auditRes.count ?? 0);
   };
-
-  const fetchNotifications = useCallback(async () => {
-    if (!user) return;
-
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const [rfisRes, auditsRes] = await Promise.all([
-      supabase
-        .from("rfis")
-        .select("id, title, audit_id, status, created_at, audits(fund_name)")
-        .gte("created_at", thirtyDaysAgo.toISOString())
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("audits")
-        .select("id, fund_name, status, updated_at")
-        .eq("user_id", user.id)
-        .gte("updated_at", thirtyDaysAgo.toISOString())
-        .order("updated_at", { ascending: false }),
-    ]);
-
-    const items: Notification[] = [];
-
-    // Group new RFIs by audit
-    if (rfisRes.data) {
-      const byAudit: Record<string, { count: number; fundName: string; auditId: string; latest: Date }> = {};
-      for (const rfi of rfisRes.data) {
-        const fundName = (rfi.audits as any)?.fund_name || "Unknown Fund";
-        if (!byAudit[rfi.audit_id]) {
-          byAudit[rfi.audit_id] = { count: 0, fundName, auditId: rfi.audit_id, latest: new Date(rfi.created_at!) };
-        }
-        byAudit[rfi.audit_id].count++;
-        const d = new Date(rfi.created_at!);
-        if (d > byAudit[rfi.audit_id].latest) byAudit[rfi.audit_id].latest = d;
-      }
-      for (const key of Object.keys(byAudit)) {
-        const g = byAudit[key];
-        items.push({
-          id: `new-rfis-${key}`,
-          message: `${g.count} new RFI${g.count > 1 ? "s" : ""} raised for ${g.fundName}`,
-          time: g.latest,
-          link: `/audits/${g.auditId}?tab=rfis`,
-        });
-      }
-
-      // Overdue RFIs (open > 7 days)
-      const overdueRfis = rfisRes.data.filter(
-        (r) => r.status === "open" && new Date(r.created_at!) < sevenDaysAgo
-      );
-      if (overdueRfis.length > 0) {
-        const byAuditOverdue: Record<string, { count: number; fundName: string; auditId: string; latest: Date }> = {};
-        for (const rfi of overdueRfis) {
-          const fundName = (rfi.audits as any)?.fund_name || "Unknown Fund";
-          if (!byAuditOverdue[rfi.audit_id]) {
-            byAuditOverdue[rfi.audit_id] = { count: 0, fundName, auditId: rfi.audit_id, latest: new Date(rfi.created_at!) };
-          }
-          byAuditOverdue[rfi.audit_id].count++;
-        }
-        for (const key of Object.keys(byAuditOverdue)) {
-          const g = byAuditOverdue[key];
-          items.push({
-            id: `overdue-rfis-${key}`,
-            message: `${g.count} overdue RFI${g.count > 1 ? "s" : ""} for ${g.fundName}`,
-            time: g.latest,
-            link: `/audits/${g.auditId}?tab=rfis`,
-          });
-        }
-      }
-    }
-
-    // Audit status changes
-    if (auditsRes.data) {
-      for (const audit of auditsRes.data) {
-        if (audit.status && audit.status !== "pending") {
-          items.push({
-            id: `audit-status-${audit.id}`,
-            message: `${audit.fund_name} status changed to ${audit.status}`,
-            time: new Date(audit.updated_at!),
-            link: `/audits/${audit.id}`,
-          });
-        }
-      }
-    }
-
-    // Sort by time descending
-    items.sort((a, b) => b.time.getTime() - a.time.getTime());
-    setNotifications(items);
-    if (items.length > 0) setHasUnread(true);
-  }, [user]);
 
   const fetchCredits = useCallback(async () => {
     if (!user) return;
@@ -167,9 +61,8 @@ export function TopNav() {
   useEffect(() => {
     if (!user?.id) return;
     fetchCounts();
-    fetchNotifications();
     fetchCredits();
-  }, [user?.id, location.key, fetchNotifications, fetchCredits]);
+  }, [user?.id, location.key, fetchCredits]);
 
   // Handle Stripe payment success redirect
   useEffect(() => {
@@ -186,30 +79,6 @@ export function TopNav() {
       );
     }
   }, [user, location.search, location.pathname, navigate, fetchCredits]);
-
-  // Close bell dropdown on outside click
-  useEffect(() => {
-    if (!bellOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
-        setBellOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [bellOpen]);
-
-  const handleBellClick = () => {
-    setBellOpen((prev) => {
-      if (!prev) setHasUnread(false);
-      return !prev;
-    });
-  };
-
-  const handleNotificationClick = (link: string) => {
-    setBellOpen(false);
-    navigate(link);
-  };
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return location.pathname === "/dashboard";
@@ -282,49 +151,6 @@ export function TopNav() {
               <Plus className="h-4 w-4" />
               New Audit
             </Button>
-
-            {/* Notification Bell */}
-            <div ref={bellRef} className="relative">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative text-muted-foreground hover:text-foreground"
-                onClick={handleBellClick}
-              >
-                <Bell className="h-4 w-4" />
-                {hasUnread && (
-                  <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-status-fail" />
-                )}
-              </Button>
-
-              {bellOpen && (
-                <div
-                  className="absolute right-0 top-full mt-1 w-[360px] max-h-[400px] overflow-y-auto rounded-lg border bg-background shadow-lg z-50"
-                  style={{ borderColor: "#e5e5e5" }}
-                >
-                  {notifications.length === 0 ? (
-                    <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                      No new notifications
-                    </div>
-                  ) : (
-                    <div className="py-1">
-                      {notifications.map((n) => (
-                        <button
-                          key={n.id}
-                          onClick={() => handleNotificationClick(n.link)}
-                          className="w-full text-left px-4 py-3 cursor-pointer transition-colors border-b border-border last:border-b-0 hover:bg-[#f9f9f9]"
-                        >
-                          <p className="text-sm text-foreground leading-snug">{n.message}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {formatDistanceToNow(n.time, { addSuffix: true })}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
