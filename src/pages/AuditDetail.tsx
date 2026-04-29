@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, X, Pencil } from "lucide-react";
+import { ChevronRight, Download, CheckCircle2, AlertTriangle, XCircle, Info, StickyNote, Loader2, ArrowLeft, Play, Plus, Upload, ChevronDown, Eye, CircleDot, X, Pencil, MoreVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +23,7 @@ import { startAudit } from "@/lib/auditApi";
 import { API_BASE_URL } from "@/lib/apiConfig";
 import { toast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { deleteAuditCascade } from "@/lib/deleteAudit";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Audit = Tables<"audits">;
@@ -646,6 +647,22 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
   const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [completingAudit, setCompletingAudit] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAudit = async () => {
+    if (!audit) return;
+    setDeleting(true);
+    try {
+      await deleteAuditCascade(audit.id);
+      toast({ title: "Audit deleted", description: `${audit.fund_name} has been removed.` });
+      navigate("/audits");
+    } catch (err: any) {
+      toast({ title: "Failed to delete audit", description: err?.message || "Unknown error", variant: "destructive" });
+      setDeleting(false);
+      setDeleteOpen(false);
+    }
+  };
 
   const handleStatusChange = async (newStatus: string) => {
     if (!audit) return;
@@ -840,6 +857,24 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
                   <SelectItem value="complete">Complete</SelectItem>
                 </SelectContent>
               </Select>
+
+              {/* Overflow actions (delete) */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 w-8 p-0" aria-label="More actions">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => setDeleteOpen(true)}
+                    className="text-status-fail focus:text-status-fail"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete audit
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <UploadMoreDocuments auditId={audit.id} onUploaded={async () => { await fetchCounts(); }} runningAudit={runningAudit} />
           </div>
@@ -1366,6 +1401,28 @@ ${f.map(r => `<tr><td>${r.area}</td><td class="${normalizeStatus(r.status)}">${r
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => { setShowNoCreditModal(false); navigate("/buy-credits"); }}>
               Buy Credits
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Audit Confirmation */}
+      <AlertDialog open={deleteOpen} onOpenChange={(v) => { if (!deleting) setDeleteOpen(v); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this audit?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <span className="font-semibold text-foreground">{audit?.fund_name}</span>, including all uploaded documents, RFIs, findings and notes. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDeleteAudit(); }}
+              disabled={deleting}
+              className="bg-status-fail text-white hover:bg-status-fail/90"
+            >
+              {deleting ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Deleting…</> : "Delete audit"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

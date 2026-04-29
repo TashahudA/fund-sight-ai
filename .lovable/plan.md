@@ -1,57 +1,61 @@
-## Goal
 
-Fix the "Edit Audit Opinion" dialog in `src/pages/AuditDetail.tsx` so the Part A / Part B basis textareas are no longer pre-filled with the long combined `opinion_reasoning` blob. Make the pre-population intuitive and ensure existing reasoning is preserved when the auditor doesn't type anything new.
+## Part 1 — Delete a fund
 
-## Why your proposed solution is good
+**Where:** Put the delete action in **two places**:
+1. **AuditDetail header** — primary location, a small "Delete audit" item inside a kebab/overflow menu on the detail page (so it's deliberate, not a one-click accident next to other actions).
+2. **MyAudits row** — a hover-revealed kebab on each row with "Delete" so users can clean up abandoned `pending` rows without having to open them first. This is the main use case based on the duplicate bug below.
 
-- `opinion_reasoning` is a single combined string (often containing report-style text with a "Part B:" suffix). Dumping it into the Part A textarea is misleading and makes Part B look empty even though it's effectively included in the Part A blob.
-- Leaving both basis fields blank + showing helper text ("Previous reasoning is retained if left blank") makes the intent explicit and avoids destructive edits.
-- Guarding the save so `opinion_reasoning` is only overwritten when the user typed something prevents accidentally wiping existing reasoning by just changing the dropdown.
+**Confirmation:** AlertDialog with the fund name typed back (or a clear "This will permanently delete the audit, all documents, RFIs and findings. This cannot be undone." + a destructive Confirm button). Given auditors care about records, require explicit confirmation; no soft-undo toast.
 
-This matches how professional audit tools handle override flows — change the verdict without being forced to retype the rationale.
+**What gets deleted (in order, in a single async handler):**
+1. Storage files under `audit-documents/{auditId}/` — list then `remove()` the paths.
+2. DB rows — `audits` row only. The related tables (`documents`, `rfis`, `rfi_messages`, `audit_notes`, `finding_reviews`) currently have **no FK cascade** (confirmed: `No foreign keys` on each table). So we must explicitly delete in this order before the audit row:
+   - `rfi_messages` (joined via rfis.audit_id)
+   - `rfis` where audit_id = X
+   - `documents` where audit_id = X
+   - `audit_notes` where audit_id = X
+   - `finding_reviews` where audit_id = X
+   - `audits` where id = X
 
-## Changes (all in `src/pages/AuditDetail.tsx`)
+   RLS already permits the owner to delete their own audit/documents/rfis/notes; `finding_reviews` has an open ALL policy so that's fine.
 
-### 1. Edit-button click handler (around line 931–934)
+3. On success: toast "Audit deleted", navigate back to `/audits` (from detail page) or refresh the list.
 
-Replace the current pre-population block with:
+**Permissions:** RLS already restricts to `auth.uid() = user_id`, so users can only delete their own. Admins reading other users' audits won't get a delete button (gate the UI on `audit.user_id === user.id`).
 
-```ts
-setOpinionPartA((envelope as any).opinion_part_a || audit.opinion || "unqualified");
-setOpinionPartB((envelope as any).opinion_part_b || (envelope as any).opinion_part_a || audit.opinion || "unqualified");
-setOpinionPartABasis("");
-setOpinionPartBBasis("");
-setOpinionEmphasis(((envelope as any).emphasis_of_matter || [])[0] || "");
+**Optional later (not in this plan):** a proper Postgres `on delete cascade` migration would simplify this, but adding FKs to existing data needs care. Doing it client-side first is safe and reversible.
+
+## Part 2 — Duplicate "appeared twice as pending" bug
+
+**Root cause confirmed from the DB.** Looking at recent audits, the pattern is consistent:
+
+```
+01:18  Gary Edward & Barbara Richards SF   pending / unpaid
+01:22  Gary Edward & Barbara Richards SF   in_progress / paid   ← actual run
 ```
 
-### 2. Helper text under each basis textarea (around lines 1159 and 1188)
+Same fund, same user, ~4 minutes apart. Three "Kleftus" rows show the same shape. The `pending` + `unpaid` rows are **orphaned creation attempts** — the audit row is inserted at the very start of `NewAuditModal.handleSubmit` (before file upload), so anything that goes wrong after the insert (file upload failure, user closes modal, network blip, user retrying) leaves a phantom `pending` audit behind. There is no retry/resume — the next submit creates a brand new row.
 
-Add directly below each basis `<Textarea>`:
+The user thinks they "uploaded once" because to them only the successful run counted; the failed first attempt silently left a row.
 
-```tsx
-<p className="text-xs text-muted-foreground mt-1">
-  Previous reasoning is retained if left blank. Enter new text to override.
-</p>
+**Fix (in `NewAuditModal.handleSubmit`):**
+
+1. **Roll back the audit row on file-upload failure.** Currently the code does `audits.insert(...)`, then loops over files; if any file upload or `documents.insert` throws, it sets an error and returns — leaving the audit row. Change the catch block to also `await supabase.from("audits").delete().eq("id", auditId)` before showing the error. Also remove any uploaded storage files that already succeeded for that audit.
+2. **Strengthen the double-submit guard.** The button is `disabled={loading}` but `loading` is a state setter — a fast double-click can fire two handlers before React commits. Add a `useRef(false)` "submitting" latch checked synchronously at the top of `handleSubmit` to make it idempotent.
+3. **One-time cleanup of existing orphans (optional but recommended).** A simple admin-side or one-off script deletes audits where `status='pending' AND payment_status='unpaid' AND created_at < now() - interval '1 hour' AND no documents exist`. We can do this as a manual SQL run rather than building UI for it — about 6 rows would be cleaned up across the project.
+
+## Files to change
+
+```text
+src/pages/AuditDetail.tsx        Add delete action + AlertDialog in header
+src/pages/MyAudits.tsx           Add per-row kebab with Delete + AlertDialog
+src/components/NewAuditModal.tsx Rollback on failure + ref-based submit latch
+src/lib/deleteAudit.ts           New helper: deletes storage + child rows + audit
 ```
 
-Applied to both Part A and Part B basis fields.
+(One shared helper keeps the deletion logic identical from both entry points.)
 
-### 3. Save handler (around line 1236)
+## Open questions
 
-Replace the current `opinion_reasoning` assignment with the conditional preserve-or-overwrite logic:
-
-```ts
-opinion_reasoning: (opinionPartABasis || opinionPartBBasis)
-  ? (opinionPartABasis + (opinionPartBBasis ? "\n\nPart B: " + opinionPartBBasis : ""))
-  : ((envelope as any).opinion_reasoning || ""),
-```
-
-### 4. Untouched
-
-- Dialog layout, two-column grid, derived overall banner, Part A/B dropdowns, emphasis textarea behaviour, Supabase update target (`audits.opinion` + `audits.ai_findings`), and the realtime refresh logic all stay exactly as they are.
-
-## Result
-
-- Opening Edit shows clean empty basis boxes with a clear hint.
-- Changing only the dropdown and saving preserves the existing reasoning.
-- Typing into either basis box overrides it, with Part B prefixed correctly in the combined string.
+1. Confirmation style: typed fund-name confirmation (stricter) or a plain destructive AlertDialog (faster)?
+2. Do you want the one-time cleanup of the ~5–6 orphan `pending/unpaid` rows in the DB right now, or leave them for users to delete via the new UI?
