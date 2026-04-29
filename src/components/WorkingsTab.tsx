@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ChevronDown, FileText, Calculator, Database, Settings2, AlertCircle } from "lucide-react";
+import { ChevronDown, FileText, Calculator, Database, Settings2, AlertCircle, ScrollText } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 
@@ -156,6 +156,7 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
   const corrections: any[] = Array.isArray(data?._corrections) ? data._corrections : [];
   const version = data?._version ?? "—";
   const detContext = det?.context ?? det?.analysis_context ?? det;
+  const balanceSheetRaw: string = (data?._balance_sheet_raw ?? "").toString();
 
   return (
     <div className="space-y-3">
@@ -182,7 +183,25 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
         )}
       </Section>
 
-      {/* 2. Audit Program */}
+      {/* 2. Balance Sheet Extraction */}
+      <Section icon={<ScrollText className="h-4 w-4" />} title="Balance Sheet Extraction" defaultOpen>
+        {!balanceSheetRaw ? (
+          <p className="text-sm text-muted-foreground">
+            Re-run the audit to generate balance sheet extraction data.
+          </p>
+        ) : (
+          <>
+            <p className="text-xs text-muted-foreground mb-2">
+              Raw extraction from financial statements as read by the AI. Use this to verify figures match source documents.
+            </p>
+            <pre className="text-xs font-mono bg-muted rounded-md p-4 overflow-auto max-h-[500px] whitespace-pre-wrap text-foreground leading-relaxed">
+{balanceSheetRaw}
+            </pre>
+          </>
+        )}
+      </Section>
+
+      {/* 3. Audit Program */}
       <Section
         icon={<FileText className="h-4 w-4" />}
         title="Audit Program"
