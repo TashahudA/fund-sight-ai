@@ -239,8 +239,8 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
   const w = data?._workings ?? {};
 
   // 1. Materiality
-  const mat = data?._materiality ?? det?.materiality ?? null;
-  const matBasis = firstNonNull(mat?.basis, mat?.benchmark);
+  const mat = data?._materiality ?? det?.materiality ?? w?.materiality ?? null;
+  const matBasis = firstNonNull(mat?.basis, mat?.benchmark, w?.materiality?.basis);
   const matBaseFigure = firstNonNull(mat?.base_figure, mat?.benchmark_value, mat?.total_assets, mat?.net_assets);
   const matPctRaw = firstNonNull(mat?.percentage, mat?.percent, mat?.rate);
   const matThreshold = firstNonNull(mat?.threshold, mat?.overall, mat?.materiality);
@@ -269,6 +269,9 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
     }
   }
   const ihPass = ih?.status ? String(ih.status).toLowerCase() === "pass" : (ihPct == null ? null : ihPct < 5);
+
+  // 5b. Bank reconciliation
+  const bankRecon: any[] = Array.isArray(w?.bank_reconciliation) ? w.bank_reconciliation : [];
 
   // 6. Evidence register
   const classifications: any[] = Array.isArray(ing?.classifications) ? ing.classifications : [];
@@ -335,6 +338,7 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
             rows={pensionData.map((p: any) => {
               const min = Number(p?.minimum_required ?? 0);
               const actual = Number(p?.actual_paid ?? 0);
+              const needsInfo = !!p?.dob_missing || !(min > 0);
               const explicitPass = p?.status ? String(p.status).toLowerCase() === "pass" : null;
               const computedPass = min > 0 ? actual >= min : true;
               const pass = explicitPass != null ? explicitPass : computedPass;
@@ -347,7 +351,13 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
                 fmtMoney(p?.opening_balance),
                 fmtMoney(min),
                 fmtMoney(actual),
-                <StatusBadge pass={pass} />,
+                needsInfo ? (
+                  <Badge variant="flag" className="text-[10px] tracking-wide font-semibold px-2 py-0.5">
+                    NEEDS INFO
+                  </Badge>
+                ) : (
+                  <StatusBadge pass={pass} />
+                ),
               ];
             })}
           />
@@ -391,6 +401,30 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
       </Card>
 
       {/* 5. In-House Assets */}
+      {/* 4b. Bank Reconciliation */}
+      <Card title="Bank Reconciliation">
+        {bankRecon.length === 0 ? (
+          <MutedCallout>No bank statements detected — upload bank statements and re-run.</MutedCallout>
+        ) : (
+          <DataTable
+            headers={["Account", "Bank Statement Balance", "Financial Statement Balance", "Difference", "Status"]}
+            rows={bankRecon.map((b: any) => {
+              const bank = Number(b?.bank_statement_balance ?? b?.bank_balance ?? 0);
+              const fs = Number(b?.financial_statement_balance ?? b?.fs_balance ?? 0);
+              const diff = Number(b?.difference ?? bank - fs);
+              const pass = Math.abs(diff) <= 1;
+              return [
+                <span className="font-medium text-foreground">{b?.account ?? b?.account_name ?? "—"}</span>,
+                fmtMoney(bank),
+                fmtMoney(fs),
+                fmtMoney(diff),
+                <StatusBadge pass={pass} passLabel="PASS" failLabel="VARIANCE" />,
+              ];
+            })}
+          />
+        )}
+      </Card>
+
       <Card title="In-House Asset Test (SIS Act s.83)">
         {!ih ? (
           <ReRunCallout />
