@@ -338,6 +338,7 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
             rows={pensionData.map((p: any) => {
               const min = Number(p?.minimum_required ?? 0);
               const actual = Number(p?.actual_paid ?? 0);
+              const needsInfo = !!p?.dob_missing || !(min > 0);
               const explicitPass = p?.status ? String(p.status).toLowerCase() === "pass" : null;
               const computedPass = min > 0 ? actual >= min : true;
               const pass = explicitPass != null ? explicitPass : computedPass;
@@ -350,7 +351,13 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
                 fmtMoney(p?.opening_balance),
                 fmtMoney(min),
                 fmtMoney(actual),
-                <StatusBadge pass={pass} />,
+                needsInfo ? (
+                  <Badge variant="flag" className="text-[10px] tracking-wide font-semibold px-2 py-0.5">
+                    NEEDS INFO
+                  </Badge>
+                ) : (
+                  <StatusBadge pass={pass} />
+                ),
               ];
             })}
           />
