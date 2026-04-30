@@ -401,6 +401,30 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
       </Card>
 
       {/* 5. In-House Assets */}
+      {/* 4b. Bank Reconciliation */}
+      <Card title="Bank Reconciliation">
+        {bankRecon.length === 0 ? (
+          <MutedCallout>No bank statements detected — upload bank statements and re-run.</MutedCallout>
+        ) : (
+          <DataTable
+            headers={["Account", "Bank Statement Balance", "Financial Statement Balance", "Difference", "Status"]}
+            rows={bankRecon.map((b: any) => {
+              const bank = Number(b?.bank_statement_balance ?? b?.bank_balance ?? 0);
+              const fs = Number(b?.financial_statement_balance ?? b?.fs_balance ?? 0);
+              const diff = Number(b?.difference ?? bank - fs);
+              const pass = Math.abs(diff) <= 1;
+              return [
+                <span className="font-medium text-foreground">{b?.account ?? b?.account_name ?? "—"}</span>,
+                fmtMoney(bank),
+                fmtMoney(fs),
+                fmtMoney(diff),
+                <StatusBadge pass={pass} passLabel="PASS" failLabel="VARIANCE" />,
+              ];
+            })}
+          />
+        )}
+      </Card>
+
       <Card title="In-House Asset Test (SIS Act s.83)">
         {!ih ? (
           <ReRunCallout />
