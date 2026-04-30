@@ -281,7 +281,6 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
 
   // 7. System workings
   const corrections: any[] = Array.isArray(data?._corrections) ? data._corrections : [];
-  const version = data?._version ?? "—";
 
   return (
     <div className="space-y-4">
@@ -539,11 +538,7 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
       {/* 7. System Workings */}
       <Card title="System Workings" muted collapsible defaultOpen={false}>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="rounded-md border border-border p-3 bg-background">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Version</p>
-              <p className="mt-0.5 text-sm font-medium text-foreground">{String(version)}</p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="rounded-md border border-border p-3 bg-background">
               <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Completed</p>
               <p className="mt-0.5 text-sm font-medium text-foreground">{fmtDate(findingsCompletedAt)}</p>
