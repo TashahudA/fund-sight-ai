@@ -239,8 +239,8 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
   const w = data?._workings ?? {};
 
   // 1. Materiality
-  const mat = data?._materiality ?? det?.materiality ?? null;
-  const matBasis = firstNonNull(mat?.basis, mat?.benchmark);
+  const mat = data?._materiality ?? det?.materiality ?? w?.materiality ?? null;
+  const matBasis = firstNonNull(mat?.basis, mat?.benchmark, w?.materiality?.basis);
   const matBaseFigure = firstNonNull(mat?.base_figure, mat?.benchmark_value, mat?.total_assets, mat?.net_assets);
   const matPctRaw = firstNonNull(mat?.percentage, mat?.percent, mat?.rate);
   const matThreshold = firstNonNull(mat?.threshold, mat?.overall, mat?.materiality);
@@ -269,6 +269,9 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
     }
   }
   const ihPass = ih?.status ? String(ih.status).toLowerCase() === "pass" : (ihPct == null ? null : ihPct < 5);
+
+  // 5b. Bank reconciliation
+  const bankRecon: any[] = Array.isArray(w?.bank_reconciliation) ? w.bank_reconciliation : [];
 
   // 6. Evidence register
   const classifications: any[] = Array.isArray(ing?.classifications) ? ing.classifications : [];
