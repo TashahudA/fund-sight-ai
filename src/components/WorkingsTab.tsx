@@ -462,6 +462,64 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
         )}
       </Card>
 
+      {/* 5c. Asset Verification (Trial Balance Tie-Out) */}
+      <Card title="Asset Verification — Trial Balance Tie-Out">
+        {assetVerification.length === 0 ? (
+          <MutedCallout>Asset verification not available — re-run the audit to generate.</MutedCallout>
+        ) : (
+          <div className="space-y-3">
+            <DataTable
+              headers={["Asset", "Financial Statement Value", "Source Document", "Source Value", "Variance", "Status"]}
+              rows={assetVerification.map((a: any) => {
+                const fsVal = Number(a?.financial_statement_value ?? a?.fs_value ?? 0);
+                const srcVal = Number(a?.source_value ?? 0);
+                const variance = Number(a?.variance ?? fsVal - srcVal);
+                const statusRaw = String(a?.status ?? "").toUpperCase();
+                const statusKey = statusRaw === "AGREE" || statusRaw === "VARIANCE" || statusRaw === "UNCONFIRMED"
+                  ? statusRaw
+                  : (Math.abs(variance) <= 1 ? "AGREE" : "VARIANCE");
+                const variant: "pass" | "fail" | "secondary" =
+                  statusKey === "AGREE" ? "pass" : statusKey === "VARIANCE" ? "fail" : "secondary";
+                return [
+                  <span className="font-medium text-foreground">{a?.asset ?? a?.name ?? "—"}</span>,
+                  fmtMoney(fsVal),
+                  <span className="text-foreground/90">{a?.source_document ?? "—"}</span>,
+                  a?.source_value == null ? "—" : fmtMoney(srcVal),
+                  <span className={Math.abs(variance) > 0 ? "text-status-fail font-medium" : ""}>
+                    {fmtMoney(variance)}
+                  </span>,
+                  <Badge variant={variant} className="text-[10px] tracking-wide font-semibold px-2 py-0.5">
+                    {statusKey}
+                  </Badge>,
+                ];
+              })}
+            />
+            {(() => {
+              const total = assetVerification.length;
+              const agree = assetVerification.filter((a: any) => {
+                const s = String(a?.status ?? "").toUpperCase();
+                if (s) return s === "AGREE";
+                const fsVal = Number(a?.financial_statement_value ?? a?.fs_value ?? 0);
+                const srcVal = Number(a?.source_value ?? 0);
+                const variance = Number(a?.variance ?? fsVal - srcVal);
+                return Math.abs(variance) <= 1;
+              }).length;
+              const unconfirmed = assetVerification.filter(
+                (a: any) => String(a?.status ?? "").toUpperCase() === "UNCONFIRMED",
+              ).length;
+              return (
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground tabular-nums">{agree}</span> of{" "}
+                  <span className="font-medium text-foreground tabular-nums">{total}</span> assets independently verified
+                  {" | "}
+                  <span className="font-medium text-foreground tabular-nums">{unconfirmed}</span> unconfirmed
+                </p>
+              );
+            })()}
+          </div>
+        )}
+      </Card>
+
       {/* 6. Evidence Register */}
       <Card title="Evidence Register">
         {classifications.length === 0 ? (
