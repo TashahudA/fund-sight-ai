@@ -464,9 +464,6 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
 
       {/* 6. Evidence Register */}
       <Card title="Evidence Register">
-
-      {/* 5c. Asset Verification */}
-      {/* placeholder - replaced below */}
         {classifications.length === 0 ? (
           <ReRunCallout />
         ) : (
