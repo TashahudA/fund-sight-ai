@@ -273,6 +273,9 @@ export function WorkingsTab({ aiFindings, documentCount, findingsCompletedAt, on
   // 5b. Bank reconciliation
   const bankRecon: any[] = Array.isArray(w?.bank_reconciliation) ? w.bank_reconciliation : [];
 
+  // 5c. Asset verification
+  const assetVerification: any[] = Array.isArray(w?.asset_verification) ? w.asset_verification : [];
+
   // 6. Evidence register
   const classifications: any[] = Array.isArray(ing?.classifications) ? ing.classifications : [];
 
