@@ -56,7 +56,7 @@ function scrollTo(id: string) {
 /* ------------------------------------------------------------------ */
 /*  FAQ                                                                */
 /* ------------------------------------------------------------------ */
-const faqItems = [
+export const faqItems = [
   { q: "What types of SMSFs can Auditron audit?", a: "Any SMSF — accumulation, pension, or hybrid. Auditron checks compliance across all 12 SIS Act areas regardless of fund complexity." },
   { q: "How accurate is the AI analysis?", a: "Auditron cites specific dollar amounts and document references for every finding. It focuses on material compliance risks — the same issues that trigger ATO contravention reports." },
   { q: "Is Auditron a replacement for a registered auditor?", a: "No. Auditron produces a draft compliance assessment for review. The registered auditor reviews, adjusts, and signs off. This saves time, not replaces judgment." },
@@ -64,11 +64,11 @@ const faqItems = [
   { q: "Can I export audit reports?", a: "Yes. Download a formatted PDF compliance report with findings, RFIs, and draft opinion." },
 ];
 
-function FAQAccordion() {
+export function FAQAccordion({ items = faqItems }: { items?: { q: string; a: string }[] } = {}) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   return (
     <div>
-      {faqItems.map((item, i) => {
+      {items.map((item, i) => {
         const isOpen = openIndex === i;
         return (
           <div key={i} style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
