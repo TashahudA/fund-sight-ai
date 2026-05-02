@@ -851,6 +851,18 @@ export default function Landing() {
 
       {/* ==== FOOTER ==== */}
       <footer style={{ background: "#0a0a0a", borderTop: "1px solid #1a1a1a", padding: "48px 32px" }}>
+        <div className="mx-auto" style={{ maxWidth: "1100px", marginBottom: "24px" }}>
+          <p style={{
+            fontFamily: "'Open Sans', sans-serif",
+            fontSize: "13px",
+            color: "#777777",
+            lineHeight: 1.7,
+            textAlign: "center",
+            margin: 0,
+          }}>
+            Auditron is AI-powered SMSF audit software for registered auditors in Australia. Built to handle the full audit workflow including document analysis, compliance findings, RFI management, working papers and audit opinions. Auditors review the findings and sign off. That is it.
+          </p>
+        </div>
         <div className="mx-auto flex flex-col md:flex-row items-center justify-between gap-6" style={{ maxWidth: "1100px" }}>
           <div className="flex flex-col items-center md:items-start gap-1">
             <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "16px", color: "#ffffff" }}>Auditron</span>
