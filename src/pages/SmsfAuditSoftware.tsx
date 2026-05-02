@@ -1,22 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Check, Plus } from "lucide-react";
-import auSvgRaw from "@/assets/au.svg?raw";
-
-// Pre-process the uploaded Australia SVG: force fill #111111, remove stroke,
-// and set width/height for inline embedding.
-const auSvgProcessed = auSvgRaw
-  .replace(/<\?xml[^?]*\?>/g, "")
-  .replace(/<!--[\s\S]*?-->/g, "")
-  .replace(/\sfill="[^"]*"/gi, "")
-  .replace(/\sstroke="[^"]*"/gi, "")
-  .replace(/\sstroke-width="[^"]*"/gi, "")
-  .replace(/\swidth="[^"]*"/i, "")
-  .replace(/\sheight="[^"]*"/i, "")
-  .replace(/<svg\b/i, '<svg width="420" height="auto" style="display:block;fill:#111111;stroke:none;"');
+import { FAQAccordion } from "@/pages/Landing";
 
 /* ------------------------------------------------------------------ */
-/*  Intersection Observer hook — fires once                            */
+/*  Local copies of helpers and data (kept identical to Landing.tsx)   */
 /* ------------------------------------------------------------------ */
 function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -46,51 +34,10 @@ function RevealSection({ children, className = "", style = {} }: { children: Rea
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Smooth scroll                                                      */
-/* ------------------------------------------------------------------ */
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 }
 
-/* ------------------------------------------------------------------ */
-/*  FAQ                                                                */
-/* ------------------------------------------------------------------ */
-export const faqItems = [
-  { q: "What types of SMSFs can Auditron audit?", a: "Any SMSF — accumulation, pension, or hybrid. Auditron checks compliance across all 12 SIS Act areas regardless of fund complexity." },
-  { q: "How accurate is the AI analysis?", a: "Auditron cites specific dollar amounts and document references for every finding. It focuses on material compliance risks — the same issues that trigger ATO contravention reports." },
-  { q: "Is Auditron a replacement for a registered auditor?", a: "No. Auditron produces a draft compliance assessment for review. The registered auditor reviews, adjusts, and signs off. This saves time, not replaces judgment." },
-  { q: "Is my client data secure?", a: "All data encrypted in transit and at rest. Documents stored in Australia. Each auditor's data is completely isolated." },
-  { q: "Can I export audit reports?", a: "Yes. Download a formatted PDF compliance report with findings, RFIs, and draft opinion." },
-];
-
-export function FAQAccordion({ items = faqItems }: { items?: { q: string; a: string }[] } = {}) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-  return (
-    <div>
-      {items.map((item, i) => {
-        const isOpen = openIndex === i;
-        return (
-          <div key={i} style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
-            <button onClick={() => setOpenIndex(isOpen ? null : i)} className="w-full flex items-center justify-between py-6 text-left">
-              <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: "15px", color: "#111111", letterSpacing: "-0.01em" }}>{item.q}</span>
-              <div className="ml-4 shrink-0" style={{ transition: "transform 0.3s ease", transform: isOpen ? "rotate(45deg)" : "rotate(0deg)", color: "#999999" }}>
-                <Plus className="h-4 w-4" />
-              </div>
-            </button>
-            <div style={{ maxHeight: isOpen ? "200px" : "0px", opacity: isOpen ? 1 : 0, overflow: "hidden", transition: "max-height 0.4s ease, opacity 0.4s ease" }}>
-              <p className="pb-6" style={{ fontSize: "15px", color: "#666666", lineHeight: 1.8 }}>{item.a}</p>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Data                                                               */
-/* ------------------------------------------------------------------ */
 const howItWorksTabs = [
   { num: "01", tab: "Upload", title: "Upload the fund pack", desc: "Financial statements, bank statements, investment reports, trustee minutes. Every document type. Every format. Auditron handles it all.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.26.20%20pm.png" },
   { num: "02", tab: "Analysis", title: "Every SIS Act area checked automatically", desc: "Contribution caps, pension minimums, in-house assets, related party transactions. Every finding referenced to its exact source document. Nothing missed. Nothing assumed.", img: "https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Screenshot%202026-03-21%20at%2012.27.20%20pm.png" },
@@ -121,16 +68,76 @@ const navLinks = [
   { label: "FAQ", id: "faq" },
 ];
 
-const navExternalLinks = [
-  { label: "SMSF Audit Software", to: "/smsf-audit-software" },
+const pageFaqItems = [
+  { q: "What does SMSF audit software actually do?", a: "SMSF audit software helps registered auditors complete the audit of self managed superannuation funds. It handles document upload, organisation, compliance checking, workpaper preparation, RFI management and reporting. Auditron goes further than traditional software by using AI to read every document, identify compliance issues, raise RFIs, generate working papers and produce the audit opinion automatically. The auditor reviews the output and signs off." },
+  { q: "Is Auditron a replacement for a registered auditor?", a: "No. Auditron is software used by registered SMSF auditors. It produces the audit findings, RFIs, working papers and opinion, but the registered auditor reviews everything and provides the final sign off. Professional judgement stays with the auditor where it belongs." },
+  { q: "How is Auditron different from other SMSF audit tools?", a: "Most SMSF audit tools are workflow platforms that organise paperwork. Auditron is built on AI from the ground up. It actually reads every document, reconciles figures across financials, bank statements and investment reports, identifies compliance issues with reference to the SIS Act and ATO requirements, and produces a complete audit file. Other tools help you do the audit. Auditron does the audit." },
+  { q: "What fund types does Auditron handle?", a: "Auditron handles all SMSF fund types including accumulation funds, pension funds, funds with Limited Recourse Borrowing Arrangements, related party transactions, in house assets, unlisted investments and complex structures with corporate trustees." },
+  { q: "Is audit data stored in Australia?", a: "Yes. All documents, audit data and findings are hosted on Australian servers. Nothing crosses borders. Auditron uses AES-256 encryption in transit and at rest. Built and supported by an Australian team." },
 ];
 
+const PAGE_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "SMSF Audit Software",
+  "url": "https://auditron.com.au/smsf-audit-software",
+  "description": "AI-powered SMSF audit software for registered auditors in Australia. Reads every document, raises RFIs, generates working papers and produces the audit opinion automatically.",
+  "about": {
+    "@type": "SoftwareApplication",
+    "name": "Auditron",
+    "applicationCategory": "BusinessApplication",
+    "applicationSubCategory": "SMSF Audit Software",
+  },
+  "mainEntity": {
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What does SMSF audit software actually do?", "acceptedAnswer": { "@type": "Answer", "text": "SMSF audit software helps registered auditors complete the audit of self managed superannuation funds. Auditron uses AI to read every document, identify compliance issues, raise RFIs, generate working papers and produce the audit opinion automatically." } },
+      { "@type": "Question", "name": "Is Auditron a replacement for a registered auditor?", "acceptedAnswer": { "@type": "Answer", "text": "No. Auditron is software used by registered SMSF auditors. The auditor reviews all findings and provides the final sign off." } },
+      { "@type": "Question", "name": "How is Auditron different from other SMSF audit tools?", "acceptedAnswer": { "@type": "Answer", "text": "Auditron is built on AI from the ground up. It actually reads documents and produces the audit findings, RFIs, working papers and opinion. Other tools are workflow platforms that organise paperwork." } },
+      { "@type": "Question", "name": "What fund types does Auditron handle?", "acceptedAnswer": { "@type": "Answer", "text": "Auditron handles all SMSF fund types including accumulation funds, pension funds, funds with LRBAs, related party transactions, in house assets and complex structures." } },
+      { "@type": "Question", "name": "Is audit data stored in Australia?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. All documents and audit data are hosted on Australian servers. Auditron uses AES-256 encryption in transit and at rest." } },
+    ],
+  },
+};
+
 /* ------------------------------------------------------------------ */
-/*  Main Landing Page                                                  */
+/*  Page-level head management (title, meta description, JSON-LD)      */
 /* ------------------------------------------------------------------ */
-export default function Landing() {
+function usePageHead() {
+  useEffect(() => {
+    const prevTitle = document.title;
+    document.title = "SMSF Audit Software — AI-Powered SMSF Auditing | Auditron";
+
+    const descEl = document.querySelector('meta[name="description"]');
+    const prevDesc = descEl?.getAttribute("content") ?? null;
+    if (descEl) {
+      descEl.setAttribute(
+        "content",
+        "Auditron is AI-powered SMSF audit software for registered auditors. Reads every document, raises RFIs, generates working papers and produces the audit opinion automatically. From $29 per audit."
+      );
+    }
+
+    const ldScript = document.createElement("script");
+    ldScript.type = "application/ld+json";
+    ldScript.setAttribute("data-page", "smsf-audit-software");
+    ldScript.text = JSON.stringify(PAGE_JSONLD);
+    document.head.appendChild(ldScript);
+
+    return () => {
+      document.title = prevTitle;
+      if (descEl && prevDesc !== null) descEl.setAttribute("content", prevDesc);
+      ldScript.remove();
+    };
+  }, []);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
+export default function SmsfAuditSoftware() {
+  usePageHead();
+
   const [scrolled, setScrolled] = useState(false);
-  const [videoRotate, setVideoRotate] = useState(6);
   const [activeTab, setActiveTab] = useState(0);
   const [tabProgress, setTabProgress] = useState(0);
   const [contentVisible, setContentVisible] = useState(true);
@@ -141,18 +148,12 @@ export default function Landing() {
   const tabTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Scroll handler: nav pill + video tilt
   useEffect(() => {
-    const handler = () => {
-      setScrolled(window.scrollY > 80);
-      const t = Math.min(window.scrollY / 400, 1);
-      setVideoRotate(6 * (1 - t));
-    };
+    const handler = () => setScrolled(window.scrollY > 80);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
-  // Tab auto-advance timer
   const startTabTimer = useCallback((fromTab: number) => {
     if (tabTimerRef.current) clearTimeout(tabTimerRef.current);
     if (progressRef.current) clearInterval(progressRef.current);
@@ -161,7 +162,7 @@ export default function Landing() {
     const progressInterval = setInterval(() => {
       setTabProgress(prev => {
         if (prev >= 100) return 100;
-        return prev + (100 / (4000 / 50)); // 50ms intervals over 4s
+        return prev + (100 / (4000 / 50));
       });
     }, 50);
     progressRef.current = progressInterval;
@@ -240,7 +241,6 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen landing-root" style={{ background: "#ffffff", overflow: "hidden" }}>
-      {/* Manrope font — scoped to landing page only */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
         .landing-root, .landing-root * {
@@ -248,7 +248,7 @@ export default function Landing() {
         }
       `}</style>
 
-      {/* ==== NAVBAR — FLOATING PILL ==== */}
+      {/* ==== NAVBAR ==== */}
       <nav
         className="fixed top-0 left-0 right-0 z-50 flex justify-center"
         style={{
@@ -271,13 +271,12 @@ export default function Landing() {
           }}
         >
           <div className="flex h-14 items-center justify-between">
-            <a
-              href="#"
-              onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+            <Link
+              to="/"
               style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "18px", color: "#111111", textDecoration: "none", cursor: "pointer", letterSpacing: "-0.02em" }}
             >
               Auditron
-            </a>
+            </Link>
 
             <div className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => (
@@ -289,16 +288,6 @@ export default function Landing() {
                 >
                   {link.label}
                 </button>
-              ))}
-              {navExternalLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className="nav-link-hover"
-                  style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Open Sans', sans-serif", fontSize: "13px", fontWeight: 500, color: "#888888", padding: "6px 12px", position: "relative", textDecoration: "none" }}
-                >
-                  {link.label}
-                </Link>
               ))}
             </div>
 
@@ -324,28 +313,28 @@ export default function Landing() {
       </nav>
 
       {/* ==== HERO ==== */}
-      <section className="relative z-10" style={{ minHeight: "100vh", paddingTop: "120px", background: "#ffffff" }}>
-        <div className="relative z-10 flex flex-col items-center justify-center px-6" style={{ minHeight: "calc(60vh - 100px)" }}>
-          <div className="text-center" style={{ maxWidth: "800px" }}>
-            <h1 className="ai-powered-shimmer" style={{
+      <section className="relative z-10" style={{ minHeight: "60vh", paddingTop: "160px", paddingBottom: "80px", background: "#ffffff" }}>
+        <div className="relative z-10 flex flex-col items-center justify-center px-6">
+          <div className="text-center" style={{ maxWidth: "900px" }}>
+            <p className="ai-powered-shimmer" style={{
               fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "14px",
               letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: "20px",
               color: "#999999", display: "inline-block",
             }}>
-              AI-POWERED SMSF AUDIT SOFTWARE
+              SMSF AUDIT SOFTWARE
+            </p>
+
+            <h1 style={{ lineHeight: 1.05, marginBottom: "20px" }}>
+              <span className="hidden md:block" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "56px", color: "#111111", letterSpacing: "-0.03em" }}>
+                The Only SMSF Audit Software<br />Built on AI From the Ground Up.
+              </span>
+              <span className="block md:hidden" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "34px", color: "#111111", letterSpacing: "-0.03em" }}>
+                The Only SMSF Audit Software Built on AI From the Ground Up.
+              </span>
             </h1>
 
-            <h2 style={{ lineHeight: 1.05, marginBottom: "20px" }}>
-              <span className="hidden md:block" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "64px", color: "#111111", letterSpacing: "-0.03em" }}>
-                95% of your audit done.<br />In under 10 minutes.
-              </span>
-              <span className="block md:hidden" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "38px", color: "#111111", letterSpacing: "-0.03em" }}>
-                95% of your audit done.<br />In under 10 minutes.
-              </span>
-            </h2>
-
-            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#6B6B6B", maxWidth: "640px", margin: "0 auto", lineHeight: 1.7 }}>
-              Auditron runs the full audit. You review the findings and sign off.
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#6B6B6B", maxWidth: "720px", margin: "0 auto", lineHeight: 1.7 }}>
+              Every document read. Every figure reconciled. RFIs raised. Working papers generated. Audit opinion produced. From $29 per audit.
             </p>
 
             <div style={{ marginTop: "36px", display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
@@ -374,61 +363,25 @@ export default function Landing() {
                 See How It Works
               </button>
             </div>
-
-            <p style={{
-              marginTop: "32px",
-              fontFamily: "'Open Sans', sans-serif",
-              fontSize: "13px",
-              color: "#999999",
-              textAlign: "center",
-              lineHeight: 1.6,
-            }}>
-              Trusted by registered SMSF auditors across Australia · 1000+ audits completed · From $29 per audit · Results in under 10 minutes
-            </p>
-          </div>
-        </div>
-
-        {/* VIDEO MOCKUP */}
-        <div className="relative z-10 px-6" style={{ marginTop: "20px", paddingBottom: "0" }}>
-          <div className="mx-auto" style={{ maxWidth: "1000px" }}>
-            <div style={{
-              transform: `perspective(1200px) rotateX(${videoRotate}deg)`,
-              transformOrigin: "top center",
-              transition: "box-shadow 0.4s ease",
-              boxShadow: "0 40px 120px rgba(0,0,0,0.16), 0 8px 32px rgba(0,0,0,0.08)",
-              borderRadius: "12px",
-              overflow: "hidden",
-            }}>
-              <div style={{
-                background: "#1a1a1a", height: "38px", borderRadius: "12px 12px 0 0",
-                padding: "0 16px", display: "flex", alignItems: "center", position: "relative",
-              }}>
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#ff5f57" }} />
-                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#febc2e" }} />
-                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#28c840" }} />
-                </div>
-                <div style={{
-                  position: "absolute", left: "50%", transform: "translateX(-50%)",
-                  background: "#2d2d2d", borderRadius: "6px", width: "240px", height: "22px",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <span style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "12px", color: "#888888" }}>auditron.com.au</span>
-                </div>
-              </div>
-              <div style={{ overflow: "hidden", borderRadius: "0 0 12px 12px" }}>
-                <video
-                  autoPlay muted loop playsInline controls={false}
-                  style={{ display: "block", width: "100%" }}
-                  src="https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Untitled%20design.mp4"
-                />
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* ==== HOW IT WORKS — TAB SWITCHER ==== */}
+      {/* ==== WHAT IS SMSF AUDIT SOFTWARE ==== */}
+      <section style={{ background: "#ffffff", padding: "80px 24px 40px" }}>
+        <div className="mx-auto" style={{ maxWidth: "780px" }}>
+          <RevealSection className="text-center">
+            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em", marginBottom: "32px" }}>
+              What is SMSF Audit Software
+            </h2>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "17px", color: "#666666", lineHeight: 1.8, textAlign: "left" }}>
+              SMSF audit software is a tool used by registered SMSF auditors to manage and complete the audit of self managed superannuation funds. It handles document collection, compliance checking, workpaper preparation and reporting. Traditionally this meant workflow tools that organised paperwork but still required auditors to do the analysis manually. Auditron is different. It uses AI to read every document, identify every compliance issue and produce the full audit file automatically. The registered auditor reviews the findings and signs off. That is it.
+            </p>
+          </RevealSection>
+        </div>
+      </section>
+
+      {/* ==== HOW IT WORKS ==== */}
       <section id="how-it-works" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "1100px" }}>
           <RevealSection className="text-center" style={{ marginBottom: "48px" }}>
@@ -447,7 +400,6 @@ export default function Landing() {
               padding: "64px",
               boxShadow: "0 2px 40px rgba(0,0,0,0.06)",
             }}>
-              {/* Tab buttons */}
               <div style={{ display: "flex", justifyContent: "center", gap: "8px", flexWrap: "wrap" }}>
                 {howItWorksTabs.map((step, i) => (
                   <button
@@ -471,7 +423,6 @@ export default function Landing() {
                 ))}
               </div>
 
-              {/* Progress bar */}
               <div style={{ maxWidth: "200px", margin: "16px auto 0", height: "2px", background: "#dddddd", borderRadius: "1px", overflow: "hidden" }}>
                 <div style={{
                   height: "100%",
@@ -481,7 +432,6 @@ export default function Landing() {
                 }} />
               </div>
 
-              {/* Content panel */}
               <div
                 style={{
                   marginTop: "48px",
@@ -493,7 +443,6 @@ export default function Landing() {
                   flexWrap: "wrap",
                 }}
               >
-                {/* Left — text */}
                 <div style={{ flex: "0 0 40%", minWidth: "260px" }}>
                   <h3 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "32px", color: "#111111", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
                     {currentStep.title}
@@ -502,7 +451,6 @@ export default function Landing() {
                     {currentStep.desc}
                   </p>
                 </div>
-                {/* Right — image */}
                 <div style={{
                   flex: 1,
                   minWidth: "260px",
@@ -545,9 +493,6 @@ export default function Landing() {
             <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
               Built for how auditors actually work.
             </h2>
-            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "15px", color: "#666666", marginTop: "16px", lineHeight: 1.7 }}>
-              Learn more about Auditron's <Link to="/smsf-audit-software" style={{ color: "#111111", textDecoration: "underline", textUnderlineOffset: "3px" }}>SMSF audit software</Link>.
-            </p>
           </RevealSection>
 
           {features.map((feat, i) => {
@@ -558,7 +503,6 @@ export default function Landing() {
                   className={`flex flex-col ${imgLeft ? "md:flex-row-reverse" : "md:flex-row"} items-center`}
                   style={{ gap: "48px", paddingTop: i === 0 ? "0" : "100px" }}
                 >
-                  {/* Text column — 40% */}
                   <div style={{ flex: "0 0 40%", minWidth: "240px" }}>
                     <span style={{
                       fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "12px",
@@ -574,7 +518,6 @@ export default function Landing() {
                       {feat.desc}
                     </p>
                   </div>
-                  {/* Image column — 60% */}
                   <div style={{ flex: "0 0 60%", minWidth: "280px", width: "100%" }}>
                     <div className="feature-img-card" style={{
                       borderRadius: "16px", overflow: "hidden",
@@ -591,87 +534,16 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ==== DATA SOVEREIGNTY ==== */}
-      <section id="sovereignty" style={{ background: "#ffffff", padding: "120px 24px" }}>
-        <div className="mx-auto" style={{ maxWidth: "1100px" }}>
-          <RevealSection>
-            <div style={{
-              background: "#f5f5f5",
-              borderRadius: "24px",
-              padding: "64px",
-              boxShadow: "0 2px 40px rgba(0,0,0,0.06)",
-            }}>
-              <div className="text-center" style={{ marginBottom: "20px" }}>
-                <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "36px", color: "#111111", letterSpacing: "-0.02em", margin: 0 }}>
-                  Your data never leaves Australia.
-                </h2>
-              </div>
-              <div className="text-center" style={{ marginBottom: "60px" }}>
-                <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#666666", margin: 0 }}>
-                  Built here. Stored here. Owned by Australians.
-                </p>
-              </div>
-
-              <div className="flex flex-col md:flex-row items-center" style={{ gap: "64px" }}>
-              {/* Left: Australia SVG */}
-              <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "relative", width: "420px", maxWidth: "100%" }}>
-                  <div
-                    aria-label="Australia"
-                    dangerouslySetInnerHTML={{ __html: auSvgProcessed }}
-                  />
-                  {/* Sydney pin overlay */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: "83%",
-                      top: "57%",
-                      width: 0,
-                      height: 0,
-                      pointerEvents: "none",
-                    }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="60"
-                      height="60"
-                      viewBox="-30 -30 60 60"
-                      style={{ position: "absolute", left: "-30px", top: "-30px", overflow: "visible" }}
-                    >
-                      <circle cx="0" cy="0" r="22" fill="none" stroke="#FFFFFF" strokeWidth="1" opacity="0.3">
-                        <animate attributeName="r" values="22;48.4;22" dur="2s" begin="0.5s" repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.3;0;0.3" dur="2s" begin="0.5s" repeatCount="indefinite" />
-                      </circle>
-                      <circle cx="0" cy="0" r="14" fill="none" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.6">
-                        <animate attributeName="r" values="14;25.2;14" dur="2s" repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite" />
-                      </circle>
-                      <circle cx="0" cy="0" r="6" fill="#FFFFFF" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right: Trust points */}
-              <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", gap: "32px", width: "100%" }}>
-                {[
-                  { h: "Stored in Australia.", b: "Every document, every audit, every finding. Hosted on Australian servers. Nothing crosses borders." },
-                  { h: "Encrypted end to end.", b: "AES-256 encryption in transit and at rest. Bank grade security on every file." },
-                  { h: "Proudly Australian.", b: "Built by an Australian team. Supported by an Australian team. Every line of code written onshore." },
-                  { h: "Your data, your rules.", b: "Export everything in one click. Delete everything in one click. No lock in. No exit fees." },
-                ].map((p, i) => (
-                  <div key={i}>
-                    <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "16px", color: "#111111", margin: 0, marginBottom: "6px" }}>
-                      {p.h}
-                    </h3>
-                    <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "14px", color: "#666666", lineHeight: 1.6, margin: 0 }}>
-                      {p.b}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              </div>
-            </div>
+      {/* ==== WHO IT IS FOR ==== */}
+      <section style={{ background: "#ffffff", padding: "120px 24px" }}>
+        <div className="mx-auto" style={{ maxWidth: "780px" }}>
+          <RevealSection className="text-center">
+            <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em", marginBottom: "32px" }}>
+              Built for Registered SMSF Auditors
+            </h2>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "17px", color: "#666666", lineHeight: 1.8, textAlign: "left" }}>
+              Auditron is used by registered SMSF auditors across Australia. Solo practitioners running under 100 funds a year. Mid size audit firms processing 500 or more. Any auditor spending hours on document review, manual reconciliation and RFI writing can hand that work to Auditron and focus on review and sign off.
+            </p>
           </RevealSection>
         </div>
       </section>
@@ -689,7 +561,6 @@ export default function Landing() {
           </RevealSection>
           <RevealSection>
             <div style={{ display: "flex", gap: "24px", alignItems: "stretch", justifyContent: "center", flexWrap: "wrap" }}>
-              {/* Pay as you go */}
               <div style={{
                 flex: "1 1 0", minWidth: "300px",
                 background: "#ffffff", border: "1px solid #E0E0E0", borderRadius: "20px",
@@ -723,7 +594,6 @@ export default function Landing() {
                 </button>
               </div>
 
-              {/* Volume plans */}
               <div style={{
                 flex: "1 1 0", minWidth: "300px",
                 background: "#111111", border: "none", borderRadius: "20px",
@@ -790,12 +660,12 @@ export default function Landing() {
             </h2>
           </RevealSection>
           <RevealSection>
-            <FAQAccordion />
+            <FAQAccordion items={pageFaqItems} />
           </RevealSection>
         </div>
       </section>
 
-      {/* ==== CONTACT / BOOK A DEMO ==== */}
+      {/* ==== CONTACT ==== */}
       <section id="contact" style={{ background: "#ffffff", padding: "120px 24px" }}>
         <div className="mx-auto" style={{ maxWidth: "520px" }}>
           <RevealSection className="text-center" style={{ marginBottom: "48px" }}>
@@ -907,18 +777,10 @@ export default function Landing() {
               Privacy Policy
             </Link>
           </div>
-          
         </div>
       </footer>
 
-      {/* ---- CSS ---- */}
       <style>{`
-        @keyframes auditingGlow {
-          0%, 100% { text-shadow: 0 0 0px rgba(0,0,0,0); }
-          50% { text-shadow: 0 0 60px rgba(0,0,0,0.07); }
-        }
-        .auditing-glow { animation: auditingGlow 4s ease-in-out infinite; }
-
         @keyframes shimmerSweep {
           0% { background-position: -200% center; }
           100% { background-position: 200% center; }
@@ -946,7 +808,6 @@ export default function Landing() {
         .btn-hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
 
         .feature-img-card:hover { transform: translateY(-4px); box-shadow: 0 32px 80px rgba(0,0,0,0.14); }
-
 
         .contact-input:focus {
           border-color: #111111 !important;
