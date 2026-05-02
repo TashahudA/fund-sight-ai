@@ -313,22 +313,22 @@ export default function Landing() {
       <section className="relative z-10" style={{ minHeight: "100vh", paddingTop: "120px", background: "#ffffff" }}>
         <div className="relative z-10 flex flex-col items-center justify-center px-6" style={{ minHeight: "calc(60vh - 100px)" }}>
           <div className="text-center" style={{ maxWidth: "800px" }}>
-            <p className="ai-powered-shimmer" style={{
+            <h1 className="ai-powered-shimmer" style={{
               fontFamily: "'Open Sans', sans-serif", fontWeight: 500, fontSize: "14px",
               letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: "20px",
               color: "#999999", display: "inline-block",
             }}>
-              AI-POWERED SMSF AUDITS
-            </p>
+              AI-POWERED SMSF AUDIT SOFTWARE
+            </h1>
 
-            <h1 style={{ lineHeight: 1.05, marginBottom: "20px" }}>
+            <h2 style={{ lineHeight: 1.05, marginBottom: "20px" }}>
               <span className="hidden md:block" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "64px", color: "#111111", letterSpacing: "-0.03em" }}>
                 95% of your audit done.<br />In under 10 minutes.
               </span>
               <span className="block md:hidden" style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "38px", color: "#111111", letterSpacing: "-0.03em" }}>
                 95% of your audit done.<br />In under 10 minutes.
               </span>
-            </h1>
+            </h2>
 
             <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "16px", color: "#6B6B6B", maxWidth: "640px", margin: "0 auto", lineHeight: 1.7 }}>
               Auditron runs the full audit. You review the findings and sign off.
@@ -360,6 +360,17 @@ export default function Landing() {
                 See How It Works
               </button>
             </div>
+
+            <p style={{
+              marginTop: "32px",
+              fontFamily: "'Open Sans', sans-serif",
+              fontSize: "13px",
+              color: "#999999",
+              textAlign: "center",
+              lineHeight: 1.6,
+            }}>
+              Trusted by registered SMSF auditors across Australia · 1000+ audits completed · From $29 per audit · Results in under 10 minutes
+            </p>
           </div>
         </div>
 
