@@ -290,6 +290,16 @@ export default function Landing() {
                   {link.label}
                 </button>
               ))}
+              {navExternalLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="nav-link-hover"
+                  style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Open Sans', sans-serif", fontSize: "13px", fontWeight: 500, color: "#888888", padding: "6px 12px", position: "relative", textDecoration: "none" }}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
 
             <div className="flex items-center gap-3">
