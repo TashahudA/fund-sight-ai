@@ -416,7 +416,7 @@ export default function SmsfAuditSoftware() {
         <div className="mx-auto" style={{ maxWidth: "780px" }}>
           <RevealSection className="text-center">
             <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em", marginBottom: "32px" }}>
-              What is SMSF Audit Software
+              What is SMSF Audit Software?
             </h2>
             <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "17px", color: "#666666", lineHeight: 1.8, textAlign: "left" }}>
               SMSF audit software is a tool used by registered SMSF auditors to manage and complete the audit of self managed superannuation funds. It handles document collection, compliance checking, workpaper preparation and reporting. Traditionally this meant workflow tools that organised paperwork but still required auditors to do the analysis manually. Auditron is different. It uses AI to read every document, identify every compliance issue and produce the full audit file automatically. The registered auditor reviews the findings and signs off. That is it.
