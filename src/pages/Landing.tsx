@@ -858,6 +858,22 @@ export default function Landing() {
 
       {/* ==== FOOTER ==== */}
       <footer style={{ background: "#0a0a0a", borderTop: "1px solid #1a1a1a", padding: "48px 32px" }}>
+        <div className="mx-auto" style={{ maxWidth: "1100px", marginBottom: "20px", textAlign: "center" }}>
+          <Link
+            to="/smsf-audit-software"
+            style={{
+              fontFamily: "'Open Sans', sans-serif",
+              fontSize: "13px",
+              color: "#888888",
+              textDecoration: "underline",
+              textUnderlineOffset: "3px",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#bbbbbb"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "#888888"; }}
+          >
+            Learn more about Auditron's SMSF audit software
+          </Link>
+        </div>
         <div className="mx-auto" style={{ maxWidth: "1100px", marginBottom: "24px" }}>
           <p style={{
             fontFamily: "'Open Sans', sans-serif",
