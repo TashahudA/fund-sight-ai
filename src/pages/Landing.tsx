@@ -545,6 +545,9 @@ export default function Landing() {
             <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
               Built for how auditors actually work.
             </h2>
+            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "15px", color: "#666666", marginTop: "16px", lineHeight: 1.7 }}>
+              Learn more about Auditron's <Link to="/smsf-audit-software" style={{ color: "#111111", textDecoration: "underline", textUnderlineOffset: "3px" }}>SMSF audit software</Link>.
+            </p>
           </RevealSection>
 
           {features.map((feat, i) => {
