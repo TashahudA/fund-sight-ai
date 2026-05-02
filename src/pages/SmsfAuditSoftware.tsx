@@ -138,6 +138,7 @@ export default function SmsfAuditSoftware() {
   usePageHead();
 
   const [scrolled, setScrolled] = useState(false);
+  const [videoRotate, setVideoRotate] = useState(6);
   const [activeTab, setActiveTab] = useState(0);
   const [tabProgress, setTabProgress] = useState(0);
   const [contentVisible, setContentVisible] = useState(true);
@@ -149,7 +150,11 @@ export default function SmsfAuditSoftware() {
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 80);
+    const handler = () => {
+      setScrolled(window.scrollY > 80);
+      const t = Math.min(window.scrollY / 400, 1);
+      setVideoRotate(6 * (1 - t));
+    };
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
@@ -362,6 +367,45 @@ export default function SmsfAuditSoftware() {
               >
                 See How It Works
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* VIDEO MOCKUP */}
+        <div className="relative z-10 px-6" style={{ marginTop: "20px", paddingBottom: "0" }}>
+          <div className="mx-auto" style={{ maxWidth: "1000px" }}>
+            <div style={{
+              transform: `perspective(1200px) rotateX(${videoRotate}deg)`,
+              transformOrigin: "top center",
+              transition: "box-shadow 0.4s ease",
+              boxShadow: "0 40px 120px rgba(0,0,0,0.16), 0 8px 32px rgba(0,0,0,0.08)",
+              borderRadius: "12px",
+              overflow: "hidden",
+            }}>
+              <div style={{
+                background: "#1a1a1a", height: "38px", borderRadius: "12px 12px 0 0",
+                padding: "0 16px", display: "flex", alignItems: "center", position: "relative",
+              }}>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#ff5f57" }} />
+                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#febc2e" }} />
+                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#28c840" }} />
+                </div>
+                <div style={{
+                  position: "absolute", left: "50%", transform: "translateX(-50%)",
+                  background: "#2d2d2d", borderRadius: "6px", width: "240px", height: "22px",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <span style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "12px", color: "#888888" }}>auditron.com.au</span>
+                </div>
+              </div>
+              <div style={{ overflow: "hidden", borderRadius: "0 0 12px 12px" }}>
+                <video
+                  autoPlay muted loop playsInline controls={false}
+                  style={{ display: "block", width: "100%" }}
+                  src="https://puxbjitnqpsxixxilxsu.supabase.co/storage/v1/object/public/public-assets/Untitled%20design.mp4"
+                />
+              </div>
             </div>
           </div>
         </div>
