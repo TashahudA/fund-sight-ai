@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { TopNav } from "@/components/TopNav";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import Landing from "@/pages/Landing";
 import SmsfAuditSoftware from "@/pages/SmsfAuditSoftware";
 import Terms from "@/pages/Terms";
@@ -25,6 +26,8 @@ const queryClient = new QueryClient();
 
 function AppRoutes() {
   return (
+    <>
+      <ScrollToTop />
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/smsf-audit-software" element={<SmsfAuditSoftware />} />
@@ -88,6 +91,7 @@ function AppRoutes() {
       />
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </>
   );
 }
 
