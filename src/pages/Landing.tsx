@@ -690,7 +690,7 @@ export default function Landing() {
                   PAY AS YOU GO
                 </p>
                 <div>
-                  <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "72px", color: "#111111", letterSpacing: "-0.03em", lineHeight: 1 }}>$49</span>
+                  <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "72px", color: "#111111", letterSpacing: "-0.03em", lineHeight: 1 }}>$29</span>
                   <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "15px", color: "#666666", marginTop: "8px" }}>per audit</p>
                   <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "13px", color: "#999999", marginTop: "4px" }}>No commitment. Cancel any time.</p>
                 </div>
@@ -703,14 +703,24 @@ export default function Landing() {
                     </li>
                   ))}
                 </ul>
-                <button
-                  style={{ width: "100%", marginTop: "32px", padding: "14px", borderRadius: "10px", border: "1px solid #111111", background: "#ffffff", color: "#111111", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "#f5f5f5"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "#ffffff"; }}
-                  onClick={() => scrollTo("contact")}
-                >
-                  Book a Demo
-                </button>
+                <div style={{ display: "flex", gap: "12px", marginTop: "32px", flexWrap: "wrap" }}>
+                  <Link
+                    to="/signup"
+                    style={{ flex: "1 1 0", minWidth: "120px", padding: "14px", borderRadius: "10px", border: "none", background: "#111111", color: "#ffffff", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease", textDecoration: "none", textAlign: "center", display: "inline-block" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#000000"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "#111111"; }}
+                  >
+                    Sign Up
+                  </Link>
+                  <button
+                    style={{ flex: "1 1 0", minWidth: "120px", padding: "14px", borderRadius: "10px", border: "1px solid #111111", background: "#ffffff", color: "#111111", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#f5f5f5"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "#ffffff"; }}
+                    onClick={() => scrollTo("contact")}
+                  >
+                    Book a Demo
+                  </button>
+                </div>
               </div>
 
               {/* Volume plans */}
@@ -727,41 +737,34 @@ export default function Landing() {
                   VOLUME PLANS
                 </p>
                 <div>
-                  <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "72px", color: "#FFFFFF", letterSpacing: "-0.03em", lineHeight: 1 }}>From $29</span>
+                  <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "72px", color: "#FFFFFF", letterSpacing: "-0.03em", lineHeight: 1 }}>$23.20</span>
                   <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "15px", color: "#999999", marginTop: "8px" }}>per audit</p>
-                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "13px", color: "#666666", marginTop: "4px" }}>Annual commitment. Billed upfront.</p>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "13px", color: "#666666", marginTop: "4px" }}>20% off when you buy 50 or more audits upfront.</p>
                 </div>
                 <div style={{ height: "1px", background: "rgba(255,255,255,0.2)", margin: "32px 0" }} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: "16px", padding: "14px 0", fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "12px", color: "#666666", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-                    <span style={{ textAlign: "left" }}>Commitment</span>
-                    <span style={{ textAlign: "center" }}>Per audit</span>
-                    <span style={{ textAlign: "right" }}>Saving</span>
-                  </div>
-                  {[
-                    ["50 audits per year", "$44", "10% off"],
-                    ["100 audits per year", "$39", "20% off"],
-                    ["250 audits per year", "$35", "29% off"],
-                    ["500+ audits per year", "$29", "41% off"],
-                  ].map(([commit, price, save], i, arr) => (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: "16px", padding: "14px 0", fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "16px", color: "#FFFFFF", borderBottom: i < arr.length - 1 ? "1px solid rgba(255,255,255,0.1)" : "none" }}>
-                      <span style={{ textAlign: "left" }}>{commit}</span>
-                      <span style={{ textAlign: "center" }}>{price}</span>
-                      <span style={{ textAlign: "right", color: "#999999" }}>{save}</span>
-                    </div>
-                  ))}
-                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "12px", color: "#666666", textAlign: "center", marginTop: "20px" }}>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, fontSize: "15px", color: "#cccccc", lineHeight: 1.7, margin: 0 }}>
                     All plans include the full product. No feature limits.
                   </p>
                 </div>
-                <button
-                  style={{ width: "100%", marginTop: "32px", padding: "14px", borderRadius: "10px", border: "none", background: "#FFFFFF", color: "#111111", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "#f0f0f0"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "#FFFFFF"; }}
-                  onClick={() => scrollTo("contact")}
-                >
-                  Book a Demo
-                </button>
+                <div style={{ display: "flex", gap: "12px", marginTop: "32px", flexWrap: "wrap" }}>
+                  <Link
+                    to="/signup"
+                    style={{ flex: "1 1 0", minWidth: "120px", padding: "14px", borderRadius: "10px", border: "none", background: "#FFFFFF", color: "#111111", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease", textDecoration: "none", textAlign: "center", display: "inline-block" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#f0f0f0"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "#FFFFFF"; }}
+                  >
+                    Sign Up
+                  </Link>
+                  <button
+                    style={{ flex: "1 1 0", minWidth: "120px", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.3)", background: "transparent", color: "#FFFFFF", fontFamily: "'Manrope', sans-serif", fontWeight: 600, fontSize: "14px", cursor: "pointer", transition: "all 0.2s ease" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                    onClick={() => scrollTo("contact")}
+                  >
+                    Book a Demo
+                  </button>
+                </div>
               </div>
             </div>
           </RevealSection>
