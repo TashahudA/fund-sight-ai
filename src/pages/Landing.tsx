@@ -535,9 +535,6 @@ export default function Landing() {
             <h2 style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "40px", color: "#111111", letterSpacing: "-0.02em" }}>
               Built for how auditors actually work.
             </h2>
-            <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "15px", color: "#666666", marginTop: "16px", lineHeight: 1.7 }}>
-              Learn more about Auditron's <Link to="/smsf-audit-software" style={{ color: "#111111", textDecoration: "underline", textUnderlineOffset: "3px" }}>SMSF audit software</Link>.
-            </p>
           </RevealSection>
 
           {features.map((feat, i) => {
@@ -861,6 +858,22 @@ export default function Landing() {
 
       {/* ==== FOOTER ==== */}
       <footer style={{ background: "#0a0a0a", borderTop: "1px solid #1a1a1a", padding: "48px 32px" }}>
+        <div className="mx-auto" style={{ maxWidth: "1100px", marginBottom: "20px", textAlign: "center" }}>
+          <Link
+            to="/smsf-audit-software"
+            style={{
+              fontFamily: "'Open Sans', sans-serif",
+              fontSize: "13px",
+              color: "#888888",
+              textDecoration: "underline",
+              textUnderlineOffset: "3px",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#bbbbbb"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "#888888"; }}
+          >
+            Learn more about Auditron's SMSF audit software
+          </Link>
+        </div>
         <div className="mx-auto" style={{ maxWidth: "1100px", marginBottom: "24px" }}>
           <p style={{
             fontFamily: "'Open Sans', sans-serif",
