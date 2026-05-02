@@ -542,7 +542,7 @@ export default function SmsfAuditSoftware() {
               Built for Registered SMSF Auditors
             </h2>
             <p style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 400, fontSize: "17px", color: "#666666", lineHeight: 1.8, textAlign: "left" }}>
-              Auditron is used by registered SMSF auditors across Australia. Solo practitioners running under 100 funds a year. Mid size audit firms processing 500 or more. Any auditor spending hours on document review, manual reconciliation and RFI writing can hand that work to Auditron and focus on review and sign off.
+              Built for registered SMSF auditors who want their time back. From solo practitioners running 50 funds a year to firms processing thousands. Auditron handles the work that used to take hours per audit. Document review, figure reconciliation, compliance checking, RFI drafting, working paper preparation. All done before you open the file. You walk in, review the findings, make the calls, sign off. The audit is ready. You stay in control.
             </p>
           </RevealSection>
         </div>
