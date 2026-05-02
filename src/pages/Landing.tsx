@@ -121,6 +121,10 @@ const navLinks = [
   { label: "FAQ", id: "faq" },
 ];
 
+const navExternalLinks = [
+  { label: "SMSF Audit Software", to: "/smsf-audit-software" },
+];
+
 /* ------------------------------------------------------------------ */
 /*  Main Landing Page                                                  */
 /* ------------------------------------------------------------------ */

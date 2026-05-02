@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { TopNav } from "@/components/TopNav";
 import Landing from "@/pages/Landing";
+import SmsfAuditSoftware from "@/pages/SmsfAuditSoftware";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import Dashboard from "@/pages/Dashboard";
@@ -26,6 +27,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/smsf-audit-software" element={<SmsfAuditSoftware />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/login" element={<Login />} />
