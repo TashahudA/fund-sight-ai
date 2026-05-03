@@ -1354,7 +1354,39 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   // V2 payload (__type: "WORKPAPER_JSON_V2") adds wp.materiality. Absent on V1 — handled gracefully.
   const materiality = wp.materiality ?? null;
 
-  const opC = opinionColorDocx(opinion.overall ?? "");
+  // ── Local colour palette for Thornbury layout ─────────────────────────────
+  const PASS_GREEN = "2E7D32";
+  const FAIL_RED = "C62828";
+  const INFO_AMBER = "E65100";
+  const REVIEW_NAVY = NAVY;
+  const REFER_PURPLE = "6A1B9A";
+  const RISK_HIGH = "C62828";
+  const RISK_MED = "E65100";
+  const RISK_LOW = "2E7D32";
+  const BAD_RED_BG = "FBE9E7";
+
+  const fmt$ = (n: any) => `$${Number(n ?? 0).toLocaleString()}`;
+  const opinionStr = String(opinion?.overall ?? "PENDING").toUpperCase();
+  const opinionLower = opinionStr.toLowerCase();
+  const isQualifiedOrAdverse =
+    opinionLower.includes("qualified") || opinionLower.includes("adverse") || opinionLower.includes("disclaim");
+
+  const resultBadge = (status: string): { label: string; color: string } => {
+    const s = (status ?? "").toLowerCase();
+    if (s === "pass") return { label: "PASS", color: PASS_GREEN };
+    if (s === "fail") return { label: "FAIL", color: FAIL_RED };
+    if (s === "needs_info") return { label: "INFO REQ", color: INFO_AMBER };
+    if (s === "pass_with_review") return { label: "REVIEW", color: REVIEW_NAVY };
+    if (s === "refer_to_auditor") return { label: "REFER", color: REFER_PURPLE };
+    return { label: "N/A", color: DGRAY };
+  };
+  const riskBadge = (risk: string): { label: string; color: string } => {
+    const r = (risk ?? "MEDIUM").toUpperCase();
+    if (r === "HIGH") return { label: "HIGH", color: RISK_HIGH };
+    if (r === "LOW") return { label: "LOW", color: RISK_LOW };
+    return { label: "MEDIUM", color: RISK_MED };
+  };
+
   const children: any[] = [];
 
   // ── COVER ──────────────────────────────────────────────────────────────────
@@ -1367,27 +1399,42 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
           tc(
             [
               p(
-                [t("AUDIT WORKING PAPERS", { bold: true, size: 40, color: WHITE })],
+                [t(meta.fundName ?? "", { bold: true, size: 44, color: WHITE })],
                 { before: 0, after: 80 },
-                AlignmentType.CENTER,
+                AlignmentType.LEFT,
               ),
-              p([t(meta.fundName, { size: 28, color: "B8D4E8" })], { before: 0, after: 60 }, AlignmentType.CENTER),
               p(
-                [t(`Year ended 30 June ${meta.financialYear}`, { size: 20, color: "8BADC4" })],
+                [t("AUDIT WORKING PAPERS", { bold: true, size: 24, color: "B8D4E8" })],
+                { before: 0, after: 160 },
+                AlignmentType.LEFT,
+              ),
+              p(
+                [t(`Year ended 30 June ${meta.financialYear ?? ""}`, { size: 20, color: WHITE })],
+                { before: 0, after: 40 },
+              ),
+              p(
+                [t(`ABN ${meta.fundABN ?? "—"}`, { size: 20, color: WHITE })],
+                { before: 0, after: 40 },
+              ),
+              p(
+                [t(`Prepared: ${meta.preparedDate ?? "—"}`, { size: 20, color: WHITE })],
+                { before: 0, after: 40 },
+              ),
+              p(
+                [t(`Standard: ${meta.standard ?? "ASA 230 / GS 009 / ASAE 3100"}`, { size: 20, color: WHITE })],
                 { before: 0, after: 0 },
-                AlignmentType.CENTER,
               ),
             ],
             9360,
-            { bord: NB(), bg: NAVY, m: { top: 280, bottom: 280, left: 300, right: 300 } },
+            { bord: NB(), bg: NAVY, m: { top: 320, bottom: 320, left: 320, right: 320 } },
           ),
         ]),
       ],
     }),
   );
-  children.push(gap(200));
+  children.push(gap(160));
 
-  // Cover 2-col: fund details | opinion
+  // Cover 2-col: Fund Details | Audit Opinion Summary
   children.push(
     new Table({
       width: { size: 9360, type: WidthType.DXA },
@@ -1396,23 +1443,26 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
         tr([
           tc(
             [
-              p([t("Fund Details", { bold: true, size: 19, color: NAVY })], { before: 0, after: 100 }),
-              p([t("ABN:  ", { bold: true, size: 18 }), t(meta.fundABN, { size: 18 })], { before: 0, after: 40 }),
-              p(
-                [
-                  t("Financial Year:  ", { bold: true, size: 18 }),
-                  t(`Year ended 30 June ${meta.financialYear}`, { size: 18 }),
-                ],
-                { before: 0, after: 40 },
-              ),
-              p([t("Prepared:  ", { bold: true, size: 18 }), t(meta.preparedDate, { size: 18 })], {
+              p([t("Fund Details", { bold: true, size: 20, color: NAVY })], { before: 0, after: 120 }),
+              p([t("ABN:  ", { bold: true, size: 18 }), t(String(meta.fundABN ?? "—"), { size: 18 })], {
                 before: 0,
-                after: 40,
+                after: 60,
               }),
               p(
                 [
+                  t("Financial Year:  ", { bold: true, size: 18 }),
+                  t(`Year ended 30 June ${meta.financialYear ?? ""}`, { size: 18 }),
+                ],
+                { before: 0, after: 60 },
+              ),
+              p(
+                [t("Prepared:  ", { bold: true, size: 18 }), t(String(meta.preparedDate ?? "—"), { size: 18 })],
+                { before: 0, after: 60 },
+              ),
+              p(
+                [
                   t("Standard:  ", { bold: true, size: 18 }),
-                  t(meta.standard || "ASA 230 / GS 009 / ASAE 3100", { size: 18 }),
+                  t(String(meta.standard ?? "ASA 230 / GS 009 / ASAE 3100"), { size: 18 }),
                 ],
                 { before: 0, after: 0 },
               ),
@@ -1422,81 +1472,168 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
           ),
           tc(
             [
-              p([t("Audit Opinion Summary", { bold: true, size: 19, color: NAVY })], { before: 0, after: 100 }),
+              p([t("Audit Opinion Summary", { bold: true, size: 20, color: NAVY })], { before: 0, after: 120 }),
+              p([t(`Overall: ${opinionStr}`, { bold: true, size: 20, color: NAVY })], { before: 0, after: 100 }),
               p(
-                [
-                  t("Overall:  ", { bold: true, size: 18 }),
-                  t(opinion.overall.toUpperCase(), { bold: true, size: 18, color: opC.text }),
-                ],
-                { before: 0, after: 80 },
+                [t(opinion?.reasoning || "Opinion pending.", { size: 17, italic: true, color: MGRAY })],
+                { before: 0, after: 0 },
               ),
-              p([t(opinion.reasoning || "Opinion pending.", { size: 17, italic: true, color: MGRAY })], {
-                before: 0,
-                after: 0,
-              }),
             ],
             4680,
-            { bg: opC.bg, bord: B(BORDER) },
+            { bg: LGRAY },
           ),
         ]),
       ],
     }),
   );
 
-  // ── PART A ─────────────────────────────────────────────────────────────────
-  children.push(new Paragraph({ children: [new PageBreak()] }));
-  // ── SECTION M — Materiality (V2 only; skipped if absent) ──────────────────
+  // ── SECTION M — Materiality (only if present) ─────────────────────────────
   if (materiality) {
+    children.push(new Paragraph({ children: [new PageBreak()] }));
     children.push(sectionDiv("M", "Materiality Determination (ASA 320 / GS 009)"));
     children.push(gap(120));
     const matRows: Array<[string, string]> = [
       ["Benchmark", "Total assets (GS 009 — primary measure of SMSF fund size)"],
       [
-        "Benchmark value",
-        materiality.benchmark_value != null
-          ? `$${Number(materiality.benchmark_value).toLocaleString()}`
-          : "Per financial statements",
+        "Benchmark Value",
+        materiality.benchmark_value != null ? fmt$(materiality.benchmark_value) : "Per financial statements",
       ],
-      ["Overall materiality (2%)", `$${Number(materiality.overall ?? 0).toLocaleString()}`],
-      ["Performance materiality (75%)", `$${Number(materiality.performance ?? 0).toLocaleString()}`],
-      ["Clearly trivial threshold (5%)", `$${Number(materiality.trivial ?? 0).toLocaleString()}`],
+      ["Overall Materiality (2%)", fmt$(materiality.overall)],
+      ["Performance Materiality (75%)", fmt$(materiality.performance)],
+      ["Clearly Trivial (5%)", fmt$(materiality.trivial)],
     ];
     children.push(
       new Table({
         width: { size: 9360, type: WidthType.DXA },
         columnWidths: [3600, 5760],
-        rows: matRows.map(([lbl, val]) =>
-          tr([
-            tc(p([t(lbl, { bold: true, size: 18 })], { before: 0, after: 0 }), 3600, { bg: LGRAY }),
-            tc(p([t(val, { size: 18 })], { before: 0, after: 0 }), 5760, { bg: LGRAY }),
-          ]),
-        ),
+        rows: matRows.map(([lbl, val], i) => {
+          const bg = i % 2 === 0 ? WHITE : LGRAY;
+          return tr([
+            tc(p([t(lbl, { bold: true, size: 18 })], { before: 0, after: 0 }), 3600, { bg }),
+            tc(p([t(val, { size: 18 })], { before: 0, after: 0 }), 5760, { bg }),
+          ]);
+        }),
       }),
     );
-    const trivialStr = `$${Number(materiality.trivial ?? 0).toLocaleString()}`;
     children.push(
       p(
         [
           t(
-            `Differences below ${trivialStr} will not be reported unless indicative of fraud or systematic error. (ASA 450)`,
+            `Differences below ${fmt$(materiality.trivial)} will not be reported unless indicative of fraud or systematic error. (ASA 450)`,
             { size: 17, italic: true, color: MGRAY },
           ),
         ],
-        { before: 100, after: 120 },
+        { before: 100, after: 0 },
       ),
     );
-    children.push(new Paragraph({ children: [new PageBreak()] }));
   }
-  children.push(sectionDiv("A", "Part A — Financial Audit Working Papers  (ASA 330 / GS 009 Part A)"));
-  children.push(gap(120));
+
+  // ── Helpers for finding rows ──────────────────────────────────────────────
+  const findingHeaderRow = () => {
+    const cols: [string, number][] = [
+      ["Ref", 900],
+      ["Audit Area", 1500],
+      ["Risk", 800],
+      ["Result", 900],
+      ["Key Figures", 1300],
+      ["Procedure & Evidence", 2660],
+      ["Reviewer", 1300],
+    ];
+    return tr(
+      cols.map(([h, w]) =>
+        tc(p([t(h, { bold: true, size: 16, color: WHITE })]), w, {
+          bord: B(NAVY),
+          bg: NAVY,
+          m: { top: 60, bottom: 60, left: 100, right: 60 },
+        }),
+      ),
+    );
+  };
+
+  const findingRow = (f: any, idx: number, partLetter: "A" | "B") => {
+    const wpRef = `WP-${partLetter}${idx + 1 < 10 ? "0" : ""}${idx + 1}`;
+    const rb = riskBadge(f.risk_level);
+    const sb = resultBadge(f.status);
+    const bg = idx % 2 === 0 ? WHITE : LGRAY;
+
+    // Procedure & Evidence cell
+    const procText =
+      Array.isArray(f.procedures) && f.procedures.length
+        ? f.procedures
+            .map((s: any) => String(s).trim().replace(/\.$/, ""))
+            .filter(Boolean)
+            .join(". ") + "."
+        : "Procedures to be completed by auditor.";
+    const evidenceText =
+      Array.isArray(f.evidence) && f.evidence.length
+        ? f.evidence.map((s: any) => String(s).trim()).filter(Boolean).join("; ")
+        : "—";
+
+    const procParas: Paragraph[] = [
+      p([t(procText, { size: 16 })], { before: 0, after: 60 }),
+      p(
+        [t("Evidence: ", { bold: true, size: 16 }), t(evidenceText, { size: 16 })],
+        { before: 0, after: 0 },
+      ),
+    ];
+    if (f.auditor_override_note && String(f.auditor_override_note).trim()) {
+      procParas.push(
+        p(
+          [t(`⚑ Override: ${f.auditor_override_note}`, { size: 16, italic: true, color: INFO_AMBER })],
+          { before: 80, after: 0 },
+        ),
+      );
+    }
+    if (f.rfi_resolution_note && String(f.rfi_resolution_note).trim()) {
+      procParas.push(
+        p(
+          [t(`✓ RFI Resolved: ${f.rfi_resolution_note}`, { size: 16, italic: true, color: PASS_GREEN })],
+          { before: 80, after: 0 },
+        ),
+      );
+    }
+
+    // Reviewer cell
+    const reviewerParas: Paragraph[] =
+      f.reviewedBy || f.reviewedAt
+        ? [
+            p([t(String(f.reviewedBy ?? "—"), { size: 16, bold: true })], { before: 0, after: 40 }),
+            p([t(String(f.reviewedAt ?? "—"), { size: 15, color: MGRAY })], { before: 0, after: 0 }),
+          ]
+        : [
+            p([t("Reviewed by:", { size: 14, color: MGRAY })], { before: 0, after: 30 }),
+            p([t("___________", { size: 15 })], { before: 0, after: 40 }),
+            p([t("Date:", { size: 14, color: MGRAY })], { before: 0, after: 30 }),
+            p([t("___________", { size: 15 })], { before: 0, after: 0 }),
+          ];
+
+    return tr([
+      tc(
+        [
+          p([t(wpRef, { bold: true, size: 16, color: NAVY })], { before: 0, after: 30 }),
+          p([t(String(f.reference ?? "—"), { size: 14, italic: true, color: MGRAY })], { before: 0, after: 0 }),
+        ],
+        900,
+        { bg },
+      ),
+      tc(p([t(String(f.area ?? "—"), { bold: true, size: 16 })]), 1500, { bg }),
+      tc(p([t(rb.label, { bold: true, size: 16, color: rb.color })]), 800, { bg }),
+      tc(p([t(sb.label, { bold: true, size: 16, color: sb.color })]), 900, { bg }),
+      tc(p([t(String(f.key_figures ?? ""), { size: 15 })]), 1300, { bg }),
+      tc(procParas, 2660, { bg }),
+      tc(reviewerParas, 1300, { bg }),
+    ]);
+  };
+
+  // ── SECTION A — Part A ─────────────────────────────────────────────────────
+  children.push(new Paragraph({ children: [new PageBreak()] }));
+  children.push(sectionDiv("A", "Part A — Financial Audit  (ASA 330 / GS 009 Part A)"));
+  children.push(gap(80));
   children.push(
     p(
       [
-        t("Objective: ", { bold: true, size: 17 }),
         t(
-          "Obtain sufficient appropriate audit evidence to form an opinion on the financial report (ASA 500). " +
-            "Each area documents assertions tested, procedures performed, evidence obtained, exceptions, and the auditor's conclusion " +
-            "to satisfy the reperformance test under ASA 230 para 8.",
+          "Objective: Obtain sufficient appropriate audit evidence to form an opinion on the financial report (ASA 500). Each row documents the area tested, risk assessment, procedures performed, evidence obtained, and the auditor's reviewer sign-off.",
           { size: 17, italic: true, color: MGRAY },
         ),
       ],
@@ -1504,27 +1641,102 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
     ),
   );
 
-  if (!partAFindings.length) {
-    children.push(
-      p([t("No Part A findings recorded.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
+  const partAColWidths = [900, 1500, 800, 900, 1300, 2660, 1300];
+  const partARows: TableRow[] = [findingHeaderRow()];
+  if (!partAFindings?.length) {
+    partARows.push(
+      tr([
+        tc(
+          p([t("No Part A findings recorded.", { size: 17, italic: true, color: MGRAY })]),
+          9360,
+          { span: 7, bg: WHITE },
+        ),
+      ]),
     );
   } else {
     for (let i = 0; i < partAFindings.length; i++) {
-      children.push(...findingBlock(partAFindings[i], i));
+      partARows.push(findingRow(partAFindings[i], i, "A"));
     }
   }
 
-  // ── PART B ─────────────────────────────────────────────────────────────────
+  // Asset Verification / Lead Schedule
+  const assetVerification = wp?._workings?.asset_verification;
+  const avHeaderCols: [string, number][] = [
+    ["Asset", 1700],
+    ["FS Value", 1300],
+    ["Source Doc", 1700],
+    ["Source Value", 1300],
+    ["Variance", 1300],
+    ["Status", 1160],
+  ];
+  const avSubTable =
+    Array.isArray(assetVerification) && assetVerification.length
+      ? new Table({
+          width: { size: 8460, type: WidthType.DXA },
+          columnWidths: avHeaderCols.map(([, w]) => w),
+          rows: [
+            tr(
+              avHeaderCols.map(([h, w]) =>
+                tc(p([t(h, { bold: true, size: 15, color: WHITE })]), w, {
+                  bord: B(NAVY),
+                  bg: NAVY,
+                  m: { top: 50, bottom: 50, left: 80, right: 50 },
+                }),
+              ),
+            ),
+            ...assetVerification.map((row: any, i: number) => {
+              const bg = i % 2 === 0 ? WHITE : LGRAY;
+              return tr([
+                tc(p([t(String(row.asset ?? "—"), { size: 15 })]), 1700, { bg }),
+                tc(p([t(String(row.fs_value ?? "—"), { size: 15 })]), 1300, { bg }),
+                tc(p([t(String(row.source_doc ?? "—"), { size: 15 })]), 1700, { bg }),
+                tc(p([t(String(row.source_value ?? "—"), { size: 15 })]), 1300, { bg }),
+                tc(p([t(String(row.variance ?? "—"), { size: 15 })]), 1300, { bg }),
+                tc(p([t(String(row.status ?? "—"), { bold: true, size: 15 })]), 1160, { bg }),
+              ]);
+            }),
+          ],
+        })
+      : null;
+
+  partARows.push(
+    tr([
+      tc(
+        [
+          p([t("Asset Verification / Lead Schedule", { bold: true, size: 17, color: NAVY })], {
+            before: 0,
+            after: 80,
+          }),
+          avSubTable
+            ? avSubTable
+            : p(
+                [t("Asset verification not available — auditor to complete.", { size: 16, italic: true, color: MGRAY })],
+                { before: 0, after: 0 },
+              ),
+        ],
+        9360,
+        { span: 7, bg: LGRAY },
+      ),
+    ]),
+  );
+
+  children.push(
+    new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: partAColWidths,
+      rows: partARows,
+    }),
+  );
+
+  // ── SECTION B — Part B ─────────────────────────────────────────────────────
   children.push(new Paragraph({ children: [new PageBreak()] }));
-  children.push(sectionDiv("B", "Part B — Compliance Engagement Working Papers  (ASAE 3100 / GS 009 Part B)"));
-  children.push(gap(120));
+  children.push(sectionDiv("B", "Part B — Compliance Engagement  (ASAE 3100 / GS 009 Part B)"));
+  children.push(gap(80));
   children.push(
     p(
       [
-        t("Objective: ", { bold: true, size: 17 }),
         t(
-          "Obtain sufficient appropriate evidence to conclude on compliance with SISA/SISR provisions specified in NAT 11466. " +
-            "Each area documents the specific provision tested, procedures, evidence, exceptions, and conclusion.",
+          "Objective: Obtain sufficient appropriate evidence to conclude on compliance with SISA/SISR provisions specified in NAT 11466. Each row documents the provision tested, risk, procedures, evidence, and reviewer sign-off.",
           { size: 17, italic: true, color: MGRAY },
         ),
       ],
@@ -1532,15 +1744,29 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
     ),
   );
 
-  if (!partBFindings.length) {
-    children.push(
-      p([t("No Part B findings recorded.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
+  const partBRows: TableRow[] = [findingHeaderRow()];
+  if (!partBFindings?.length) {
+    partBRows.push(
+      tr([
+        tc(
+          p([t("No Part B findings recorded.", { size: 17, italic: true, color: MGRAY })]),
+          9360,
+          { span: 7, bg: WHITE },
+        ),
+      ]),
     );
   } else {
     for (let i = 0; i < partBFindings.length; i++) {
-      children.push(...findingBlock(partBFindings[i], i));
+      partBRows.push(findingRow(partBFindings[i], i, "B"));
     }
   }
+  children.push(
+    new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: partAColWidths,
+      rows: partBRows,
+    }),
+  );
 
   // ── SECTION C — Deterministic ──────────────────────────────────────────────
   children.push(new Paragraph({ children: [new PageBreak()] }));
@@ -1558,7 +1784,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
       { before: 0, after: 120 },
     ),
   );
-  for (const line of deterministicBlock.split("\n")) {
+  for (const line of String(deterministicBlock ?? "").split("\n")) {
     const trimmed = line.trim();
     if (!trimmed) {
       children.push(gap(40));
@@ -1566,16 +1792,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
     }
     const isBold = /PASS|FAIL|BREACH|MATERIALITY/.test(trimmed);
     children.push(
-      p(
-        [
-          t(trimmed, {
-            size: 18,
-            bold: isBold,
-            color: DGRAY,
-          }),
-        ],
-        { before: 0, after: 40 },
-      ),
+      p([t(trimmed, { size: 18, bold: isBold, color: DGRAY })], { before: 0, after: 40 }),
     );
   }
 
@@ -1583,13 +1800,34 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   children.push(gap(160));
   children.push(sectionDiv("D", "Contraventions Register  (s129/s130 SISA)"));
   children.push(gap(100));
-  // Section D: contraventions[] is the single source of truth.
-  // Railway guarantees this array is populated whenever opinion_part_b is qualified.
-  // "No contraventions identified." is only shown when the array is genuinely empty.
-  if (!contraventions.length) {
-    children.push(
-      p([t("No contraventions identified.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
-    );
+  if (!contraventions?.length) {
+    if (isQualifiedOrAdverse) {
+      children.push(
+        new Table({
+          width: { size: 9360, type: WidthType.DXA },
+          columnWidths: [9360],
+          rows: [
+            tr([
+              tc(
+                p([
+                  t("Contraventions register inconsistent with opinion — auditor review required.", {
+                    bold: true,
+                    size: 18,
+                    color: FAIL_RED,
+                  }),
+                ]),
+                9360,
+                { bg: BAD_RED_BG, bord: B(FAIL_RED) },
+              ),
+            ]),
+          ],
+        }),
+      );
+    } else {
+      children.push(
+        p([t("No contraventions identified.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }),
+      );
+    }
   } else {
     children.push(
       new Table({
@@ -1603,7 +1841,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                 ["SIS Section", 1400],
                 ["Area", 1600],
                 ["Severity", 1200],
-                ["Details", 4760],
+                ["Description", 4760],
               ] as [string, number][]
             ).map(([h, w]) =>
               tc(p([t(h, { bold: true, size: 17, color: WHITE })]), w, {
@@ -1617,10 +1855,14 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
             const bg = i % 2 === 0 ? WHITE : LGRAY;
             return tr([
               tc(p([t(`${i + 1}`, { bold: true, size: 18 })]), 400, { bg }),
-              tc(p([t(c.section, { size: 17, bold: true, color: NAVY })]), 1400, { bg }),
-              tc(p([t(c.area, { size: 17 })]), 1600, { bg }),
-              tc(p([t(c.severity.toUpperCase(), { bold: true, size: 17, color: DGRAY })]), 1200, { bg }),
-              tc(p([t(c.description, { size: 17 })]), 4760, { bg }),
+              tc(p([t(String(c.section ?? "—"), { size: 17, bold: true, color: NAVY })]), 1400, { bg }),
+              tc(p([t(String(c.area ?? "—"), { size: 17 })]), 1600, { bg }),
+              tc(
+                p([t(String(c.severity ?? "—").toUpperCase(), { bold: true, size: 17, color: DGRAY })]),
+                1200,
+                { bg },
+              ),
+              tc(p([t(String(c.description ?? "—"), { size: 17 })]), 4760, { bg }),
             ]);
           }),
         ],
@@ -1632,21 +1874,29 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   children.push(gap(160));
   children.push(sectionDiv("E", "Requests for Information (RFIs)"));
   children.push(gap(100));
-  if (!rfis.length) {
+  if (!rfis?.length) {
     children.push(p([t("No RFIs raised.", { size: 18, italic: true, color: MGRAY })], { before: 0, after: 0 }));
   } else {
+    const isOpen = (s: any) => {
+      const v = String(s ?? "").toLowerCase();
+      return !(v.includes("resolved") || v.includes("closed") || v.includes("complete"));
+    };
+    const sortedRfis = [...rfis].sort((a: any, b: any) => Number(isOpen(b.status)) - Number(isOpen(a.status)));
+    const total = rfis.length;
+    const resolved = rfis.filter((r: any) => !isOpen(r.status)).length;
+
     children.push(
       new Table({
         width: { size: 9360, type: WidthType.DXA },
-        columnWidths: [400, 900, 4860, 1800, 1400],
+        columnWidths: [400, 900, 1800, 4860, 1400],
         rows: [
           tr(
             (
               [
                 ["#", 400],
                 ["Priority", 900],
-                ["Request", 4860],
                 ["Title", 1800],
+                ["Description", 4860],
                 ["Status", 1400],
               ] as [string, number][]
             ).map(([h, w]) =>
@@ -1657,22 +1907,28 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               }),
             ),
           ),
-          ...rfis.map((r: any, i: number) => {
+          ...sortedRfis.map((r: any, i: number) => {
             const bg = i % 2 === 0 ? WHITE : LGRAY;
             return tr([
               tc(p([t(`${i + 1}`, { bold: true, size: 18 })]), 400, { bg }),
-              tc(p([t(r.priority, { bold: true, size: 17, color: DGRAY })]), 900, { bg }),
-              tc(p([t(r.description, { size: 17 })]), 4860, { bg }),
-              tc(p([t(r.title, { bold: true, size: 17, color: NAVY })]), 1800, { bg }),
-              tc(p([t(r.status, { bold: true, size: 17, color: DGRAY })]), 1400, { bg }),
+              tc(p([t(String(r.priority ?? "—"), { bold: true, size: 17, color: DGRAY })]), 900, { bg }),
+              tc(p([t(String(r.title ?? "—"), { bold: true, size: 17, color: NAVY })]), 1800, { bg }),
+              tc(p([t(String(r.description ?? "—"), { size: 17 })]), 4860, { bg }),
+              tc(p([t(String(r.status ?? "—"), { bold: true, size: 17, color: DGRAY })]), 1400, { bg }),
             ]);
           }),
         ],
       }),
     );
+    children.push(
+      p(
+        [t(`${resolved} of ${total} RFIs resolved at file completion.`, { size: 17, italic: true, color: MGRAY })],
+        { before: 100, after: 0 },
+      ),
+    );
   }
 
-  // ── SECTION F — Opinion ────────────────────────────────────────────────────
+  // ── SECTION F — Audit Opinion ──────────────────────────────────────────────
   children.push(new Paragraph({ children: [new PageBreak()] }));
   children.push(sectionDiv("F", "Audit Opinion  (NAT 11466)"));
   children.push(gap(140));
@@ -1684,24 +1940,24 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
         tr([
           tc(
             [
-              p(
-                [
-                  t("Overall Opinion:  ", { bold: true, size: 21 }),
-                  t(opinion.overall.toUpperCase(), { bold: true, size: 21, color: opC.text }),
-                ],
-                { before: 0, after: 100 },
-              ),
-              p([t(opinion.reasoning || "Opinion reasoning pending.", { size: 18 })], { before: 0, after: 0 }),
+              p([t(`Overall Opinion: ${opinionStr}`, { bold: true, size: 26, color: NAVY })], {
+                before: 0,
+                after: 140,
+              }),
+              p([t(opinion?.reasoning || "Opinion reasoning pending.", { size: 18, color: DGRAY })], {
+                before: 0,
+                after: 0,
+              }),
             ],
             9360,
-            { bg: opC.bg, bord: B(opC.text) },
+            { bg: LGRAY, bord: B(BORDER) },
           ),
         ]),
       ],
     }),
   );
 
-  // ── SECTION G — Sign-Off ───────────────────────────────────────────────────
+  // ── SECTION G — Auditor Sign-Off ───────────────────────────────────────────
   children.push(new Paragraph({ children: [new PageBreak()] }));
   children.push(sectionDiv("G", "Auditor Sign-Off  (ASA 230 / APES 110)"));
   children.push(gap(140));
@@ -1730,7 +1986,6 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                     spacing: { before: 40, after: 40 },
                   }),
               ),
-              // Independence statement (APES 110)
               p(
                 [
                   t(
@@ -1756,8 +2011,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               p(
                 [
                   t(
-                    "Working papers must be retained for a minimum of 7 years from the date of signing, " +
-                      "in accordance with ASIC requirements and ASA 230.",
+                    "Working papers must be retained for a minimum of 7 years from the date of signing, in accordance with ASIC requirements and ASA 230.",
                     { size: 17, italic: true, color: MGRAY },
                   ),
                 ],
@@ -1766,9 +2020,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               p(
                 [
                   t(
-                    "An experienced auditor with no prior connection to this engagement should be able to understand, " +
-                      "from these working papers alone, the nature, timing and extent of audit procedures performed, " +
-                      "evidence obtained, and conclusions reached (ASA 230 para 8).",
+                    "An experienced auditor with no prior connection to this engagement should be able to understand, from these working papers alone, the nature, timing and extent of audit procedures performed, evidence obtained, and conclusions reached (ASA 230 para 8).",
                     { size: 17, color: MGRAY },
                   ),
                 ],
