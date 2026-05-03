@@ -257,7 +257,7 @@ export default function Privacy() {
 
       <footer style={{ background: "#0a0a0a", borderTop: "1px solid #1a1a1a", padding: "32px" }}>
         <div className="mx-auto flex flex-col md:flex-row items-center justify-between gap-4" style={{ maxWidth: "1100px" }}>
-          <span style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "13px", color: "#555555" }}>© 2026 Auditron. All rights reserved.</span>
+          <span style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "13px", color: "#555555" }}>© 2026 Auditron Australia. All rights reserved.</span>
           <Link to="/" style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "13px", color: "#555555", textDecoration: "none" }}>Home</Link>
         </div>
       </footer>
