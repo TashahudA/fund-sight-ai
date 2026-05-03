@@ -167,9 +167,9 @@ const sections: { heading: string; paragraphs: string[] }[] = [
     paragraphs: [
       "14.1 If you have any questions about this Privacy Policy, wish to exercise any right under it, or wish to make a privacy complaint, you may contact our Privacy Officer using the details below.",
       "14.2 Privacy Officer, Auditron",
-      "(a) Entity: Orkid Puri Pty Ltd (ABN 48 617 154 819) trading as Auditron",
+      "(a) Entity: Tashahud Ahmed (ABN 87 940 664 626) trading as Auditron Australia",
       "(b) Email: privacy@auditron.com.au",
-      "(c) Postal address: South Australia, Australia (full postal address available on request)",
+      "(c) Postal address: Melbourne, Victoria, Australia (full postal address available on request)",
       "14.3 External oversight. The Office of the Australian Information Commissioner is the independent regulator responsible for privacy in Australia. You may contact the OAIC at:",
       "(a) Website: www.oaic.gov.au",
       "(b) Phone: 1300 363 992",
@@ -217,14 +217,14 @@ export default function Privacy() {
           Privacy Policy
         </h2>
         <p style={{ ...bodyStyle, textAlign: "center", color: "#555555" }}>
-          Orkid Puri Pty Ltd (ABN 48 617 154 819) trading as Auditron
+          Tashahud Ahmed (ABN 87 940 664 626) trading as Auditron Australia
         </p>
 
         <p style={{ ...bodyStyle, marginTop: "32px" }}>
-          This Privacy Policy explains how Orkid Puri Pty Ltd (ABN 48 617 154 819) trading as Auditron ("Auditron", "we", "us", or "our") collects, holds, uses, discloses, secures, and disposes of personal information in connection with the Auditron platform (the "Service").
+          This Privacy Policy explains how Tashahud Ahmed (ABN 87 940 664 626) trading as Auditron Australia ("Auditron", "Auditron Australia", "we", "us", or "our") collects, holds, uses, discloses, secures, and disposes of personal information in connection with the Auditron platform (the "Service").
         </p>
         <p style={bodyStyle}>
-          Auditron is an Australian company with its registered office in South Australia. We are bound by the Privacy Act 1988 (Cth) ("Privacy Act") and the thirteen Australian Privacy Principles ("APPs") set out in Schedule 1 to that Act. This Privacy Policy is published in compliance with APP 1.3.
+          Auditron is operated from Melbourne, Victoria, Australia. We are bound by the Privacy Act 1988 (Cth) ("Privacy Act") and the thirteen Australian Privacy Principles ("APPs") set out in Schedule 1 to that Act. This Privacy Policy is published in compliance with APP 1.3.
         </p>
         <p style={bodyStyle}>
           This Privacy Policy forms part of the Auditron Terms of Service. Capitalised terms not defined here have the meaning given to them in the Terms of Service. By creating an account, accessing, or using the Service, you confirm that you have read and understood this Privacy Policy.
@@ -248,10 +248,6 @@ export default function Privacy() {
         <h3 style={headingStyle}>Acknowledgement</h3>
         <p style={bodyStyle}>
           By creating an account, accessing, or using the Service, you confirm that you have read this Privacy Policy in full, understood it, and agree to the handling of your personal information as described. Where you upload Client Data, you confirm that you are authorised to do so and that you accept the responsibilities of an independent controller of the personal information contained in that Client Data.
-        </p>
-        <p style={{ ...bodyStyle, marginTop: "32px", color: "#555555" }}>
-          Orkid Puri Pty Ltd trading as Auditron<br />
-          ABN 48 617 154 819 · South Australia, Australia
         </p>
       </main>
 
