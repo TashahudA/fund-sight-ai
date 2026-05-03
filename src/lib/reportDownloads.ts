@@ -1434,11 +1434,10 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   );
   children.push(gap(160));
 
-  // Cover 2-col: Fund Details | Audit Opinion Summary
   children.push(
     new Table({
       width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [4680, 4680],
+      columnWidths: [9360],
       rows: [
         tr([
           tc(
@@ -1467,19 +1466,31 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                 { before: 0, after: 0 },
               ),
             ],
-            4680,
+            9360,
             { bg: LGRAY },
           ),
+        ]),
+      ],
+    }),
+  );
+  children.push(gap(120));
+  // Full-width Opinion Summary so reasoning wraps without clipping
+  children.push(
+    new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: [9360],
+      rows: [
+        tr([
           tc(
             [
               p([t("Audit Opinion Summary", { bold: true, size: 20, color: NAVY })], { before: 0, after: 120 }),
               p([t(`Overall: ${opinionStr}`, { bold: true, size: 20, color: NAVY })], { before: 0, after: 100 }),
               p(
-                [t(opinion?.reasoning || "Opinion pending.", { size: 17, italic: true, color: MGRAY })],
+                [t(String(opinion?.reasoning || "Opinion pending."), { size: 16, italic: true, color: MGRAY })],
                 { before: 0, after: 0 },
               ),
             ],
-            4680,
+            9360,
             { bg: LGRAY },
           ),
         ]),
@@ -1686,13 +1697,26 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
             ),
             ...assetVerification.map((row: any, i: number) => {
               const bg = i % 2 === 0 ? WHITE : LGRAY;
+              const statusUpper = String(row.status ?? "—").toUpperCase();
+              const statusColor =
+                statusUpper === "AGREE"
+                  ? PASS_GREEN
+                  : statusUpper === "VARIANCE"
+                    ? FAIL_RED
+                    : statusUpper === "UNCONFIRMED"
+                      ? INFO_AMBER
+                      : DGRAY;
+              const fmtMoney = (v: any) =>
+                v === null || v === undefined || v === "" || isNaN(Number(v))
+                  ? String(v ?? "—")
+                  : `$${Number(v).toLocaleString()}`;
               return tr([
                 tc(p([t(String(row.asset ?? "—"), { size: 15 })]), 1700, { bg }),
-                tc(p([t(String(row.fs_value ?? "—"), { size: 15 })]), 1300, { bg }),
+                tc(p([t(fmtMoney(row.fs_value), { size: 15 })]), 1300, { bg }),
                 tc(p([t(String(row.source_doc ?? "—"), { size: 15 })]), 1700, { bg }),
-                tc(p([t(String(row.source_value ?? "—"), { size: 15 })]), 1300, { bg }),
-                tc(p([t(String(row.variance ?? "—"), { size: 15 })]), 1300, { bg }),
-                tc(p([t(String(row.status ?? "—"), { bold: true, size: 15 })]), 1160, { bg }),
+                tc(p([t(fmtMoney(row.source_value), { size: 15 })]), 1300, { bg }),
+                tc(p([t(fmtMoney(row.variance), { size: 15 })]), 1300, { bg }),
+                tc(p([t(statusUpper, { bold: true, size: 15, color: statusColor })]), 1160, { bg }),
               ]);
             }),
           ],
@@ -1790,9 +1814,25 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
       children.push(gap(40));
       continue;
     }
-    const isBold = /PASS|FAIL|BREACH|MATERIALITY/.test(trimmed);
+    if (trimmed.includes("===")) {
+      const cleaned = trimmed.replace(/=/g, "").trim();
+      children.push(
+        p([t(cleaned, { size: 18, bold: true, color: NAVY })], { before: 0, after: 40 }),
+      );
+      continue;
+    }
+    if (trimmed.startsWith("--")) {
+      children.push(
+        p([t(trimmed, { size: 18, bold: true, color: DGRAY })], { before: 0, after: 40 }),
+      );
+      continue;
+    }
+    let color = DGRAY;
+    if (/\bOK\b/.test(trimmed)) color = PASS_GREEN;
+    else if (/SHORTFALL|BREACH|CONTRAVENTION/.test(trimmed)) color = FAIL_RED;
+    else if (/WARNING/.test(trimmed)) color = INFO_AMBER;
     children.push(
-      p([t(trimmed, { size: 18, bold: isBold, color: DGRAY })], { before: 0, after: 40 }),
+      p([t(trimmed, { size: 18, color })], { before: 0, after: 40 }),
     );
   }
 
@@ -1881,9 +1921,13 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
       const v = String(s ?? "").toLowerCase();
       return !(v.includes("resolved") || v.includes("closed") || v.includes("complete"));
     };
-    const sortedRfis = [...rfis].sort((a: any, b: any) => Number(isOpen(b.status)) - Number(isOpen(a.status)));
+    const openRfis = rfis.filter((r: any) => isOpen(r.status));
+    const resolvedRfis = rfis.filter((r: any) => !isOpen(r.status));
+    const cappedResolved = resolvedRfis.slice(0, 10);
+    const overflowResolved = Math.max(0, resolvedRfis.length - 10);
+    const sortedRfis = [...openRfis, ...cappedResolved];
     const total = rfis.length;
-    const resolved = rfis.filter((r: any) => !isOpen(r.status)).length;
+    const resolved = resolvedRfis.length;
 
     children.push(
       new Table({
@@ -1917,6 +1961,22 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               tc(p([t(String(r.status ?? "—"), { bold: true, size: 17, color: DGRAY })]), 1400, { bg }),
             ]);
           }),
+          ...(overflowResolved > 0
+            ? [
+                tr([
+                  tc(
+                    p([
+                      t(
+                        `${overflowResolved} additional resolved RFIs on file — full history in audit system.`,
+                        { italic: true, size: 17, color: MGRAY },
+                      ),
+                    ]),
+                    9360,
+                    { span: 5, bg: LGRAY },
+                  ),
+                ]),
+              ]
+            : []),
         ],
       }),
     );
@@ -1944,7 +2004,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                 before: 0,
                 after: 140,
               }),
-              p([t(opinion?.reasoning || "Opinion reasoning pending.", { size: 18, color: DGRAY })], {
+              p([t(String(opinion?.reasoning || "Opinion reasoning pending."), { size: 16, color: DGRAY })], {
                 before: 0,
                 after: 0,
               }),
