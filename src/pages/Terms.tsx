@@ -205,7 +205,7 @@ const sections: { heading: string; paragraphs: string[] }[] = [
   {
     heading: "21. Dispute Resolution and Governing Law",
     paragraphs: [
-      "21.1 These Terms are governed by the laws of the State of South Australia, Australia. Each party submits to the exclusive jurisdiction of the courts of South Australia and the courts of appeal from them.",
+      "21.1 These Terms are governed by the laws of the State of Victoria, Australia. Each party submits to the exclusive jurisdiction of the courts of Victoria and the courts of appeal from them.",
       "21.2 Before commencing any court proceeding (other than for urgent injunctive relief), the parties must attempt in good faith to resolve any dispute by direct negotiation between authorised representatives. If the dispute is not resolved within 30 days of notice, the parties must attempt to resolve it through mediation administered by the Resolution Institute under its Mediation Rules before commencing proceedings.",
       "21.3 Nothing in this clause prevents a party from seeking urgent injunctive or other equitable relief from a court of competent jurisdiction.",
     ],
@@ -269,7 +269,7 @@ export default function Terms() {
         </h2>
 
         <p style={bodyStyle}>
-          These Terms of Service ("Terms") form a legally binding agreement between you ("you", "your", or "User") and Orkid Puri Pty Ltd (ABN 48 617 154 819) trading as Auditron ("Auditron", "we", "us", or "our"), an Australian proprietary limited company with its registered office in South Australia, Australia.
+          These Terms of Service ("Terms") form a legally binding agreement between you ("you", "your", or "User") and Tashahud Ahmed (ABN 87 940 664 626) trading as Auditron Australia ("Auditron", "Auditron Australia", "we", "us", or "our"), based in Melbourne, Victoria, Australia.
         </p>
         <p style={bodyStyle}>
           By creating an account, accessing, or using any part of the Auditron platform (the "Service"), you confirm that you have read, understood, and agreed to be bound by these Terms in their entirety. If you do not agree, you must not access or use the Service.
@@ -293,10 +293,6 @@ export default function Terms() {
         <h3 style={headingStyle}>Acknowledgement</h3>
         <p style={bodyStyle}>
           By ticking the box at signup, creating an account, or accessing the Service, you confirm that you have read these Terms in full, understood them, and agree to be bound by them. You further confirm that, if you use the Service in your capacity as a registered SMSF auditor, you accept that the Service is a tool to assist your work and that all professional responsibility for any audit you sign rests solely and exclusively with you.
-        </p>
-        <p style={{ ...bodyStyle, marginTop: "32px", color: "#555555" }}>
-          Orkid Puri Pty Ltd trading as Auditron<br />
-          ABN 48 617 154 819 · South Australia, Australia
         </p>
       </main>
 
