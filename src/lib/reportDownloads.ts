@@ -1434,11 +1434,10 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
   );
   children.push(gap(160));
 
-  // Cover 2-col: Fund Details | Audit Opinion Summary
   children.push(
     new Table({
       width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [4680, 4680],
+      columnWidths: [9360],
       rows: [
         tr([
           tc(
@@ -1467,19 +1466,31 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                 { before: 0, after: 0 },
               ),
             ],
-            4680,
+            9360,
             { bg: LGRAY },
           ),
+        ]),
+      ],
+    }),
+  );
+  children.push(gap(120));
+  // Full-width Opinion Summary so reasoning wraps without clipping
+  children.push(
+    new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: [9360],
+      rows: [
+        tr([
           tc(
             [
               p([t("Audit Opinion Summary", { bold: true, size: 20, color: NAVY })], { before: 0, after: 120 }),
               p([t(`Overall: ${opinionStr}`, { bold: true, size: 20, color: NAVY })], { before: 0, after: 100 }),
               p(
-                [t(opinion?.reasoning || "Opinion pending.", { size: 17, italic: true, color: MGRAY })],
+                [t(String(opinion?.reasoning || "Opinion pending."), { size: 16, italic: true, color: MGRAY })],
                 { before: 0, after: 0 },
               ),
             ],
-            4680,
+            9360,
             { bg: LGRAY },
           ),
         ]),
