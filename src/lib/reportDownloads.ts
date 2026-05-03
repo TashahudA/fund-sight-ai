@@ -1814,9 +1814,25 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
       children.push(gap(40));
       continue;
     }
-    const isBold = /PASS|FAIL|BREACH|MATERIALITY/.test(trimmed);
+    if (trimmed.includes("===")) {
+      const cleaned = trimmed.replace(/=/g, "").trim();
+      children.push(
+        p([t(cleaned, { size: 18, bold: true, color: NAVY })], { before: 0, after: 40 }),
+      );
+      continue;
+    }
+    if (trimmed.startsWith("--")) {
+      children.push(
+        p([t(trimmed, { size: 18, bold: true, color: DGRAY })], { before: 0, after: 40 }),
+      );
+      continue;
+    }
+    let color = DGRAY;
+    if (/\bOK\b/.test(trimmed)) color = PASS_GREEN;
+    else if (/SHORTFALL|BREACH|CONTRAVENTION/.test(trimmed)) color = FAIL_RED;
+    else if (/WARNING/.test(trimmed)) color = INFO_AMBER;
     children.push(
-      p([t(trimmed, { size: 18, bold: isBold, color: DGRAY })], { before: 0, after: 40 }),
+      p([t(trimmed, { size: 18, color })], { before: 0, after: 40 }),
     );
   }
 
