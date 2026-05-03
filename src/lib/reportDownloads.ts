@@ -2004,7 +2004,7 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
                 before: 0,
                 after: 140,
               }),
-              p([t(opinion?.reasoning || "Opinion reasoning pending.", { size: 18, color: DGRAY })], {
+              p([t(String(opinion?.reasoning || "Opinion reasoning pending."), { size: 16, color: DGRAY })], {
                 before: 0,
                 after: 0,
               }),
