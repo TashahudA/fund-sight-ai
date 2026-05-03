@@ -88,16 +88,6 @@ const PAGE_JSONLD = {
     "applicationCategory": "BusinessApplication",
     "applicationSubCategory": "SMSF Audit Software",
   },
-  "mainEntity": {
-    "@type": "FAQPage",
-    "mainEntity": [
-      { "@type": "Question", "name": "What does SMSF audit software actually do?", "acceptedAnswer": { "@type": "Answer", "text": "SMSF audit software helps registered auditors complete the audit of self managed superannuation funds. Auditron uses AI to read every document, identify compliance issues, raise RFIs, generate working papers and produce the audit opinion automatically." } },
-      { "@type": "Question", "name": "Is Auditron a replacement for a registered auditor?", "acceptedAnswer": { "@type": "Answer", "text": "No. Auditron is software used by registered SMSF auditors. The auditor reviews all findings and provides the final sign off." } },
-      { "@type": "Question", "name": "How is Auditron different from other SMSF audit tools?", "acceptedAnswer": { "@type": "Answer", "text": "Auditron is built on AI from the ground up. It actually reads documents and produces the audit findings, RFIs, working papers and opinion. Other tools are workflow platforms that organise paperwork." } },
-      { "@type": "Question", "name": "What fund types does Auditron handle?", "acceptedAnswer": { "@type": "Answer", "text": "Auditron handles all SMSF fund types including accumulation funds, pension funds, funds with LRBAs, related party transactions, in house assets and complex structures." } },
-      { "@type": "Question", "name": "Is audit data stored in Australia?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. All documents and audit data are hosted on Australian servers. Auditron uses AES-256 encryption in transit and at rest." } },
-    ],
-  },
 };
 
 /* ------------------------------------------------------------------ */
