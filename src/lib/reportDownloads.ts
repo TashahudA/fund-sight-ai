@@ -1697,13 +1697,26 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
             ),
             ...assetVerification.map((row: any, i: number) => {
               const bg = i % 2 === 0 ? WHITE : LGRAY;
+              const statusUpper = String(row.status ?? "—").toUpperCase();
+              const statusColor =
+                statusUpper === "AGREE"
+                  ? PASS_GREEN
+                  : statusUpper === "VARIANCE"
+                    ? FAIL_RED
+                    : statusUpper === "UNCONFIRMED"
+                      ? INFO_AMBER
+                      : DGRAY;
+              const fmtMoney = (v: any) =>
+                v === null || v === undefined || v === "" || isNaN(Number(v))
+                  ? String(v ?? "—")
+                  : `$${Number(v).toLocaleString()}`;
               return tr([
                 tc(p([t(String(row.asset ?? "—"), { size: 15 })]), 1700, { bg }),
-                tc(p([t(String(row.fs_value ?? "—"), { size: 15 })]), 1300, { bg }),
+                tc(p([t(fmtMoney(row.fs_value), { size: 15 })]), 1300, { bg }),
                 tc(p([t(String(row.source_doc ?? "—"), { size: 15 })]), 1700, { bg }),
-                tc(p([t(String(row.source_value ?? "—"), { size: 15 })]), 1300, { bg }),
-                tc(p([t(String(row.variance ?? "—"), { size: 15 })]), 1300, { bg }),
-                tc(p([t(String(row.status ?? "—"), { bold: true, size: 15 })]), 1160, { bg }),
+                tc(p([t(fmtMoney(row.source_value), { size: 15 })]), 1300, { bg }),
+                tc(p([t(fmtMoney(row.variance), { size: 15 })]), 1300, { bg }),
+                tc(p([t(statusUpper, { bold: true, size: 15, color: statusColor })]), 1160, { bg }),
               ]);
             }),
           ],
