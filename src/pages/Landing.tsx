@@ -889,7 +889,7 @@ export default function Landing() {
         <div className="mx-auto flex flex-col md:flex-row items-center justify-between gap-6" style={{ maxWidth: "1100px" }}>
           <div className="flex flex-col items-center md:items-start gap-1">
             <span style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: "16px", color: "#ffffff" }}>Auditron</span>
-            <span style={{ fontSize: "13px", color: "#555555" }}>© 2026 Auditron. All rights reserved.</span>
+            <span style={{ fontSize: "13px", color: "#555555" }}>© 2026 Auditron Australia. All rights reserved.</span>
           </div>
           <div className="flex items-center gap-6">
             {navLinks.map((link) => (
