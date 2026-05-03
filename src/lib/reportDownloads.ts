@@ -1921,9 +1921,13 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
       const v = String(s ?? "").toLowerCase();
       return !(v.includes("resolved") || v.includes("closed") || v.includes("complete"));
     };
-    const sortedRfis = [...rfis].sort((a: any, b: any) => Number(isOpen(b.status)) - Number(isOpen(a.status)));
+    const openRfis = rfis.filter((r: any) => isOpen(r.status));
+    const resolvedRfis = rfis.filter((r: any) => !isOpen(r.status));
+    const cappedResolved = resolvedRfis.slice(0, 10);
+    const overflowResolved = Math.max(0, resolvedRfis.length - 10);
+    const sortedRfis = [...openRfis, ...cappedResolved];
     const total = rfis.length;
-    const resolved = rfis.filter((r: any) => !isOpen(r.status)).length;
+    const resolved = resolvedRfis.length;
 
     children.push(
       new Table({
@@ -1957,6 +1961,22 @@ async function buildWorkpaperDocx(content: string, fileBaseName: string) {
               tc(p([t(String(r.status ?? "—"), { bold: true, size: 17, color: DGRAY })]), 1400, { bg }),
             ]);
           }),
+          ...(overflowResolved > 0
+            ? [
+                tr([
+                  tc(
+                    p([
+                      t(
+                        `${overflowResolved} additional resolved RFIs on file — full history in audit system.`,
+                        { italic: true, size: 17, color: MGRAY },
+                      ),
+                    ]),
+                    9360,
+                    { span: 5, bg: LGRAY },
+                  ),
+                ]),
+              ]
+            : []),
         ],
       }),
     );
